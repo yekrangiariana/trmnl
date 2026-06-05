@@ -63,7 +63,7 @@
       var imageHtml = '';
       if (data.thumbnail && data.thumbnail.source) {
         // Grayscale filter with e-ink grain overlay and no borders
-        imageHtml = '    <div style="flex: 0.9; display: flex; align-items: center; justify-content: center; overflow: hidden; height: 350px; background-color: #ffffff; position: relative;">' +
+        imageHtml = '    <div style="flex: 0.9; display: flex; align-items: center; justify-content: center; overflow: hidden; height: 350px; background-color: var(--card-bg); position: relative;">' +
                     '      <img src="' + data.thumbnail.source + '" alt="Article image" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.4) brightness(0.9); image-rendering: pixelated;">' +
                     '      <div class="trmnl-dither" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.45; pointer-events: none; mix-blend-mode: multiply;"></div>' +
                     '    </div>';

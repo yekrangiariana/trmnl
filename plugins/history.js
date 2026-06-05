@@ -113,7 +113,7 @@
       html += '      </div>';
 
       // Deaths section
-      html += '      <div style="height: 270px; display:flex; flex-direction:column; border-top: 1.5px dashed var(--border-color); padding-top: 6px; overflow:hidden;">';
+      html += '      <div style="height: 270px; display:flex; flex-direction:column; border-top: var(--border-width-thin) dashed var(--border-color); padding-top: 6px; overflow:hidden;">';
       html += '        <h2 class="history-title" style="margin-bottom:4px; font-size: 24px;">Deaths</h2>';
       html += '        <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; overflow:hidden;">';
       displayDeaths.forEach(function(item) {

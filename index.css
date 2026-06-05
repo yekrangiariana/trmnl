@@ -6,8 +6,8 @@
   --bg-color: #f0f0f0; /* Paper cool white/light grey */
   --text-color: #111111; /* Stark black */
   --border-color: #111111;
-  --border-width: 3px;
-  --border-width-thin: 1.5px;
+  --border-width: 2px;
+  --border-width-thin: 1px;
   --card-bg: #ffffff; /* Crisp white */
   --highlight-bg: #d9d9d9; /* Cool medium-light grey */
   
@@ -17,11 +17,11 @@
 }
 
 body.theme-coal {
-  --bg-color: #000000;
-  --text-color: #ffffff;
-  --border-color: #ffffff;
-  --card-bg: #000000;
-  --highlight-bg: #1a1a1a;
+  --bg-color: #121212;
+  --text-color: #f5f5f5;
+  --border-color: #9c9c9c; /* Softer, lighter white/grey border */
+  --card-bg: #1d1d1d;
+  --highlight-bg: #2d2d2d;
 }
 
 body.theme-stark {
@@ -30,6 +30,14 @@ body.theme-stark {
   --border-color: #000000;
   --card-bg: #ffffff;
   --highlight-bg: #888888;
+}
+
+body.theme-ft {
+  --bg-color: #fff1e5;     /* FT salmon/peach background */
+  --text-color: #2b2b2b;   /* Soft charcoal text */
+  --border-color: #3b2e2a; /* Warm dark borders */
+  --card-bg: #fff5eb;     /* Warmer cream cards, not stark white */
+  --highlight-bg: #f3e2d3; /* Warmer cream highlight background */
 }
 
 /* Reset and Scaling Setup */
@@ -44,7 +52,7 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #000000;
+  background-color: #0c0c0c;
   font-family: var(--font-sans);
   color: var(--text-color);
   touch-action: none;
@@ -460,7 +468,7 @@ body.theme-coal .trmnl-footer-bar {
 .weather-current-header svg {
   fill: var(--card-bg);
   stroke: var(--text-color);
-  stroke-width: 4px;
+  stroke-width: 3px;
   width: 130px;
   height: 130px;
   overflow: visible; /* prevents cutting/clipping of stroke */
@@ -698,7 +706,7 @@ body.theme-coal .trmnl-footer-bar {
   width: 78px;
   height: 78px;
   stroke: var(--text-color);
-  stroke-width: 3px;
+  stroke-width: 2px;
   fill: none;
   margin-bottom: 12px;
 }
@@ -737,12 +745,24 @@ body.theme-coal .trmnl-footer-bar {
 
 .page-control-zone.left {
   left: 0;
-  border-right: 1px dashed var(--border-color);
+  border-right: 1px dashed transparent; /* Prevent rendering line glitch on iPad Safari */
 }
 
 .page-control-zone.right {
   right: 0;
-  border-left: 1px dashed var(--border-color);
+  border-left: 1px dashed transparent; /* Prevent rendering line glitch on iPad Safari */
+}
+
+@media (hover: hover) {
+  .page-control-zone:hover {
+    opacity: 0.35;
+  }
+  .page-control-zone.left:hover {
+    border-right-color: var(--border-color);
+  }
+  .page-control-zone.right:hover {
+    border-left-color: var(--border-color);
+  }
 }
 
 .page-control-arrow {

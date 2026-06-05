@@ -164,9 +164,11 @@
       html += '      <div style="' + fieldStyle + '">';
       html += '        <label style="' + labelStyle + '">THEME</label>';
       html += '        <select id="cfg-theme">';
+      html += '          <option value="auto"' + (globalTheme === 'auto' ? ' selected' : '') + '>Auto (Adopts Dark Mode at 6PM)</option>';
       html += '          <option value="paper"' + (globalTheme === 'paper' ? ' selected' : '') + '>Paper (Warm E-Paper)</option>';
       html += '          <option value="coal"' + (globalTheme === 'coal' ? ' selected' : '') + '>Coal (Dark E-Paper)</option>';
       html += '          <option value="stark"' + (globalTheme === 'stark' ? ' selected' : '') + '>Stark (High Contrast B&amp;W)</option>';
+      html += '          <option value="ft"' + (globalTheme === 'ft' ? ' selected' : '') + '>FT (Financial Times Yellowish)</option>';
       html += '        </select>';
       html += '      </div>';
 
@@ -342,6 +344,34 @@
               self.container.querySelector('#cfg-wifi-qr-preview').textContent = "Loaded: " + file.name.substring(0, 15) + "...";
             };
             reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      // Live Theme Preview Binding
+      var themeSelect = this.container.querySelector('#cfg-theme');
+      if (themeSelect) {
+        themeSelect.addEventListener('change', function() {
+          var selectedTheme = themeSelect.value;
+          var body = document.body;
+          body.className = ''; // Reset classes
+          
+          if (selectedTheme === 'coal') {
+            body.classList.add('theme-coal');
+          } else if (selectedTheme === 'stark') {
+            body.classList.add('theme-stark');
+          } else if (selectedTheme === 'ft') {
+            body.classList.add('theme-ft');
+          } else if (selectedTheme === 'auto') {
+            // Apply current auto theme based on time
+            var now = new Date();
+            var hour = now.getHours();
+            var isNightTime = (hour >= 18 || hour < 8);
+            if (isNightTime) {
+              body.classList.add('theme-coal');
+            } else {
+              // paper/default
+            }
           }
         });
       }

@@ -83,21 +83,22 @@
     body.className = ''; // Reset themes
     
     var theme = state.config.theme || 'paper';
-    
-    // Auto dark mode override: 6 PM to 8 AM local time
-    var now = new Date();
-    var hour = now.getHours();
-    var isNightTime = (hour >= 18 || hour < 8);
-    
     var activeTheme = theme;
-    if (isNightTime) {
-      activeTheme = 'coal'; // Force dark mode (coal) at night
+    
+    if (theme === 'auto') {
+      // Auto dark mode override: 6 PM to 8 AM local time
+      var now = new Date();
+      var hour = now.getHours();
+      var isNightTime = (hour >= 18 || hour < 8);
+      activeTheme = isNightTime ? 'coal' : 'paper';
     }
     
     if (activeTheme === 'coal') {
       body.classList.add('theme-coal');
     } else if (activeTheme === 'stark') {
       body.classList.add('theme-stark');
+    } else if (activeTheme === 'ft') {
+      body.classList.add('theme-ft');
     }
   }
 

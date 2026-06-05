@@ -82,16 +82,9 @@
       html += '      Your Life in Weeks: Lived ' + formattedLifeLived + ' of ' + formattedLifeTotal + ' (' + lifePercentage + '%)';
       html += '    </div>';
       
-      // Grid container for 90 columns x 52 rows
-      html += '    <div style="display: grid; grid-template-columns: repeat(90, 6px); gap: 1px; width: 630px; justify-content: center;">';
-      for (var week = 0; week < 52; week++) {
-        for (var year = 0; year < 90; year++) {
-          var index = (year * 52) + week;
-          var isLived = index < weeksLived;
-          var bgColor = isLived ? 'var(--text-color)' : 'transparent';
-          html += '        <div style="width: 6px; height: 6px; border: 1px solid var(--border-color); box-sizing: border-box; background-color: ' + bgColor + ';"></div>';
-        }
-      }
+      // High-resolution Canvas replacing the heavy 4,680 DOM divs
+      html += '    <div style="width: 630px; display: flex; justify-content: center; align-items: center; overflow: hidden;">';
+      html += '      <canvas id="life-weeks-canvas" style="width: 629px; height: 363px; display: block;"></canvas>';
       html += '    </div>';
       html += '  </div>';
 
@@ -114,15 +107,15 @@
           var cellHtml = '';
           if (weekNum < currentWeekOfYear) {
             // Lived/Past week
-            cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: var(--text-color);"></div>';
+            cellHtml = '<div style="width: 13px; height: 13px; border: var(--border-width-thin) solid var(--border-color); box-sizing: border-box; background-color: var(--text-color);"></div>';
           } else if (weekNum === currentWeekOfYear) {
             // Current week (target indicator)
-            cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent; display: flex; align-items: center; justify-content: center;">' +
+            cellHtml = '<div style="width: 13px; height: 13px; border: var(--border-width-thin) solid var(--border-color); box-sizing: border-box; background-color: transparent; display: flex; align-items: center; justify-content: center;">' +
                        '  <div style="width: 4px; height: 4px; background-color: var(--text-color); border-radius: 50%;"></div>' +
                        '</div>';
           } else {
             // Future week
-            cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent;"></div>';
+            cellHtml = '<div style="width: 13px; height: 13px; border: var(--border-width-thin) solid var(--border-color); box-sizing: border-box; background-color: transparent;"></div>';
           }
           html += cellHtml;
         }
@@ -159,15 +152,15 @@
           var cellHtml = '';
           if (dayCounter < currentDayOfMonth) {
             // Past day
-            cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: var(--text-color);"></div>';
+            cellHtml = '<div style="width: 13px; height: 13px; border: var(--border-width-thin) solid var(--border-color); box-sizing: border-box; background-color: var(--text-color);"></div>';
           } else if (dayCounter === currentDayOfMonth) {
             // Current day (target indicator)
-            cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent; display: flex; align-items: center; justify-content: center;">' +
+            cellHtml = '<div style="width: 13px; height: 13px; border: var(--border-width-thin) solid var(--border-color); box-sizing: border-box; background-color: transparent; display: flex; align-items: center; justify-content: center;">' +
                        '  <div style="width: 4px; height: 4px; background-color: var(--text-color); border-radius: 50%;"></div>' +
                        '</div>';
           } else {
             // Future day
-            cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent;"></div>';
+            cellHtml = '<div style="width: 13px; height: 13px; border: var(--border-width-thin) solid var(--border-color); box-sizing: border-box; background-color: transparent;"></div>';
           }
           html += cellHtml;
           dayCounter++;
@@ -190,6 +183,47 @@
       html += '</div>';
 
       this.container.innerHTML = html;
+
+      // Draw grid squares on canvas with sub-pixel correction and DPR support
+      var canvas = this.container.querySelector('#life-weeks-canvas');
+      if (canvas) {
+        var ctx = canvas.getContext('2d');
+        if (ctx) {
+          var dpr = window.devicePixelRatio || 1;
+          canvas.width = 629 * dpr;
+          canvas.height = 363 * dpr;
+          canvas.style.width = '629px';
+          canvas.style.height = '363px';
+          ctx.scale(dpr, dpr);
+
+          var styles = window.getComputedStyle(document.body);
+          var textColor = styles.getPropertyValue('--text-color').trim() || '#111111';
+          var borderColor = styles.getPropertyValue('--border-color').trim() || '#111111';
+          var cardBg = styles.getPropertyValue('--card-bg').trim() || '#ffffff';
+
+          ctx.clearRect(0, 0, 629, 363);
+          
+          for (var week = 0; week < 52; week++) {
+            for (var year = 0; year < 90; year++) {
+              var index = (year * 52) + week;
+              var isLived = index < weeksLived;
+              
+              var x = year * 7;
+              var y = week * 7;
+              
+              if (isLived) {
+                ctx.fillStyle = textColor;
+                ctx.fillRect(x, y, 6, 6);
+              } else {
+                ctx.fillStyle = borderColor;
+                ctx.fillRect(x, y, 6, 6);
+                ctx.fillStyle = cardBg;
+                ctx.fillRect(x + 1, y + 1, 4, 4);
+              }
+            }
+          }
+        }
+      }
     }
   };
 

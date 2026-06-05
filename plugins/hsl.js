@@ -299,7 +299,7 @@
             var isLate = dep.delaySec > 0;
             var bs = isLate
               ? 'background-color:var(--text-color);color:var(--bg-color);padding:2px 6px;border-radius:4px;'
-              : 'border:1.5px solid var(--text-color);padding:2px 5px;border-radius:4px;';
+              : 'border:var(--border-width-thin) solid var(--text-color);padding:2px 5px;border-radius:4px;';
             html += '      <div style="width:64px;text-align:center;flex-shrink:0;"><span style="font-family:var(--font-mono);font-size:12px;font-weight:800;' + bs + '">' + delayStr + '</span></div>';
           } else {
             html += '      <div style="width:64px;flex-shrink:0;"></div>';

@@ -35,11 +35,11 @@
       var qrSize = '290px';
       var wifiHtml = '';
       if (this.config.wifiQrBase64) {
-        wifiHtml = '<div style="background-color: #ffffff; border: 1.5px solid var(--border-color); padding: 10px; line-height: 0; display: inline-block; border-radius: 6px;">' +
+        wifiHtml = '<div style="background-color: var(--card-bg); border: var(--border-width-thin) solid var(--border-color); padding: 10px; line-height: 0; display: inline-block; border-radius: 6px;">' +
                    '  <img src="' + this.config.wifiQrBase64 + '" alt="WiFi QR" style="width: ' + qrSize + '; height: ' + qrSize + '; image-rendering: pixelated;">' +
                    '</div>';
       } else {
-        wifiHtml = '<div style="width: ' + qrSize + '; height: ' + qrSize + '; border: 2.5px dashed var(--border-color); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; background-color: var(--card-bg);">' +
+        wifiHtml = '<div style="width: ' + qrSize + '; height: ' + qrSize + '; border: var(--border-width) dashed var(--border-color); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; background-color: var(--card-bg);">' +
                    '  <svg style="width: 64px; height: 64px; fill: var(--text-color); margin-bottom: 16px;" viewBox="0 0 24 24">' +
                    '    <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm13 1v2h2v-2h-2zm-2-2h2v2h-2v-2zm4 4h2v2h-2v-2zm-2 2h2v-2h-2v2zm4-2v-2h-2v2h2zm-4-6h2v2h-2v-2zm2 2h2v2h-2v-2zm-6-2h2v2h-2v-2zm2-2h2v2h-2v-2zm-2 4h2v2h-2v-2z"/>' +
                    '  </svg>' +

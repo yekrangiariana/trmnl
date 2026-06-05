@@ -78,9 +78,9 @@
       var self = this;
       var now = new Date();
 
-      var btnStyle = 'cursor: pointer; font-family: var(--font-mono); font-size: 12px; font-weight: 800; border: 1.5px solid var(--border-color); background: transparent; color: var(--text-color); padding: 5px 11px; border-radius: 4px; outline: none;';
-      var activeBtnStyle = 'cursor: pointer; font-family: var(--font-mono); font-size: 12px; font-weight: 800; border: 1.5px solid var(--border-color); background: var(--text-color); color: var(--bg-color); padding: 5px 11px; border-radius: 4px; outline: none;';
-      var adjustStyle = 'cursor: pointer; font-family: var(--font-mono); font-size: 18px; font-weight: 800; border: 1.5px solid var(--border-color); background: transparent; color: var(--text-color); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 4px; outline: none;';
+      var btnStyle = 'cursor: pointer; font-family: var(--font-mono); font-size: 12px; font-weight: 800; border: var(--border-width-thin) solid var(--border-color); background: transparent; color: var(--text-color); padding: 5px 11px; border-radius: 4px; outline: none;';
+      var activeBtnStyle = 'cursor: pointer; font-family: var(--font-mono); font-size: 12px; font-weight: 800; border: var(--border-width-thin) solid var(--border-color); background: var(--text-color); color: var(--bg-color); padding: 5px 11px; border-radius: 4px; outline: none;';
+      var adjustStyle = 'cursor: pointer; font-family: var(--font-mono); font-size: 18px; font-weight: 800; border: var(--border-width-thin) solid var(--border-color); background: transparent; color: var(--text-color); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 4px; outline: none;';
 
       // Preset checks
       var isOffpeak = Math.abs(this.currentPrice - 0.06) < 0.005;
@@ -126,7 +126,7 @@
       this.programmes.forEach(function(prog, idx) {
         var costStr = self.formatCost(prog.energy);
         
-        var itemHtml = '<div style="font-family: var(--font-mono); font-size: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px dashed rgba(0,0,0,0.15); padding: 14px 0;">' +
+        var itemHtml = '<div style="font-family: var(--font-mono); font-size: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: var(--border-width-thin) dashed var(--border-color); padding: 14px 0;">' +
                        '  <span style="font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; letter-spacing: -0.02em;">' + prog.name + ' <span style="font-weight: 500; opacity: 0.6; font-size: 12px;">(' + prog.time + ')</span></span>' +
                        '  <span style="font-weight: 800; font-size: 20px; text-align: right; margin-left: 12px;">' + costStr + '</span>' +
                        '</div>';
@@ -139,7 +139,7 @@
       });
 
       // Left Column
-      html += '      <div class="grid-col col-1" style="display: flex; flex-direction: column; justify-content: space-between; padding-right: 24px; border-right: 1.5px dashed var(--border-color); height: 100%; box-sizing: border-box; margin-right: 0 !important;">';
+      html += '      <div class="grid-col col-1" style="display: flex; flex-direction: column; justify-content: space-between; padding-right: 24px; border-right: var(--border-width-thin) dashed var(--border-color); height: 100%; box-sizing: border-box; margin-right: 0 !important;">';
       html += col1Html;
       html += '      </div>';
 

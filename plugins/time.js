@@ -70,7 +70,7 @@
       // Calendar Headers
       var headers = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
       headers.forEach(function(h) {
-        calHtml += '<div style="font-weight: 800; border-bottom: 1.5px solid var(--border-color); padding-bottom: 4px; opacity:0.8;">' + h + '</div>';
+        calHtml += '<div style="font-weight: 800; border-bottom: var(--border-width-thin) solid var(--border-color); padding-bottom: 4px; opacity:0.8;">' + h + '</div>';
       });
 
       // Calendar Days
