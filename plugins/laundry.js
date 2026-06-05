@@ -95,20 +95,20 @@
       html += '      <div style="font-family: var(--font-mono); font-size: 17px; font-weight: 800; letter-spacing: 0.03em; line-height: 1.1;">ELECTROLUX EW2F3048C1</div>';
       html += '    </div>';
       
-      html += '    <div style="display: flex; align-items: center; gap: 16px;">';
+      html += '    <div style="display: flex; align-items: center;">
       
       // Presets
-      html += '      <div style="display: flex; gap: 6px;">';
-      html += '        <button id="laundry-preset-offpeak" style="' + (isOffpeak ? activeBtnStyle : btnStyle) + '">OFF-PEAK</button>';
-      html += '        <button id="laundry-preset-standard" style="' + (isStandard ? activeBtnStyle : btnStyle) + '">STANDARD</button>';
+      html += '      <div style="display: flex; margin-right: 16px;">';
+      html += '        <button id="laundry-preset-offpeak" style="' + (isOffpeak ? activeBtnStyle : btnStyle) + ' margin-right: 6px;">OFF-PEAK</button>';
+      html += '        <button id="laundry-preset-standard" style="' + (isStandard ? activeBtnStyle : btnStyle) + ' margin-right: 6px;">STANDARD</button>';
       html += '        <button id="laundry-preset-peak" style="' + (isPeak ? activeBtnStyle : btnStyle) + '">PEAK</button>';
       html += '      </div>';
 
       // Adjuster buttons
-      html += '      <div style="display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 15px; font-weight: 800;">';
-      html += '        <span>RATE:</span>';
-      html += '        <button id="laundry-price-minus" style="' + adjustStyle + '">-</button>';
-      html += '        <span id="laundry-price-val" style="font-family: var(--font-sans); font-size: 22px; font-weight: 800; min-width: 75px; text-align: center;">' + this.currentPrice.toFixed(2) + ' €</span>';
+      html += '      <div style="display: flex; align-items: center; font-family: var(--font-mono); font-size: 15px; font-weight: 800;">';
+      html += '        <span style="margin-right: 10px;">RATE:</span>';
+      html += '        <button id="laundry-price-minus" style="' + adjustStyle + ' margin-right: 10px;">-</button>';
+      html += '        <span id="laundry-price-val" style="font-family: var(--font-sans); font-size: 22px; font-weight: 800; min-width: 75px; text-align: center; margin-right: 10px;">' + this.currentPrice.toFixed(2) + ' €</span>';
       html += '        <button id="laundry-price-plus" style="' + adjustStyle + '">+</button>';
       html += '      </div>';
       
@@ -117,7 +117,7 @@
 
       // 2. TWO-COLUMN PROGRAMME GRID (STRETCHED)
       html += '  <div class="trmnl-card" style="flex: 1; padding: 18px 24px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-start; margin-bottom: 8px;">';
-      html += '    <div class="grid-row" style="height: 100%; display: flex; gap: 0;">';
+      html += '    <div class="grid-row" style="height: 100%; display: flex;">';
       
       var mid = Math.ceil(this.programmes.length / 2);
       var col1Html = '';
@@ -139,12 +139,12 @@
       });
 
       // Left Column
-      html += '      <div class="grid-col col-1" style="display: flex; flex-direction: column; justify-content: space-between; padding-right: 24px; border-right: 1.5px dashed var(--border-color); height: 100%; box-sizing: border-box;">';
+      html += '      <div class="grid-col col-1" style="display: flex; flex-direction: column; justify-content: space-between; padding-right: 24px; border-right: 1.5px dashed var(--border-color); height: 100%; box-sizing: border-box; margin-right: 0 !important;">';
       html += col1Html;
       html += '      </div>';
 
       // Right Column
-      html += '      <div class="grid-col col-1" style="display: flex; flex-direction: column; justify-content: space-between; padding-left: 24px; height: 100%; box-sizing: border-box;">';
+      html += '      <div class="grid-col col-1" style="display: flex; flex-direction: column; justify-content: space-between; padding-left: 24px; height: 100%; box-sizing: border-box; margin-right: 0 !important;">';
       html += col2Html;
       html += '      </div>';
 

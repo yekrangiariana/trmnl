@@ -73,7 +73,7 @@
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; padding: 0;">';
       
       // Columns Row
-      html += '  <div class="grid-row" style="flex:1; margin-bottom: 12px; gap: 24px;">';
+      html += '  <div class="grid-row" style="flex:1; margin-bottom: 12px;">';
       
       // Left Column: Events (Full Height, max 560px)
       html += '    <div class="grid-col col-1" style="justify-content:space-between; height: 560px; overflow:hidden;">';

@@ -83,9 +83,20 @@
     body.className = ''; // Reset themes
     
     var theme = state.config.theme || 'paper';
-    if (theme === 'coal') {
+    
+    // Auto dark mode override: 6 PM to 8 AM local time
+    var now = new Date();
+    var hour = now.getHours();
+    var isNightTime = (hour >= 18 || hour < 8);
+    
+    var activeTheme = theme;
+    if (isNightTime) {
+      activeTheme = 'coal'; // Force dark mode (coal) at night
+    }
+    
+    if (activeTheme === 'coal') {
       body.classList.add('theme-coal');
-    } else if (theme === 'stark') {
+    } else if (activeTheme === 'stark') {
       body.classList.add('theme-stark');
     }
   }
@@ -276,6 +287,7 @@
     
     function tick() {
       var now = new Date();
+      applyTheme(); // Ensure auto dark mode updates live with time
       var days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
       var months = ['JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC', 'JAN', 'FEB', 'MAR', 'APR', 'MAY']; // Safe reordering or just mapping month indexes
       var realMonths = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];

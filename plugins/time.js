@@ -112,7 +112,7 @@
 
       // Assemble Main HTML
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; padding: 10px 0;">';
-      html += '  <div class="grid-row" style="flex:1; margin-bottom: 16px; gap: 20px;">';
+      html += '  <div class="grid-row" style="flex:1; margin-bottom: 16px;">';
 
       // Left Column - Clock Card (takes col-3)
       html += '    <div class="grid-col col-3 trmnl-card" style="padding: 32px 40px; justify-content: center; align-items: flex-start; gap: 0;">';

@@ -84,7 +84,8 @@
                        "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m,uv_index,visibility" +
                        "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,daylight_duration" +
                        "&hourly=precipitation_probability" +
-                       "&timezone=auto";
+                       "&timezone=auto" +
+                       "&forecast_days=8";
 
       var airQualityUrl = "https://air-quality-api.open-meteo.com/v1/air-quality?" +
                           "latitude=" + lat +
@@ -185,14 +186,16 @@
         dateVal.setDate(today.getDate() + i);
         var dayName = i === 0 ? "Today" : daysOfWeek[dateVal.getDay()];
         
-        var maxTemp = daily.temperature_2m_max ? Math.round(daily.temperature_2m_max[i]) : '--';
-        var minTemp = daily.temperature_2m_min ? Math.round(daily.temperature_2m_min[i]) : '--';
+        var maxTemp = (daily.temperature_2m_max && daily.temperature_2m_max[i] !== undefined) ? Math.round(daily.temperature_2m_max[i]) : '--';
+        var minTemp = (daily.temperature_2m_min && daily.temperature_2m_min[i] !== undefined) ? Math.round(daily.temperature_2m_min[i]) : '--';
         var wCode = daily.weather_code ? daily.weather_code[i] : 0;
 
         html += '        <div class="weather-forecast-row">';
-        html += '          ' + this.getWeatherIcon(wCode, 22);
-        html += '          <span class="weather-forecast-day">' + dayName + '</span>';
-        html += '          <span class="weather-forecast-temp">' + maxTemp + '° <span class="weather-forecast-temp-min">/ ' + minTemp + '°</span></span>';
+        html += '          <div style="display: flex; align-items: center;">';
+        html += '            ' + this.getWeatherIcon(wCode, 22);
+        html += '            <span class="weather-forecast-day">' + dayName + '</span>';
+        html += '          </div>';
+        html += '          <span class="weather-forecast-temp">' + maxTemp + '°<span class="weather-forecast-temp-min">/' + minTemp + '°</span></span>';
         html += '        </div>';
       }
       
@@ -202,12 +205,12 @@
       var sunr = daily.sunrise ? this.formatTimeOnly(daily.sunrise[0]) : '--:--';
       var suns = daily.sunset ? this.formatTimeOnly(daily.sunset[0]) : '--:--';
       html += '      <div class="weather-forecast-sun-footer">';
-      html += '        <div style="display:flex; align-items:center; gap:6px;">';
-      html += '          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--text-color);fill:none;stroke-width:2;"><path d="M17 18a5 5 0 0 0-10 0"></path><line x1="12" y1="2" x2="12" y2="9"></line><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line><line x1="1" y1="18" x2="3" y2="18"></line><line x1="21" y1="18" x2="23" y2="18"></line><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line><polyline points="8 12 12 8 16 12"></polyline></svg>';
+      html += '        <div style="display:flex; align-items:center;">';
+      html += '          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--text-color);fill:none;stroke-width:2;margin-right:6px;"><path d="M17 18a5 5 0 0 0-10 0"></path><line x1="12" y1="2" x2="12" y2="9"></line><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line><line x1="1" y1="18" x2="3" y2="18"></line><line x1="21" y1="18" x2="23" y2="18"></line><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line><polyline points="8 12 12 8 16 12"></polyline></svg>';
       html += '          <span>' + sunr + '</span>';
       html += '        </div>';
-      html += '        <div style="display:flex; align-items:center; gap:6px;">';
-      html += '          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--text-color);fill:none;stroke-width:2;"><path d="M17 18a5 5 0 0 0-10 0"></path><line x1="12" y1="9" x2="12" y2="2"></line><line x1="4.22" y1="11.64" x2="5.64" y2="10.22"></line><line x1="1" y1="18" x2="3" y2="18"></line><line x1="21" y1="18" x2="23" y2="18"></line><line x1="18.36" y1="10.22" x2="19.78" y2="11.64"></line><polyline points="16 6 12 10 8 6"></polyline></svg>';
+      html += '        <div style="display:flex; align-items:center;">';
+      html += '          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--text-color);fill:none;stroke-width:2;margin-right:6px;"><path d="M17 18a5 5 0 0 0-10 0"></path><line x1="12" y1="9" x2="12" y2="2"></line><line x1="4.22" y1="11.64" x2="5.64" y2="10.22"></line><line x1="1" y1="18" x2="3" y2="18"></line><line x1="21" y1="18" x2="23" y2="18"></line><line x1="18.36" y1="10.22" x2="19.78" y2="11.64"></line><polyline points="16 6 12 10 8 6"></polyline></svg>';
       html += '          <span>' + suns + '</span>';
       html += '        </div>';
       html += '      </div>';

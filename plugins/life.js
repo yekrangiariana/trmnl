@@ -83,35 +83,32 @@
       html += '    </div>';
       
       // Grid container for 90 columns x 52 rows
-      html += '    <div style="display: flex; flex-direction: column; gap: 1px; width: 630px;">';
+      html += '    <div style="display: grid; grid-template-columns: repeat(90, 6px); gap: 1px; width: 630px; justify-content: center;">';
       for (var week = 0; week < 52; week++) {
-        html += '      <div style="display: flex; gap: 1px;">';
         for (var year = 0; year < 90; year++) {
           var index = (year * 52) + week;
           var isLived = index < weeksLived;
           var bgColor = isLived ? 'var(--text-color)' : 'transparent';
           html += '        <div style="width: 6px; height: 6px; border: 1px solid var(--border-color); box-sizing: border-box; background-color: ' + bgColor + ';"></div>';
         }
-        html += '      </div>';
       }
       html += '    </div>';
       html += '  </div>';
 
       // Row for SECTION 2 & SECTION 3 (Side-by-side cards)
-      html += '  <div style="display: flex; gap: 12px; flex: 1; min-height: 170px;">';
+      html += '  <div style="display: flex; flex: 1; min-height: 170px;">';
 
       // SECTION 2: Weeks in Year
-      html += '    <div class="trmnl-card" style="flex: 1.1; padding: 12px 16px; display: flex; flex-direction: column; align-items: center; justify-content: space-around;">';
+      html += '    <div class="trmnl-card" style="flex: 1.1; padding: 12px 16px; display: flex; flex-direction: column; align-items: center; justify-content: space-around; margin-right: 12px;">';
       html += '      <div style="font-family: var(--font-sans); font-size: 15.5px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; width: 100%; margin-bottom: 6px;">';
       html += '        Weeks in Year: Week ' + currentWeekOfYear + ' of 52 (' + yearPercentage + '%)';
       html += '      </div>';
       
       // 4 rows (Q1-Q4) of 13 columns = 52 weeks
-      html += '      <div style="display: flex; flex-direction: column; gap: 4px;">';
+      html += '      <div style="display: grid; grid-template-columns: 16px repeat(13, 13px); gap: 4px; align-items: center; justify-content: center;">';
       for (var q = 0; q < 4; q++) {
-        html += '        <div style="display: flex; align-items: center; gap: 4px;">';
         // Quarter Label
-        html += '          <div style="font-family: var(--font-mono); font-size: 9px; font-weight: 700; width: 16px; text-align: left; opacity: 0.65;">Q' + (q + 1) + '</div>';
+        html += '        <div style="font-family: var(--font-mono); font-size: 9px; font-weight: 700; width: 16px; text-align: left; opacity: 0.65;">Q' + (q + 1) + '</div>';
         for (var w = 0; w < 13; w++) {
           var weekNum = (q * 13) + w + 1;
           var cellHtml = '';
@@ -129,7 +126,6 @@
           }
           html += cellHtml;
         }
-        html += '        </div>';
       }
       html += '      </div>';
       html += '    </div>';
@@ -141,47 +137,41 @@
       html += '      </div>';
 
       // Calendar grid (7 columns: Sun-Sat)
-      html += '      <div style="display: flex; flex-direction: column; gap: 3px; align-items: center;">';
+      html += '      <div style="display: grid; grid-template-columns: repeat(7, 13px); gap: 4px; justify-content: center; align-items: center; margin-top: 4px;">';
       
       // Day headers row
       var daysHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-      html += '        <div style="display: flex; gap: 4px; margin-bottom: 2px;">';
       for (var d = 0; d < 7; d++) {
-        html += '          <div style="font-family: var(--font-mono); font-size: 9px; font-weight: 700; width: 13px; text-align: center; opacity: 0.6;">' + daysHeaders[d] + '</div>';
+        html += '        <div style="font-family: var(--font-mono); font-size: 9px; font-weight: 700; width: 13px; text-align: center; opacity: 0.6;">' + daysHeaders[d] + '</div>';
       }
-      html += '        </div>';
 
-      // Calendar weeks rows
+      // Calendar days
       var dayCounter = 1;
       var totalCells = firstDayIndex + totalDaysInMonth;
       var rowsNeeded = Math.ceil(totalCells / 7);
+      var gridCellsCount = rowsNeeded * 7;
 
-      for (var row = 0; row < rowsNeeded; row++) {
-        html += '        <div style="display: flex; gap: 4px;">';
-        for (var col = 0; col < 7; col++) {
-          var cellIdx = (row * 7) + col;
-          if (cellIdx < firstDayIndex || dayCounter > totalDaysInMonth) {
-            // Empty padded cell
-            html += '          <div style="width: 13px; height: 13px;"></div>';
+      for (var i = 0; i < gridCellsCount; i++) {
+        if (i < firstDayIndex || dayCounter > totalDaysInMonth) {
+          // Empty padded cell
+          html += '        <div style="width: 13px; height: 13px;"></div>';
+        } else {
+          var cellHtml = '';
+          if (dayCounter < currentDayOfMonth) {
+            // Past day
+            cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: var(--text-color);"></div>';
+          } else if (dayCounter === currentDayOfMonth) {
+            // Current day (target indicator)
+            cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent; display: flex; align-items: center; justify-content: center;">' +
+                       '  <div style="width: 4px; height: 4px; background-color: var(--text-color); border-radius: 50%;"></div>' +
+                       '</div>';
           } else {
-            var cellHtml = '';
-            if (dayCounter < currentDayOfMonth) {
-              // Past day
-              cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: var(--text-color);"></div>';
-            } else if (dayCounter === currentDayOfMonth) {
-              // Current day (target indicator)
-              cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent; display: flex; align-items: center; justify-content: center;">' +
-                         '  <div style="width: 4px; height: 4px; background-color: var(--text-color); border-radius: 50%;"></div>' +
-                         '</div>';
-            } else {
-              // Future day
-              cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent;"></div>';
-            }
-            html += cellHtml;
-            dayCounter++;
+            // Future day
+            cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent;"></div>';
           }
+          html += cellHtml;
+          dayCounter++;
         }
-        html += '        </div>';
       }
       html += '      </div>';
       html += '    </div>';

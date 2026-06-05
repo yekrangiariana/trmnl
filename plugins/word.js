@@ -194,9 +194,9 @@
       html += '      <div class="text-serif" style="font-size: 58px; font-weight: 600; line-height: 1.1; margin-bottom: 4px; color: var(--text-color); text-transform: lowercase;">' + selected.word + '</div>';
       
       // Phonetic & Type row
-      html += '      <div style="display:flex; gap:12px; align-items:center; font-family: var(--font-mono); font-size: 15px; opacity:0.8; margin-bottom: 24px;">';
+      html += '      <div style="display:flex; align-items:center; font-family: var(--font-mono); font-size: 15px; opacity:0.8; margin-bottom: 24px;">';
       if (selected.phonetic) {
-        html += '        <span style="font-weight:700;">' + selected.phonetic + '</span>';
+        html += '        <span style="font-weight:700; margin-right: 12px;">' + selected.phonetic + '</span>';
       }
       html += '        <span style="font-style:italic;">' + selected.type + '</span>';
       html += '      </div>';

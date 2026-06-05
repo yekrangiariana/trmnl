@@ -17,11 +17,11 @@
 }
 
 body.theme-coal {
-  --bg-color: #121212;
-  --text-color: #f5f5f5;
-  --border-color: #e0e0e0;
-  --card-bg: #1d1d1d;
-  --highlight-bg: #2d2d2d;
+  --bg-color: #000000;
+  --text-color: #ffffff;
+  --border-color: #ffffff;
+  --card-bg: #000000;
+  --highlight-bg: #1a1a1a;
 }
 
 body.theme-stark {
@@ -44,7 +44,7 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #0c0c0c;
+  background-color: #000000;
   font-family: var(--font-sans);
   color: var(--text-color);
   touch-action: none;
@@ -127,7 +127,14 @@ body::after {
 .status-group {
   display: flex;
   align-items: center;
-  gap: 12px;
+}
+
+.status-group > * {
+  margin-right: 12px;
+}
+
+.status-group > *:last-child {
+  margin-right: 0;
 }
 
 .status-bar .logo {
@@ -224,7 +231,14 @@ body::after {
   flex-direction: row;
   width: 100%;
   flex: 1;
-  gap: 20px;
+}
+
+.grid-row > .grid-col {
+  margin-right: 20px;
+}
+
+.grid-row > .grid-col:last-child {
+  margin-right: 0;
 }
 
 .grid-col {
@@ -289,7 +303,6 @@ body.theme-coal .trmnl-footer-bar {
 .trmnl-footer-badge {
   display: flex;
   align-items: center;
-  gap: 8px;
   background-color: var(--bg-color);
   border: var(--border-width-thin) solid var(--border-color);
   border-radius: 6px;
@@ -298,6 +311,10 @@ body.theme-coal .trmnl-footer-bar {
   font-weight: 700;
   font-size: 15px;
   color: var(--text-color);
+}
+
+.trmnl-footer-badge > svg {
+  margin-right: 8px;
 }
 
 .trmnl-footer-badge svg {
@@ -407,8 +424,15 @@ body.theme-coal .trmnl-footer-bar {
 /* Weather 3-Column layout */
 .weather-container {
   display: flex;
-  gap: 20px; /* Increased from 12px */
   flex: 1;
+}
+
+.weather-container > .weather-col {
+  margin-right: 20px;
+}
+
+.weather-container > .weather-col:last-child {
+  margin-right: 0;
 }
 
 .weather-col {
@@ -475,14 +499,20 @@ body.theme-coal .trmnl-footer-bar {
 
 .weather-high-low-row {
   display: flex;
-  gap: 12px;
   margin-bottom: 8px;
+}
+
+.weather-high-low-row > * {
+  margin-right: 12px;
+}
+
+.weather-high-low-row > *:last-child {
+  margin-right: 0;
 }
 
 .weather-pill {
   display: flex;
   align-items: center;
-  gap: 4px;
   background-color: var(--highlight-bg);
   border: var(--border-width-thin) solid var(--border-color);
   border-radius: 20px;
@@ -490,6 +520,10 @@ body.theme-coal .trmnl-footer-bar {
   font-family: var(--font-sans);
   font-weight: 700;
   font-size: 15px;
+}
+
+.weather-pill > svg {
+  margin-right: 4px;
 }
 
 .weather-current-footer {
@@ -506,7 +540,10 @@ body.theme-coal .trmnl-footer-bar {
 .weather-footer-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+}
+
+.weather-footer-item > svg {
+  margin-right: 4px;
 }
 
 .weather-footer-item svg {
@@ -542,16 +579,17 @@ body.theme-coal .trmnl-footer-bar {
   stroke: var(--text-color);
   stroke-width: 2.5;
   fill: none;
+  margin-right: 14px;
 }
 
 .weather-forecast-day {
-  width: 60px;
+  font-family: var(--font-sans);
 }
 
 .weather-forecast-temp {
-  width: 80px;
   text-align: right;
   font-family: var(--font-mono);
+  white-space: nowrap;
 }
 
 .weather-forecast-temp-min {
@@ -592,7 +630,10 @@ body.theme-coal .trmnl-footer-bar {
 .weather-metric-label {
   display: flex;
   align-items: center;
-  gap: 8px;
+}
+
+.weather-metric-label > svg {
+  margin-right: 8px;
 }
 
 .weather-metric-label svg {

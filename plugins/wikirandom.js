@@ -72,10 +72,11 @@
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; padding: 10px 0;">';
       
       // Main Content Split Layout
-      html += '  <div class="trmnl-card" style="flex:1; display:flex; flex-direction:row; gap: 24px; padding: 32px 36px; margin-bottom: 16px; overflow: hidden; align-items: center; min-height: 480px;">';
+      html += '  <div class="trmnl-card" style="flex:1; display:flex; flex-direction:row; padding: 32px 36px; margin-bottom: 16px; overflow: hidden; align-items: center; min-height: 480px;">';
       
       // Left side: Text content
-      html += '    <div style="flex: 1.1; display: flex; flex-direction: column; justify-content: center; height: 100%;">';
+      var marginStyle = imageHtml ? 'margin-right: 24px;' : '';
+      html += '    <div style="flex: 1.1; display: flex; flex-direction: column; justify-content: center; height: 100%; ' + marginStyle + '">';
       html += '      <div class="text-serif" style="font-size: 42px; font-weight: 600; line-height: 1.15; margin-bottom: 6px; color: var(--text-color);">' + title + '</div>';
       
       if (description) {

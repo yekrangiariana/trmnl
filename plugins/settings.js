@@ -251,7 +251,8 @@
       // Action Buttons
       html += '      <div style="display:flex; flex-direction:column; gap:10px;">';
       html += '        <button class="trmnl-btn" id="cfg-save-btn" style="width: 100%;">SAVE SETTINGS</button>';
-      html += '        <button class="trmnl-btn secondary" id="cfg-reset-btn" style="width: 100%; font-size:12px; border-style:dashed;">RESET ALL OVERRIDES</button>';
+      html += '        <button class="trmnl-btn secondary" id="cfg-update-btn" style="width: 100%; font-size:12px; border-style:dashed;">FORCE APP UPDATE</button>';
+      html += '        <button class="trmnl-btn secondary" id="cfg-reset-btn" style="width: 100%; font-size:11px; border-style:dashed; opacity:0.7;">RESET ALL OVERRIDES</button>';
       html += '      </div>';
 
       html += '    </div>';
@@ -262,11 +263,61 @@
 
       // Event Bindings
       var saveBtn = this.container.querySelector('#cfg-save-btn');
+      var updateBtn = this.container.querySelector('#cfg-update-btn');
       var resetBtn = this.container.querySelector('#cfg-reset-btn');
 
       if (saveBtn) {
         saveBtn.addEventListener('click', function() {
           self.saveSettings();
+        });
+      }
+
+      if (updateBtn) {
+        updateBtn.addEventListener('click', function() {
+          if (confirm("This will clear the cached app files, check the server for new code changes, and reload the dashboard. Your settings and Wi-Fi code will NOT be lost. Proceed?")) {
+            updateBtn.disabled = true;
+            updateBtn.textContent = "CLEARING CACHE...";
+            
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                var promises = [];
+                registrations.forEach(function(reg) {
+                  promises.push(reg.unregister());
+                });
+                
+                Promise.all(promises).then(function() {
+                  clearCachesAndReload();
+                }).catch(function() {
+                  clearCachesAndReload();
+                });
+              }).catch(function() {
+                clearCachesAndReload();
+              });
+            } else {
+              clearCachesAndReload();
+            }
+          }
+          
+          function clearCachesAndReload() {
+            if (window.caches) {
+              caches.keys().then(function(keys) {
+                var cachePromises = [];
+                keys.forEach(function(key) {
+                  cachePromises.push(caches.delete(key));
+                });
+                
+                Promise.all(cachePromises).then(function() {
+                  window.location.reload(true);
+                }).catch(function() {
+                  window.location.reload(true);
+                });
+              }).catch(function() {
+                window.location.reload(true);
+              });
+            } else {
+              window.location.reload(true);
+            }
+          }
         });
       }
 
