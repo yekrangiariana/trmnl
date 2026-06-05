@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TRMNL E-Paper iPad Dashboard</title>
+  
+  <!-- PWA Manifest & App Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  
+  <!-- iOS Standalone Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TRMNL">
+  
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- Scale-to-fit Screen Container -->
+  <div id="app-viewport">
+    
+    <!-- E-Paper Flash Transition Overlay -->
+    <div id="flash-overlay"></div>
+
+    <!-- Header Status Bar -->
+    <header class="status-bar header">
+      <div class="status-group">
+        <span class="logo">TRMNL</span>
+        <span class="status-indicator blink" id="wifi-indicator"></span>
+      </div>
+      <div class="status-group" style="display: flex; align-items: center; gap: 12px;">
+        <span id="battery-status">BATTERY: --%</span>
+        <button id="settings-toggle-btn" style="cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; border: 1.5px solid var(--border-color); background: transparent; color: var(--text-color); outline: none;" title="Toggle Settings">
+          <svg style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.5;" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Touch Zones for Manual Navigation -->
+    <div class="page-control-zone left" id="nav-prev" title="Previous Page">
+      <span class="page-control-arrow">&larr;</span>
+    </div>
+    <div class="page-control-zone right" id="nav-next" title="Next Page">
+      <span class="page-control-arrow">&rarr;</span>
+    </div>
+
+    <!-- Dynamic Plugin Content Area -->
+    <main id="plugin-container">
+      <!-- Plugin views will be rendered here dynamically -->
+    </main>
+
+    <!-- Footer Status Bar -->
+    <footer class="status-bar footer">
+      <div id="footer-date-time">FRI, JUN 5, 2026 - 12:00 PM</div>
+      <div class="page-dots" id="footer-page-dots">
+        <!-- Dots rendered dynamically based on active plugins count -->
+      </div>
+      <div id="network-status">ONLINE</div>
+    </footer>
+
+  </div>
+
+  <!-- Load Configurations -->
+  <script src="config.js"></script>
+
+  <!-- Load Plugins -->
+  <script src="plugins/history.js"></script>
+  <script src="plugins/life.js"></script>
+  <script src="plugins/weather.js"></script>
+  <script src="plugins/sun.js"></script>
+  <script src="plugins/word.js"></script>
+  <script src="plugins/wifi.js"></script>
+  <script src="plugins/guardian.js"></script>
+  <script src="plugins/wikirandom.js"></script>
+  <script src="plugins/wikiphoto.js"></script>
+  <script src="plugins/laundry.js"></script>
+  <script src="plugins/settings.js"></script>
+
+  <!-- Load Orchestrator -->
+  <script src="app.js"></script>
+
+  <!-- Register PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js')
+          .then(function(reg) {
+            console.log('PWA Service Worker registered on scope:', reg.scope);
+          })
+          .catch(function(err) {
+            console.warn('PWA Service Worker registration failed:', err);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
