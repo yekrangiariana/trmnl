@@ -6,7 +6,7 @@
  * iOS 12 Safari Compatible.
  */
 
-var CACHE_NAME = 'trmnl-dashboard-cache-v12';
+var CACHE_NAME = 'trmnl-dashboard-cache-v16';
 var STATIC_ASSETS = [
   '/',
   './',
@@ -18,6 +18,7 @@ var STATIC_ASSETS = [
   'icon-192.png',
   'icon-512.png',
   'apple-touch-icon.png',
+  'plugins/time.js',
   'plugins/history.js',
   'plugins/life.js',
   'plugins/weather.js',
@@ -28,6 +29,7 @@ var STATIC_ASSETS = [
   'plugins/wikirandom.js',
   'plugins/wikiphoto.js',
   'plugins/laundry.js',
+  'plugins/hsl.js',
   'plugins/settings.js'
 ];
 
@@ -64,6 +66,11 @@ self.addEventListener('activate', function(event) {
 // 3. Fetch Event: Serve with appropriate caching strategy
 self.addEventListener('fetch', function(event) {
   var requestUrl = new URL(event.request.url);
+
+  // Bypass service worker interception for Sähkötin API due to WebKit redirect caching bugs in Safari
+  if (requestUrl.hostname.indexOf('sahkotin.fi') !== -1) {
+    return;
+  }
 
   // Check if it's an API request (external resource)
   var isApiRequest = requestUrl.origin !== self.location.origin;

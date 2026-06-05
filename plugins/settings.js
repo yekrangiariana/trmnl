@@ -14,7 +14,6 @@
     
     // In-memory base64 buffers for file uploads
     wifiQrBase64: null,
-    websiteQrBase64: null,
 
     init: function(pluginConfig) {
       this.config = pluginConfig || {};
@@ -55,7 +54,9 @@
             locationName: resolvedName || inputName,
             tempUnit: self.container.querySelector('#cfg-unit').value,
             wifiQrBase64: self.wifiQrBase64 || activeConfig.wifiQrBase64 || null,
-            websiteQrBase64: self.websiteQrBase64 || activeConfig.websiteQrBase64 || null
+            hslNeighbourhood: (self.container.querySelector('#cfg-hsl-neighbourhood') ? self.container.querySelector('#cfg-hsl-neighbourhood').value.trim() : activeConfig.hslNeighbourhood) || 'Kallio',
+            hslRadius: self.container.querySelector('#cfg-hsl-radius') ? parseInt(self.container.querySelector('#cfg-hsl-radius').value, 10) : (activeConfig.hslRadius || 700),
+            digitransitApiKey: (self.container.querySelector('#cfg-digitransit-key') ? self.container.querySelector('#cfg-digitransit-key').value.trim() : activeConfig.digitransitApiKey) || ''
           };
 
           localStorage.setItem('trmnl_dashboard_settings', JSON.stringify(newSettings));
@@ -118,7 +119,6 @@
       try {
         localStorage.removeItem('trmnl_dashboard_settings');
         this.wifiQrBase64 = null;
-        this.websiteQrBase64 = null;
         alert("Local overrides cleared! Reverted to config.js defaults...");
         
         if (window.Dashboard && typeof window.Dashboard.reloadSettings === 'function') {
@@ -146,104 +146,116 @@
 
       // Keep saved base64 images in memory so they don't get cleared on edits
       this.wifiQrBase64 = activeConfig.wifiQrBase64 || null;
-      this.websiteQrBase64 = activeConfig.websiteQrBase64 || null;
 
-      var html = '<div class="grid-row" style="height:100%;">';
+      var hslNeighbourhood = activeConfig.hslNeighbourhood || 'Kallio';
+      var hslRadius = activeConfig.hslRadius !== undefined ? activeConfig.hslRadius : 700;
+      var digitransitApiKey = activeConfig.digitransitApiKey || '';
 
-      // Left Column: Global, Personal, and WiFi uploads
-      html += '  <div class="grid-col col-1 trmnl-card" style="justify-content: flex-start; overflow-y: auto;">';
-      html += '    <div class="trmnl-card-header">GLOBAL & PERSONAL CONFIG</div>';
-      
-      // Theme selection
-      html += '    <div style="margin-bottom: 12px;">';
-      html += '      <label style="font-family:var(--font-mono); font-size:11px; font-weight:700; display:block; margin-bottom:4px;">THEME</label>';
-      html += '      <select id="cfg-theme">';
-      html += '        <option value="paper"' + (globalTheme === 'paper' ? ' selected' : '') + '>Paper (Warm E-Paper)</option>';
-      html += '        <option value="coal"' + (globalTheme === 'coal' ? ' selected' : '') + '>Coal (Dark E-Paper)</option>';
-      html += '        <option value="stark"' + (globalTheme === 'stark' ? ' selected' : '') + '>Stark (High Contrast B&W)</option>';
-      html += '      </select>';
-      html += '    </div>';
+      var fieldStyle = 'margin-bottom: 14px;';
+      var labelStyle = 'font-family:var(--font-mono); font-size:10px; font-weight:700; display:block; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.04em; opacity:0.75;';
 
-      // Cycle speed selection
-      html += '    <div style="margin-bottom: 12px;">';
-      html += '      <label style="font-family:var(--font-mono); font-size:11px; font-weight:700; display:block; margin-bottom:4px;">CYCLE INTERVAL</label>';
-      html += '      <select id="cfg-interval">';
-      html += '        <option value="0"' + (globalInterval === 0 ? ' selected' : '') + '>Manual Navigation Only</option>';
-      html += '        <option value="15"' + (globalInterval === 15 ? ' selected' : '') + '>15 Seconds</option>';
-      html += '        <option value="30"' + (globalInterval === 30 ? ' selected' : '') + '>30 Seconds</option>';
-      html += '        <option value="60"' + (globalInterval === 60 ? ' selected' : '') + '>60 Seconds</option>';
-      html += '        <option value="120"' + (globalInterval === 120 ? ' selected' : '') + '>120 Seconds</option>';
-      html += '      </select>';
-      html += '    </div>';
+      var html = '<div style="display:flex; flex-direction:column; height:100%; padding: 10px 0;">';
+      html += '  <div class="grid-row" style="flex:1; overflow:hidden;">';
 
-      // Flash refresh selection
-      html += '    <div style="margin-bottom: 12px;">';
-      html += '      <label style="font-family:var(--font-mono); font-size:11px; font-weight:700; display:block; margin-bottom:4px;">E-INK REFRESH FLASH</label>';
-      html += '      <select id="cfg-flash">';
-      html += '        <option value="true"' + (globalFlash ? ' selected' : '') + '>Enabled (Authentic Flash)</option>';
-      html += '        <option value="false"' + (!globalFlash ? ' selected' : '') + '>Disabled (No Fade/Flash)</option>';
-      html += '      </select>';
-      html += '    </div>';
+      // Left Column
+      html += '    <div class="grid-col col-1 trmnl-card" style="justify-content: flex-start; overflow-y: auto; gap: 0; padding: 24px 28px;">';
+      html += '      <div class="trmnl-card-header">GLOBAL &amp; PERSONAL CONFIG</div>';
 
-      html += '    <div class="dotted-divider" style="margin:10px 0;"></div>';
-
-      // Birthdate
-      html += '    <div style="margin-bottom: 10px;">';
-      html += '      <label style="font-family:var(--font-mono); font-size:11px; font-weight:700; display:block; margin-bottom:4px;">BIRTHDATE (YYYY-MM-DD)</label>';
-      html += '      <input type="text" id="cfg-birthdate" value="' + birthdate + '">';
-      html += '    </div>';
-
-      html += '  </div>';
-
-      // Right Column: Weather Location, WiFi Uploads & Actions
-      html += '  <div class="grid-col col-1 trmnl-card" style="justify-content: space-between; overflow-y: auto;">';
-      html += '    <div>';
-      html += '      <div class="trmnl-card-header">WEATHER & GUEST WIFI CONFIG</div>';
-
-      // Location Name
-      html += '      <div style="margin-bottom: 10px;">';
-      html += '        <label style="font-family:var(--font-mono); font-size:11px; font-weight:700; display:block; margin-bottom:4px;">LOCATION NAME</label>';
-      html += '        <input type="text" id="cfg-name" value="' + weatherName + '">';
+      html += '      <div style="' + fieldStyle + '">';
+      html += '        <label style="' + labelStyle + '">THEME</label>';
+      html += '        <select id="cfg-theme">';
+      html += '          <option value="paper"' + (globalTheme === 'paper' ? ' selected' : '') + '>Paper (Warm E-Paper)</option>';
+      html += '          <option value="coal"' + (globalTheme === 'coal' ? ' selected' : '') + '>Coal (Dark E-Paper)</option>';
+      html += '          <option value="stark"' + (globalTheme === 'stark' ? ' selected' : '') + '>Stark (High Contrast B&amp;W)</option>';
+      html += '        </select>';
       html += '      </div>';
 
-      // Lat/Lon (Hidden, dynamically resolved via geocoding)
-      html += '      <input type="hidden" id="cfg-lat" value="' + weatherLat + '">';
-      html += '      <input type="hidden" id="cfg-lon" value="' + weatherLon + '">';
-
-      // Temperature Unit
-      html += '      <div style="margin-bottom: 10px;">';
-      html += '        <label style="font-family:var(--font-mono); font-size:11px; font-weight:700; display:block; margin-bottom:4px;">TEMPERATURE SCALE</label>';
-      html += '      <select id="cfg-unit">';
-      html += '        <option value="celsius"' + (weatherUnit === 'celsius' ? ' selected' : '') + '>Celsius (°C)</option>';
-      html += '        <option value="fahrenheit"' + (weatherUnit === 'fahrenheit' ? ' selected' : '') + '>Fahrenheit (°F)</option>';
-      html += '      </select>';
+      html += '      <div style="' + fieldStyle + '">';
+      html += '        <label style="' + labelStyle + '">CYCLE INTERVAL</label>';
+      html += '        <select id="cfg-interval">';
+      html += '          <option value="0"' + (globalInterval === 0 ? ' selected' : '') + '>Manual Only</option>';
+      html += '          <option value="15"' + (globalInterval === 15 ? ' selected' : '') + '>15 Seconds</option>';
+      html += '          <option value="30"' + (globalInterval === 30 ? ' selected' : '') + '>30 Seconds</option>';
+      html += '          <option value="60"' + (globalInterval === 60 ? ' selected' : '') + '>60 Seconds</option>';
+      html += '          <option value="120"' + (globalInterval === 120 ? ' selected' : '') + '>120 Seconds</option>';
+      html += '        </select>';
       html += '      </div>';
 
-      html += '      <div class="dotted-divider" style="margin: 12px 0;"></div>';
-
-      // Custom QR File Uploads
-      html += '      <div style="margin-bottom: 10px;">';
-      html += '        <label style="font-family:var(--font-mono); font-size:10px; font-weight:700; display:block; margin-bottom:4px;">UPLOAD WIFI QR IMAGE</label>';
-      html += '        <input type="file" id="cfg-wifi-qr-img" accept="image/*" style="font-size:11px; padding:6px;">';
-      html += '        <div id="cfg-wifi-qr-preview" style="font-family:var(--font-mono); font-size:9px; margin-top:2px; opacity:0.6;">' + (this.wifiQrBase64 ? "✓ Saved in browser overrides" : "No file uploaded (dashed placeholder displayed)") + '</div>';
+      html += '      <div style="' + fieldStyle + '">';
+      html += '        <label style="' + labelStyle + '">E-INK REFRESH FLASH</label>';
+      html += '        <select id="cfg-flash">';
+      html += '          <option value="true"' + (globalFlash ? ' selected' : '') + '>Enabled (Authentic Flash)</option>';
+      html += '          <option value="false"' + (!globalFlash ? ' selected' : '') + '>Disabled (No Flash)</option>';
+      html += '        </select>';
       html += '      </div>';
 
-      html += '      <div style="margin-bottom: 10px;">';
-      html += '        <label style="font-family:var(--font-mono); font-size:10px; font-weight:700; display:block; margin-bottom:4px;">UPLOAD WEBSITE QR IMAGE</label>';
-      html += '        <input type="file" id="cfg-website-qr-img" accept="image/*" style="font-size:11px; padding:6px;">';
-      html += '        <div id="cfg-website-qr-preview" style="font-family:var(--font-mono); font-size:9px; margin-top:2px; opacity:0.6;">' + (this.websiteQrBase64 ? "✓ Saved in browser overrides" : "No file uploaded (dashed placeholder displayed)") + '</div>';
+      html += '      <div class="dotted-divider" style="margin: 4px 0 14px;"></div>';
+
+      html += '      <div style="' + fieldStyle + '">';
+      html += '        <label style="' + labelStyle + '">BIRTHDATE (YYYY-MM-DD)</label>';
+      html += '        <input type="text" id="cfg-birthdate" value="' + birthdate + '">';
+      html += '      </div>';
+
+      html += '      <div class="dotted-divider" style="margin: 4px 0 14px;"></div>';
+
+      html += '      <div style="' + fieldStyle + '">';
+      html += '        <label style="' + labelStyle + '">WIFI QR IMAGE</label>';
+      html += '        <input type="file" id="cfg-wifi-qr-img" accept="image/*" style="font-size:11px; padding:5px;">';
+      html += '        <div id="cfg-wifi-qr-preview" style="font-family:var(--font-mono); font-size:9px; margin-top:4px; opacity:0.55;">' + (this.wifiQrBase64 ? '✓ Image saved' : 'No file — shows placeholder') + '</div>';
       html += '      </div>';
 
       html += '    </div>';
+
+      // Right Column
+      html += '    <div class="grid-col col-1 trmnl-card" style="justify-content: space-between; overflow-y: auto; gap: 0; padding: 24px 28px;">';
+      html += '      <div>';
+      html += '        <div class="trmnl-card-header">LOCATION &amp; TRANSPORT CONFIG</div>';
+
+      html += '        <div style="' + fieldStyle + '">';
+      html += '          <label style="' + labelStyle + '">LOCATION NAME</label>';
+      html += '          <input type="text" id="cfg-name" value="' + weatherName + '">';
+      html += '        </div>';
+
+      html += '        <input type="hidden" id="cfg-lat" value="' + weatherLat + '">';
+      html += '        <input type="hidden" id="cfg-lon" value="' + weatherLon + '">';
+
+      html += '        <div style="' + fieldStyle + '">';
+      html += '          <label style="' + labelStyle + '">TEMPERATURE SCALE</label>';
+      html += '          <select id="cfg-unit">';
+      html += '            <option value="celsius"' + (weatherUnit === 'celsius' ? ' selected' : '') + '>Celsius (°C)</option>';
+      html += '            <option value="fahrenheit"' + (weatherUnit === 'fahrenheit' ? ' selected' : '') + '>Fahrenheit (°F)</option>';
+      html += '          </select>';
+      html += '        </div>';
+
+      html += '        <div class="dotted-divider" style="margin: 4px 0 14px;"></div>';
+
+      html += '        <div style="' + fieldStyle + '">';
+      html += '          <label style="' + labelStyle + '">HSL NEIGHBOURHOOD</label>';
+      html += '          <input type="text" id="cfg-hsl-neighbourhood" value="' + hslNeighbourhood + '" placeholder="e.g. Kallio, Pasila, Töölö">';
+      html += '          <div style="font-family:var(--font-mono); font-size:9px; margin-top:4px; opacity:0.55;">Neighbourhood name or specific street address</div>';
+      html += '        </div>';
+      html += '        <div style="' + fieldStyle + '">';
+      html += '          <label style="' + labelStyle + '">HSL STOP RADIUS (METERS)</label>';
+      html += '          <input type="number" id="cfg-hsl-radius" value="' + hslRadius + '" placeholder="e.g. 700" min="100" max="5000" step="50">';
+      html += '          <div style="font-family:var(--font-mono); font-size:9px; margin-top:4px; opacity:0.55;">Search radius for nearby stops (e.g. 500 to 2000m)</div>';
+      html += '        </div>';
+
+      html += '        <div style="' + fieldStyle + '">';
+      html += '          <label style="' + labelStyle + '">DIGITRANSIT API KEY</label>';
+      html += '          <input type="password" id="cfg-digitransit-key" value="' + digitransitApiKey + '" placeholder="Paste key from portal-api.digitransit.fi" autocomplete="off">';
+      html += '          <div style="font-family:var(--font-mono); font-size:9px; margin-top:4px; opacity:0.55;">Free key — register at portal-api.digitransit.fi</div>';
+      html += '        </div>';
+
+      html += '      </div>';
 
       // Action Buttons
-      html += '    <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">';
-      html += '      <button class="trmnl-btn" id="cfg-save-btn" style="width: 100%;">SAVE SETTINGS</button>';
-      html += '      <button class="trmnl-btn secondary" id="cfg-reset-btn" style="width: 100%; font-size:12px; border-style:dashed;">RESET ALL OVERRIDES</button>';
+      html += '      <div style="display:flex; flex-direction:column; gap:10px;">';
+      html += '        <button class="trmnl-btn" id="cfg-save-btn" style="width: 100%;">SAVE SETTINGS</button>';
+      html += '        <button class="trmnl-btn secondary" id="cfg-reset-btn" style="width: 100%; font-size:12px; border-style:dashed;">RESET ALL OVERRIDES</button>';
+      html += '      </div>';
+
       html += '    </div>';
-
       html += '  </div>';
-
       html += '</div>';
 
       this.container.innerHTML = html;
@@ -268,7 +280,6 @@
 
       // File Reader Bindings
       var wifiFileInput = this.container.querySelector('#cfg-wifi-qr-img');
-      var websiteFileInput = this.container.querySelector('#cfg-website-qr-img');
 
       if (wifiFileInput) {
         wifiFileInput.addEventListener('change', function() {
@@ -278,20 +289,6 @@
             reader.onload = function(e) {
               self.wifiQrBase64 = e.target.result;
               self.container.querySelector('#cfg-wifi-qr-preview').textContent = "Loaded: " + file.name.substring(0, 15) + "...";
-            };
-            reader.readAsDataURL(file);
-          }
-        });
-      }
-
-      if (websiteFileInput) {
-        websiteFileInput.addEventListener('change', function() {
-          var file = websiteFileInput.files[0];
-          if (file) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-              self.websiteQrBase64 = e.target.result;
-              self.container.querySelector('#cfg-website-qr-preview').textContent = "Loaded: " + file.name.substring(0, 15) + "...";
             };
             reader.readAsDataURL(file);
           }

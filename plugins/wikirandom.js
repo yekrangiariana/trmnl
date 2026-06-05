@@ -56,8 +56,8 @@
       var extract = data.extract ? data.extract.trim() : "No summary available.";
       
       // Limit extract character count to fit inside standard height
-      if (extract.length > 380) {
-        extract = extract.substring(0, 370) + "...";
+      if (extract.length > 420) {
+        extract = extract.substring(0, 410) + "...";
       }
 
       var imageHtml = '';
@@ -76,15 +76,21 @@
       
       // Left side: Text content
       html += '    <div style="flex: 1.1; display: flex; flex-direction: column; justify-content: center; height: 100%;">';
-      html += '      <div class="text-serif" style="font-size: 38px; font-weight: 600; line-height: 1.15; margin-bottom: 6px; color: var(--text-color);">' + title + '</div>';
+      html += '      <div class="text-serif" style="font-size: 42px; font-weight: 600; line-height: 1.15; margin-bottom: 6px; color: var(--text-color);">' + title + '</div>';
       
       if (description) {
-        html += '      <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-transform: uppercase; opacity: 0.65; letter-spacing: 0.05em; margin-bottom: 20px;">' + description + '</div>';
+        html += '      <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; text-transform: uppercase; opacity: 0.65; letter-spacing: 0.05em; margin-bottom: 20px;">' + description + '</div>';
       } else {
         html += '      <div style="margin-bottom: 20px;"></div>';
       }
 
-      html += '      <div style="font-family: var(--font-sans); font-size: 15.5px; line-height: 1.5; opacity: 0.85;">' + extract + '</div>';
+      html += '      <div style="font-family: var(--font-sans); font-size: 18px; line-height: 1.5; opacity: 0.85;">' + extract + '</div>';
+      
+      // Next Article button
+      html += '      <div style="margin-top: 28px;">';
+      html += '        <button id="wiki-random-next-btn" class="trmnl-btn" style="font-size: 13px; padding: 8px 20px;">Next Article &rarr;</button>';
+      html += '      </div>';
+      
       html += '    </div>';
 
       // Right side: Image (if exists)
@@ -107,6 +113,19 @@
       html += '</div>';
 
       this.container.innerHTML = html;
+
+      // Bind Next Article button — stop propagation so dashboard doesn't cycle pages
+      var self = this;
+      var nextBtn = this.container.querySelector('#wiki-random-next-btn');
+      if (nextBtn) {
+        nextBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          nextBtn.textContent = 'Loading...';
+          nextBtn.disabled = true;
+          self.fetchRandomArticle();
+        });
+      }
     },
 
     drawError: function() {

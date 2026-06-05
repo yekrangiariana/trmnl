@@ -77,8 +77,8 @@
         return;
       }
 
-      // Display exactly 7 headlines vertically
-      var displayItems = items.slice(0, 7);
+      // Display exactly 8 headlines vertically
+      var displayItems = items.slice(0, 8);
 
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; padding: 4px 0 0 0;">';
 
@@ -100,8 +100,8 @@
         html += '    <div class="news-item" style="display:flex; align-items: flex-start; margin-bottom: 10px;">';
         html += '      <span class="dither-bullet" style="height: 34px; width: 6px; margin-right: 12px; margin-top: 2px; flex-shrink: 0;"></span>';
         html += '      <div style="flex:1; display:flex; flex-direction:column;">';
-        html += '        <div style="font-family: var(--font-sans); font-size: 15px; font-weight: 700; line-height: 1.2; margin-bottom: 3px; color: var(--text-color);">' + title + '</div>';
-        html += '        <div style="font-family: var(--font-sans); font-size: 12px; line-height: 1.35; opacity: 0.8; color: var(--text-color);">' + desc + ' (' + timeAgo + ')</div>';
+        html += '        <div style="font-family: var(--font-sans); font-size: 17px; font-weight: 700; line-height: 1.2; margin-bottom: 3px; color: var(--text-color);">' + title + '</div>';
+        html += '        <div style="font-family: var(--font-sans); font-size: 14px; line-height: 1.35; opacity: 0.8; color: var(--text-color);">' + desc + ' (' + timeAgo + ')</div>';
         html += '      </div>';
         html += '    </div>';
       });
@@ -113,7 +113,7 @@
       html += '    <div class="trmnl-footer-badge">';
       // Inline Newspaper SVG
       html += '      <svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M18 18h-8M16 6H10v4h6V6z"></path></svg>';
-      html += '      <span>The Guardian RSS</span>';
+      html += '      <span>Guardian headlines</span>';
       html += '    </div>';
       html += '    <div class="trmnl-footer-meta">World Top Stories</div>';
       html += '  </div>';

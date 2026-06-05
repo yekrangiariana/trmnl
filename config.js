@@ -19,4 +19,15 @@ window.DASHBOARD_CONFIG = {
   tempUnit: 'celsius',       // 'celsius' or 'fahrenheit'
   windSpeedUnit: 'kmh',      // 'kmh', 'mph', or 'ms'
 
+  // HSL Transport (Helsinki Region Transport — Digitransit API)
+  // Enter a neighbourhood name OR street address — stops within custom radius found automatically.
+  // Examples: 'Kallio', 'Suvelantie 14', 'Pasila', 'Töölö', 'Kamppi'
+  hslNeighbourhood: 'Kallio',
+  hslRadius: 700,
+
+  // Digitransit API key — required for HSL live departures.
+  // Get a FREE key at: https://portal-api.digitransit.fi
+  // (Register → Products → HSL → Subscribe → copy Primary Key)
+  digitransitApiKey: '',
+
 };

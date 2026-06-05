@@ -36,7 +36,7 @@
     state.config.plugins = Object.assign({}, defaultConfig.plugins || {});
 
     // Deep merge local overrides
-    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'websiteQrBase64'];
+    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius'];
     rootKeys.forEach(function(key) {
       if (localOverrides[key] !== undefined) {
         state.config[key] = localOverrides[key];
@@ -100,7 +100,7 @@
 
     // Check all registered plugins on window.Plugins
     var registry = window.Plugins || {};
-    var order = ['history', 'life', 'weather', 'sun', 'word', 'wifi', 'guardian', 'wikirandom', 'wikiphoto', 'laundry'];
+    var order = ['time', 'history', 'life', 'weather', 'sun', 'word', 'wifi', 'guardian', 'wikirandom', 'wikiphoto', 'laundry', 'hsl'];
 
     order.forEach(function(pluginId) {
       var plugin = registry[pluginId];
@@ -370,6 +370,18 @@
       });
     }
 
+    // Keyboard Navigation (Arrow Keys)
+    document.addEventListener('keydown', function(e) {
+      var settingsView = document.getElementById('view-settings');
+      if (settingsView && settingsView.classList.contains('active')) return; // disable during settings editing
+
+      if (e.key === 'ArrowLeft') {
+        showPage(state.activeIndex - 1);
+      } else if (e.key === 'ArrowRight') {
+        showPage(state.activeIndex + 1);
+      }
+    });
+
     // Touch Swiping Support for iPad Mini 2
     var touchStartX = 0;
     var touchEndX = 0;
@@ -474,6 +486,63 @@
     });
   }
 
+  // 13. Quick Page Switcher Overlay
+  function initQuickSwitcher() {
+    var container = document.getElementById('plugin-container');
+    var switcher = document.getElementById('quick-switcher');
+    
+    if (!container || !switcher) return;
+
+    container.addEventListener('click', function(e) {
+      // Check if click was inside a .trmnl-footer-bar
+      var footerBar = e.target.closest('.trmnl-footer-bar');
+      if (!footerBar) return;
+
+      e.stopPropagation();
+      var isSettingsActive = document.getElementById('view-settings').classList.contains('active');
+      if (isSettingsActive) return; // Disable switcher during settings view
+      
+      switcher.classList.toggle('active');
+      if (switcher.classList.contains('active')) {
+        renderQuickSwitcherButtons();
+      }
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', function(e) {
+      if (switcher.classList.contains('active') && !switcher.contains(e.target)) {
+        switcher.classList.remove('active');
+      }
+    });
+  }
+
+  function renderQuickSwitcherButtons() {
+    var container = document.querySelector('.quick-switcher-content');
+    if (!container) return;
+
+    container.innerHTML = '';
+    state.activePlugins.forEach(function(item, idx) {
+      var btn = document.createElement('button');
+      btn.className = 'quick-switcher-btn' + (idx === state.activeIndex ? ' active' : '');
+      
+      // Clean up names for button display
+      var name = item.name;
+      if (name === 'HSL Departures') name = 'HSL Live';
+      if (name === 'Guardian headlines') name = 'News';
+      if (name === 'Guest Wifi') name = 'Wifi';
+      if (name === 'Wikipedia photo') name = 'Wiki Photo';
+      if (name === 'Wikipedia article') name = 'Wiki Article';
+      
+      btn.textContent = name.toUpperCase();
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        showPage(idx);
+        document.getElementById('quick-switcher').classList.remove('active');
+      });
+      container.appendChild(btn);
+    });
+  }
+
   // Launch Dashboard
   function launch() {
     initConfig();
@@ -484,6 +553,7 @@
     initBattery();
     initNavEvents();
     initSettingsToggle();
+    initQuickSwitcher();
     
     // Initial page load
     showPage(0);

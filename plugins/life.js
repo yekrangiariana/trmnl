@@ -78,19 +78,19 @@
 
       // SECTION 1: Life in Weeks (Top Card)
       html += '  <div class="trmnl-card" style="padding: 16px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px; flex: 1.3;">';
-      html += '    <div style="font-family: var(--font-sans); font-size: 15px; font-weight: 700; margin-bottom: 8px; color: var(--text-color); text-align: center; text-transform: uppercase; letter-spacing: 0.05em;">';
+      html += '    <div style="font-family: var(--font-sans); font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--text-color); text-align: center; text-transform: uppercase; letter-spacing: 0.05em;">';
       html += '      Your Life in Weeks: Lived ' + formattedLifeLived + ' of ' + formattedLifeTotal + ' (' + lifePercentage + '%)';
       html += '    </div>';
       
       // Grid container for 90 columns x 52 rows
-      html += '    <div style="display: flex; flex-direction: column; gap: 1px; width: 539px;">';
+      html += '    <div style="display: flex; flex-direction: column; gap: 1px; width: 630px;">';
       for (var week = 0; week < 52; week++) {
         html += '      <div style="display: flex; gap: 1px;">';
         for (var year = 0; year < 90; year++) {
           var index = (year * 52) + week;
           var isLived = index < weeksLived;
           var bgColor = isLived ? 'var(--text-color)' : 'transparent';
-          html += '        <div style="width: 5px; height: 5px; border: 1px solid var(--border-color); box-sizing: border-box; background-color: ' + bgColor + ';"></div>';
+          html += '        <div style="width: 6px; height: 6px; border: 1px solid var(--border-color); box-sizing: border-box; background-color: ' + bgColor + ';"></div>';
         }
         html += '      </div>';
       }
@@ -102,7 +102,7 @@
 
       // SECTION 2: Weeks in Year
       html += '    <div class="trmnl-card" style="flex: 1.1; padding: 12px 16px; display: flex; flex-direction: column; align-items: center; justify-content: space-around;">';
-      html += '      <div style="font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; width: 100%; margin-bottom: 6px;">';
+      html += '      <div style="font-family: var(--font-sans); font-size: 15.5px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; width: 100%; margin-bottom: 6px;">';
       html += '        Weeks in Year: Week ' + currentWeekOfYear + ' of 52 (' + yearPercentage + '%)';
       html += '      </div>';
       
@@ -117,15 +117,15 @@
           var cellHtml = '';
           if (weekNum < currentWeekOfYear) {
             // Lived/Past week
-            cellHtml = '<div style="width: 11px; height: 11px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: var(--text-color);"></div>';
+            cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: var(--text-color);"></div>';
           } else if (weekNum === currentWeekOfYear) {
             // Current week (target indicator)
-            cellHtml = '<div style="width: 11px; height: 11px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent; display: flex; align-items: center; justify-content: center;">' +
-                       '  <div style="width: 3px; height: 3px; background-color: var(--text-color); border-radius: 50%;"></div>' +
+            cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent; display: flex; align-items: center; justify-content: center;">' +
+                       '  <div style="width: 4px; height: 4px; background-color: var(--text-color); border-radius: 50%;"></div>' +
                        '</div>';
           } else {
             // Future week
-            cellHtml = '<div style="width: 11px; height: 11px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent;"></div>';
+            cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent;"></div>';
           }
           html += cellHtml;
         }
@@ -136,7 +136,7 @@
 
       // SECTION 3: Days in Month
       html += '    <div class="trmnl-card" style="flex: 0.9; padding: 10px 14px; display: flex; flex-direction: column; align-items: center; justify-content: space-around;">';
-      html += '      <div style="font-family: var(--font-sans); font-size: 13.5px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; width: 100%; margin-bottom: 4px;">';
+      html += '      <div style="font-family: var(--font-sans); font-size: 15.5px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; width: 100%; margin-bottom: 4px;">';
       html += '        ' + currentMonthName.toUpperCase() + ': Day ' + currentDayOfMonth + ' of ' + totalDaysInMonth + ' (' + monthPercentage + '%)';
       html += '      </div>';
 
@@ -147,7 +147,7 @@
       var daysHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
       html += '        <div style="display: flex; gap: 4px; margin-bottom: 2px;">';
       for (var d = 0; d < 7; d++) {
-        html += '          <div style="font-family: var(--font-mono); font-size: 8px; font-weight: 700; width: 11px; text-align: center; opacity: 0.6;">' + daysHeaders[d] + '</div>';
+        html += '          <div style="font-family: var(--font-mono); font-size: 9px; font-weight: 700; width: 13px; text-align: center; opacity: 0.6;">' + daysHeaders[d] + '</div>';
       }
       html += '        </div>';
 
@@ -162,20 +162,20 @@
           var cellIdx = (row * 7) + col;
           if (cellIdx < firstDayIndex || dayCounter > totalDaysInMonth) {
             // Empty padded cell
-            html += '          <div style="width: 11px; height: 11px;"></div>';
+            html += '          <div style="width: 13px; height: 13px;"></div>';
           } else {
             var cellHtml = '';
             if (dayCounter < currentDayOfMonth) {
               // Past day
-              cellHtml = '<div style="width: 11px; height: 11px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: var(--text-color);"></div>';
+              cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: var(--text-color);"></div>';
             } else if (dayCounter === currentDayOfMonth) {
               // Current day (target indicator)
-              cellHtml = '<div style="width: 11px; height: 11px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent; display: flex; align-items: center; justify-content: center;">' +
-                         '  <div style="width: 3px; height: 3px; background-color: var(--text-color); border-radius: 50%;"></div>' +
+              cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent; display: flex; align-items: center; justify-content: center;">' +
+                         '  <div style="width: 4px; height: 4px; background-color: var(--text-color); border-radius: 50%;"></div>' +
                          '</div>';
             } else {
               // Future day
-              cellHtml = '<div style="width: 11px; height: 11px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent;"></div>';
+              cellHtml = '<div style="width: 13px; height: 13px; border: 1.5px solid var(--border-color); box-sizing: border-box; background-color: transparent;"></div>';
             }
             html += cellHtml;
             dayCounter++;

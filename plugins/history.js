@@ -77,15 +77,15 @@
       
       // Left Column: Events (Full Height, max 560px)
       html += '    <div class="grid-col col-1" style="justify-content:space-between; height: 560px; overflow:hidden;">';
-      html += '      <h2 class="history-title" style="margin-bottom: 6px; font-size: 22px;">Events</h2>';
+      html += '      <h2 class="history-title" style="margin-bottom: 6px; font-size: 24px;">Events</h2>';
       html += '      <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; overflow:hidden;">';
       displayEvents.forEach(function(item) {
         var cleanText = self.truncateText(item.text, 95);
         html += '        <div class="history-item" style="margin-bottom: 5px; overflow:hidden;">';
         html += '          <span class="dither-bullet" style="height: 15px; margin-top: 1px; flex-shrink:0;"></span>';
         html += '          <div class="history-item-content">';
-        html += '            <span class="history-item-year" style="font-size: 13px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
-        html += '            <span class="history-item-text" style="font-size: 11.5px; line-height: 1.25;">' + cleanText + '</span>';
+        html += '            <span class="history-item-year" style="font-size: 15px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
+        html += '            <span class="history-item-text" style="font-size: 13.5px; line-height: 1.25;">' + cleanText + '</span>';
         html += '          </div>';
         html += '        </div>';
       });
@@ -97,15 +97,15 @@
       
       // Births section
       html += '      <div style="height: 270px; display:flex; flex-direction:column; overflow:hidden;">';
-      html += '        <h2 class="history-title" style="margin-bottom:4px; font-size: 22px;">Births</h2>';
+      html += '        <h2 class="history-title" style="margin-bottom:4px; font-size: 24px;">Births</h2>';
       html += '        <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; overflow:hidden;">';
       displayBirths.forEach(function(item) {
         var cleanText = self.truncateText(item.text, 90);
         html += '          <div class="history-item" style="margin-bottom: 3px; overflow:hidden;">';
         html += '            <span class="dither-bullet" style="height: 15px; margin-top: 1px; flex-shrink:0;"></span>';
         html += '            <div class="history-item-content">';
-        html += '              <span class="history-item-year" style="font-size: 13px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
-        html += '              <span class="history-item-text" style="font-size: 11.5px; line-height: 1.25;">' + cleanText + '</span>';
+        html += '              <span class="history-item-year" style="font-size: 15px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
+        html += '              <span class="history-item-text" style="font-size: 13.5px; line-height: 1.25;">' + cleanText + '</span>';
         html += '            </div>';
         html += '          </div>';
         });
@@ -114,15 +114,15 @@
 
       // Deaths section
       html += '      <div style="height: 270px; display:flex; flex-direction:column; border-top: 1.5px dashed var(--border-color); padding-top: 6px; overflow:hidden;">';
-      html += '        <h2 class="history-title" style="margin-bottom:4px; font-size: 22px;">Deaths</h2>';
+      html += '        <h2 class="history-title" style="margin-bottom:4px; font-size: 24px;">Deaths</h2>';
       html += '        <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; overflow:hidden;">';
       displayDeaths.forEach(function(item) {
         var cleanText = self.truncateText(item.text, 90);
         html += '          <div class="history-item" style="margin-bottom: 3px; overflow:hidden;">';
         html += '            <span class="dither-bullet" style="height: 15px; margin-top: 1px; flex-shrink:0;"></span>';
         html += '            <div class="history-item-content">';
-        html += '              <span class="history-item-year" style="font-size: 13px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
-        html += '              <span class="history-item-text" style="font-size: 11.5px; line-height: 1.25;">' + cleanText + '</span>';
+        html += '              <span class="history-item-year" style="font-size: 15px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
+        html += '              <span class="history-item-text" style="font-size: 13.5px; line-height: 1.25;">' + cleanText + '</span>';
         html += '            </div>';
         html += '          </div>';
       });

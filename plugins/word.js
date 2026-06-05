@@ -191,10 +191,10 @@
       
       // Word details
       html += '    <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">';
-      html += '      <div class="text-serif" style="font-size: 52px; font-weight: 600; line-height: 1.1; margin-bottom: 4px; color: var(--text-color); text-transform: lowercase;">' + selected.word + '</div>';
+      html += '      <div class="text-serif" style="font-size: 58px; font-weight: 600; line-height: 1.1; margin-bottom: 4px; color: var(--text-color); text-transform: lowercase;">' + selected.word + '</div>';
       
       // Phonetic & Type row
-      html += '      <div style="display:flex; gap:12px; align-items:center; font-family: var(--font-mono); font-size: 13px; opacity:0.8; margin-bottom: 24px;">';
+      html += '      <div style="display:flex; gap:12px; align-items:center; font-family: var(--font-mono); font-size: 15px; opacity:0.8; margin-bottom: 24px;">';
       if (selected.phonetic) {
         html += '        <span style="font-weight:700;">' + selected.phonetic + '</span>';
       }
@@ -202,13 +202,13 @@
       html += '      </div>';
 
       // Definition
-      html += '      <div class="text-serif" style="font-size: 20px; line-height: 1.4; font-weight: 500; margin-bottom: 20px; border-left: var(--border-width) solid var(--border-color); padding-left: 16px;">';
+      html += '      <div class="text-serif" style="font-size: 22px; line-height: 1.4; font-weight: 500; margin-bottom: 20px; border-left: var(--border-width) solid var(--border-color); padding-left: 16px;">';
       html += '        ' + selected.definition;
       html += '      </div>';
 
       // Example sentence
       if (selected.example) {
-        html += '      <div style="font-family: var(--font-sans); font-size: 14.5px; font-style: italic; line-height: 1.45; opacity:0.75; padding-left: 20px;">';
+        html += '      <div style="font-family: var(--font-sans); font-size: 17px; font-style: italic; line-height: 1.45; opacity:0.75; padding-left: 20px;">';
         html += '        ' + selected.example;
         html += '      </div>';
       }
