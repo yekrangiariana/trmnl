@@ -131,7 +131,7 @@
     renderError: function() {
       this.container.innerHTML = 
         '<div class="trmnl-card" style="height:100%; justify-content:center; align-items:center; text-align:center;">' +
-        '  <div style="font-size: 48px; margin-bottom: 16px;">☀</div>' +
+        '  <div style="margin-bottom: 16px;"><i class="fas fa-sun" style="font-size: 48px;"></i></div>' +
         '  <div style="font-family: var(--font-mono); font-size: 16px; font-weight:700;">SOLAR DATA OFFLINE</div>' +
         '  <div style="font-family: var(--font-mono); font-size: 12px; margin-top: 8px; opacity: 0.6;">Could not reach weather forecast API.</div>' +
         '</div>';

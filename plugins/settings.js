@@ -48,7 +48,7 @@
             refreshInterval: parseInt(self.container.querySelector('#cfg-interval').value, 10),
             flashRefresh: self.container.querySelector('#cfg-flash').value === 'true',
             theme: self.container.querySelector('#cfg-theme').value,
-            birthdate: self.container.querySelector('#cfg-birthdate').value,
+            birthdate: activeConfig.birthdate || '1995-04-12',
             latitude: finalLat,
             longitude: finalLon,
             locationName: resolvedName || inputName,
@@ -129,6 +129,35 @@
       }
     },
 
+    checkForUpdates: function() {
+      var self = this;
+      var currentVersion = "trmnl-dashboard-cache-v29";
+      
+      if (!navigator.onLine) return; // Don't check if offline
+      
+      fetch('./sw.js?t=' + Date.now())
+        .then(function(res) {
+          if (!res.ok) throw new Error("HTTP error " + res.status);
+          return res.text();
+        })
+        .then(function(text) {
+          var match = text.match(/CACHE_NAME\s*=\s*["']([^"']+)["']/);
+          if (match && match[1]) {
+            var serverVersion = match[1];
+            if (serverVersion !== currentVersion) {
+              console.log("Update available! Server version:", serverVersion, "Client version:", currentVersion);
+              var wrapper = self.container ? self.container.querySelector('#cfg-update-indicator-wrapper') : null;
+              if (wrapper) {
+                wrapper.style.display = 'block';
+              }
+            }
+          }
+        })
+        .catch(function(err) {
+          console.warn("Failed to check for updates:", err);
+        });
+    },
+
     renderPanel: function() {
       if (!this.container) return;
 
@@ -194,16 +223,13 @@
       html += '      <div class="dotted-divider" style="margin: 4px 0 14px;"></div>';
 
       html += '      <div style="' + fieldStyle + '">';
-      html += '        <label style="' + labelStyle + '">BIRTHDATE (YYYY-MM-DD)</label>';
-      html += '        <input type="text" id="cfg-birthdate" value="' + birthdate + '">';
-      html += '      </div>';
-
-      html += '      <div class="dotted-divider" style="margin: 4px 0 14px;"></div>';
-
-      html += '      <div style="' + fieldStyle + '">';
       html += '        <label style="' + labelStyle + '">WIFI QR IMAGE</label>';
       html += '        <input type="file" id="cfg-wifi-qr-img" accept="image/*" style="font-size:11px; padding:5px;">';
       html += '        <div id="cfg-wifi-qr-preview" style="font-family:var(--font-mono); font-size:9px; margin-top:4px; opacity:0.55;">' + (this.wifiQrBase64 ? '✓ Image saved' : 'No file — shows placeholder') + '</div>';
+      html += '      </div>';
+
+      html += '      <div id="cfg-update-indicator-wrapper" style="display:none; margin-top:14px;">';
+      html += '        <button class="trmnl-btn" id="cfg-update-indicator-btn" style="width: 100%; font-size: 11px; background-color: var(--text-color); color: var(--bg-color); border-color: var(--border-color);">UPDATE AVAILABLE (CLICK TO RELOAD)</button>';
       html += '      </div>';
 
       html += '    </div>';
@@ -253,7 +279,6 @@
       // Action Buttons
       html += '      <div style="display:flex; flex-direction:column; gap:10px;">';
       html += '        <button class="trmnl-btn" id="cfg-save-btn" style="width: 100%;">SAVE SETTINGS</button>';
-      html += '        <button class="trmnl-btn secondary" id="cfg-update-btn" style="width: 100%; font-size:12px; border-style:dashed;">FORCE APP UPDATE</button>';
       html += '        <button class="trmnl-btn secondary" id="cfg-reset-btn" style="width: 100%; font-size:11px; border-style:dashed; opacity:0.7;">RESET ALL OVERRIDES</button>';
       html += '      </div>';
 
@@ -265,7 +290,7 @@
 
       // Event Bindings
       var saveBtn = this.container.querySelector('#cfg-save-btn');
-      var updateBtn = this.container.querySelector('#cfg-update-btn');
+      var updateIndicatorBtn = this.container.querySelector('#cfg-update-indicator-btn');
       var resetBtn = this.container.querySelector('#cfg-reset-btn');
 
       if (saveBtn) {
@@ -274,11 +299,11 @@
         });
       }
 
-      if (updateBtn) {
-        updateBtn.addEventListener('click', function() {
-          if (confirm("This will clear the cached app files, check the server for new code changes, and reload the dashboard. Your settings and Wi-Fi code will NOT be lost. Proceed?")) {
-            updateBtn.disabled = true;
-            updateBtn.textContent = "CLEARING CACHE...";
+      if (updateIndicatorBtn) {
+        updateIndicatorBtn.addEventListener('click', function() {
+          if (confirm("This will clear the cached app files, check the server for new code changes, and reload the dashboard to apply updates. Your settings will be preserved. Proceed?")) {
+            updateIndicatorBtn.disabled = true;
+            updateIndicatorBtn.textContent = "UPDATING...";
             
             if ('serviceWorker' in navigator) {
               navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -375,6 +400,9 @@
           }
         });
       }
+      
+      // Check for update availability dynamically from sw.js
+      this.checkForUpdates();
     }
   };
 

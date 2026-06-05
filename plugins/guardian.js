@@ -1,6 +1,6 @@
 /**
- * The Guardian World News Headlines Plugin for TRMNL Dashboard
- * Fetches and formats 7 headlines vertically with dither bullets and brief subtitles.
+ * The Guardian Headlines Plugin for TRMNL Dashboard
+ * Fetches from /international/rss and sorts by date to show the latest headlines.
  */
 
 (function() {
@@ -23,8 +23,9 @@
 
     update: function() {
       var self = this;
-      var feedUrl = "https://www.theguardian.com/world/rss";
-      var url = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
+      var feedUrl = "https://www.theguardian.com/international/rss";
+      var cacheBuster = Math.floor(Date.now() / (3 * 60 * 60 * 1000));
+      var url = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl) + "&_t=" + cacheBuster;
 
       fetch(url)
         .then(function(response) {
@@ -33,7 +34,17 @@
         })
         .then(function(data) {
           if (data.status === 'ok') {
-            self.renderHeadlines(data.items || []);
+            var items = data.items || [];
+
+            // Sort items by pubDate descending (newest first)
+            items.sort(function(a, b) {
+              var dateA = new Date(a.pubDate.replace(/-/g, "/"));
+              var dateB = new Date(b.pubDate.replace(/-/g, "/"));
+              return dateB.getTime() - dateA.getTime();
+            });
+
+            self.lastUpdated = new Date();
+            self.renderHeadlines(items);
           } else {
             throw new Error("RSS load error");
           }
@@ -82,7 +93,7 @@
 
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; padding: 4px 0 0 0;">';
 
-      // Headlines List (flex column containing exactly 7 rows)
+      // Headlines List
       html += '  <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; margin-bottom: 16px;">';
 
       displayItems.forEach(function(item) {
@@ -115,12 +126,40 @@
       html += '      <svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M18 18h-8M16 6H10v4h6V6z"></path></svg>';
       html += '      <span>Guardian headlines</span>';
       html += '    </div>';
-      html += '    <div class="trmnl-footer-meta">World Top Stories</div>';
+      var updatedText = 'Not yet';
+      if (this.lastUpdated) {
+        var h = this.lastUpdated.getHours();
+        var m = this.lastUpdated.getMinutes();
+        var ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12;
+        h = h ? h : 12;
+        m = m < 10 ? '0' + m : m;
+        updatedText = h + ':' + m + ' ' + ampm;
+      }
+      html += '    <div class="trmnl-footer-meta" style="display: flex; align-items: center; gap: 12px;">';
+      html += '      <span>Updated ' + updatedText + '</span>';
+      html += '      <button id="guardian-refresh-btn" class="trmnl-btn" style="padding: 2px 10px; font-size: 11px; height: 26px; line-height: 1; border-radius: 4px; font-family: var(--font-sans); text-transform: uppercase; cursor: pointer;">Refresh</button>';
+      html += '    </div>';
       html += '  </div>';
 
       html += '</div>';
 
+      var self = this;
       this.container.innerHTML = html;
+
+      // Attach click event to refresh button
+      var refreshBtn = this.container.querySelector('#guardian-refresh-btn');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (window.Dashboard && typeof window.Dashboard.resetTimer === 'function') {
+            window.Dashboard.resetTimer();
+          }
+          refreshBtn.textContent = "Updating...";
+          refreshBtn.disabled = true;
+          self.update();
+        });
+      }
     },
 
     renderError: function() {
@@ -128,7 +167,7 @@
         '<div class="trmnl-card" style="height:100%; justify-content:center; align-items:center; text-align:center;">' +
         '  <div style="font-size: 48px; margin-bottom: 16px;">📰</div>' +
         '  <div style="font-family: var(--font-mono); font-size: 16px; font-weight:700;">HEADLINES OFFLINE</div>' +
-        '  <div style="font-family: var(--font-mono); font-size: 12px; margin-top: 8px; opacity: 0.6;">Could not fetch Guardian World RSS feed.</div>' +
+        '  <div style="font-family: var(--font-mono); font-size: 12px; margin-top: 8px; opacity: 0.6;">Could not fetch Guardian RSS feed.</div>' +
         '</div>';
     }
   };

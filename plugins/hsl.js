@@ -209,7 +209,9 @@
               scheduled:  sched,
               realtime:   real,
               isRealtime: st.realtime,
-              delaySec:   real - sched
+              delaySec:   real - sched,
+              stopName:   stop.name || '',
+              stopCode:   stop.code || ''
             });
           });
         });
@@ -271,7 +273,7 @@
       html += '    <div style="display:flex;align-items:center;padding:12px 20px 11px;border-bottom:var(--border-width) solid var(--border-color);background-color:var(--highlight-bg);">';
       html += '      <div style="width:36px;flex-shrink:0;"></div>';
       html += '      <div style="width:64px;font-family:var(--font-mono);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;flex-shrink:0;">Line</div>';
-      html += '      <div style="flex:1;font-family:var(--font-mono);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Destination</div>';
+      html += '      <div style="flex:1;font-family:var(--font-mono);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Stop / via Destination</div>';
       html += '      <div style="width:58px;text-align:center;font-family:var(--font-mono);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;flex-shrink:0;">Sched</div>';
       html += '      <div style="width:64px;text-align:center;font-family:var(--font-mono);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;flex-shrink:0;">Delay</div>';
       html += '      <div style="width:62px;text-align:right;font-family:var(--font-mono);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;flex-shrink:0;">Due</div>';
@@ -289,10 +291,23 @@
           var headsign = dep.headsign;
           if (headsign && headsign.length > 28) headsign = headsign.substring(0, 27) + '…';
 
-          html += '    <div style="display:flex;align-items:center;padding:14px 20px;' + rowBg + border + '">';
+          var stopInfo = dep.stopName || '';
+          if (dep.stopCode) {
+            stopInfo += ' (' + dep.stopCode + ')';
+          }
+          if (stopInfo.length > 35) {
+            stopInfo = stopInfo.substring(0, 34) + '…';
+          }
+
+          html += '    <div style="display:flex;align-items:center;padding:10px 20px;' + rowBg + border + '">';
           html += '      <div style="width:36px;flex-shrink:0;display:flex;align-items:center;">' + self.modeIcon(dep.mode) + '</div>';
           html += '      <div style="width:64px;font-family:var(--font-mono);font-size:22px;font-weight:800;flex-shrink:0;letter-spacing:-0.01em;">' + dep.routeShort + '</div>';
-          html += '      <div style="flex:1;font-family:var(--font-sans);font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (headsign || '—') + '</div>';
+          
+          html += '      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;overflow:hidden;padding-right:10px;">';
+          html += '        <div style="font-family:var(--font-sans);font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (stopInfo || '—') + '</div>';
+          html += '        <div style="font-family:var(--font-mono);font-size:11px;opacity:0.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">' + (headsign ? 'via ' + headsign : '—') + '</div>';
+          html += '      </div>';
+
           html += '      <div style="width:58px;text-align:center;font-family:var(--font-mono);font-size:16px;opacity:0.7;flex-shrink:0;">' + self.formatTime(dep.scheduled) + '</div>';
 
           if (delayStr) {
