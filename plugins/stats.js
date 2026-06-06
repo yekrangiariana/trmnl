@@ -289,11 +289,8 @@
       html += '      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between;">';
       html += '        <div>';
       html += '          <div class="trmnl-card-header" style="margin-bottom: 6px; font-size: 14px;">COOKING &amp; WRITING</div>';
-      html += '          <div style="font-family: var(--font-sans); font-size: 20px; font-weight: 800; line-height: 1.1; margin-bottom: 3px;">' + self.formatNumber(totalMeals) + ' Meals Prepared</div>';
-      html += '          <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.55; text-transform: uppercase; margin-bottom: 8px;">Avg ' + this.config.mealsPerDay + ' meals/day since ' + this.config.cookingStartDate + '</div>';
-      
-      html += '          <div style="font-family: var(--font-sans); font-size: 20px; font-weight: 800; line-height: 1.1; margin-bottom: 3px;">' + self.formatNumber(totalWords) + ' Words Written</div>';
-      html += '          <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.55; text-transform: uppercase;">' + totalArticles + ' articles (avg ' + this.config.wordsPerArticle + ' words) since ' + this.config.writingStartDate + '</div>';
+      html += '          <div style="font-family: var(--font-sans); font-size: 20px; font-weight: 800; line-height: 1.1; margin-bottom: 12px;">' + self.formatNumber(totalMeals) + ' Meals Prepared</div>';
+      html += '          <div style="font-family: var(--font-sans); font-size: 20px; font-weight: 800; line-height: 1.1;">' + self.formatNumber(totalWords) + ' Words Written</div>';
       html += '        </div>';
       
       html += '        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 2px 0;">';
