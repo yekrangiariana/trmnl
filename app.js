@@ -36,7 +36,7 @@
     state.config.plugins = Object.assign({}, defaultConfig.plugins || {});
 
     // Deep merge local overrides
-    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius'];
+    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks'];
     rootKeys.forEach(function(key) {
       if (localOverrides[key] !== undefined) {
         state.config[key] = localOverrides[key];
@@ -112,7 +112,7 @@
 
     // Check all registered plugins on window.Plugins
     var registry = window.Plugins || {};
-    var order = ['time', 'history', 'life', 'stats', 'weather', 'sun', 'word', 'wifi', 'guardian', 'wikirandom', 'wikiphoto', 'laundry', 'hsl'];
+    var order = ['time', 'history', 'life', 'stats', 'weather', 'sun', 'todoist', 'word', 'wifi', 'news', 'wikirandom', 'wikiphoto', 'laundry', 'hsl'];
 
     order.forEach(function(pluginId) {
       var plugin = registry[pluginId];
@@ -547,16 +547,17 @@
     var svgStart = '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; margin-right: 8px; fill: none; stroke: currentColor; stroke-width: 2.5; flex-shrink: 0; vertical-align: middle;">';
     var paths = {
       time: '<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>',
-      history: '<circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path><path d="M16.24 7.76a6 6 0 100 8.49"></path>',
+      history: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>',
       life: '<circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"></path>',
       weather: '<path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M6.34 17.66l-1.41 1.41M12 20v2M17.66 17.66l1.41 1.41M2 12h2M17.66 6.34l-1.41 1.41"></path><circle cx="12" cy="12" r="4"></circle>',
       sun: '<path d="M17 18a5 5 0 00-10 0M12 2v7M4.22 10.22l4.95-4.95M19.78 10.22l-4.95-4.95"></path>',
+      todoist: '<path d="M6 6l4 4 8-8M6 12l4 4 8-8M6 18l4 4 8-8"></path>',
       word: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>',
       wifi: '<path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"></path>',
-      guardian: '<path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line>',
+      news: '<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2M18 14h-8M18 18h-8M16 6H10v4h6V6z"></path>',
       wikirandom: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="11" y2="17"></line>',
       wikiphoto: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline>',
-      laundry: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="12" cy="13" r="5"></circle><path d="M12 2v2"></path>',
+      laundry: '<rect x="4" y="2" width="16" height="20" rx="2"></rect><circle cx="12" cy="14" r="5"></circle><line x1="8" y1="6" x2="16" y2="6"></line>',
       hsl: '<rect x="2" y="2" width="20" height="20" rx="2.5" ry="2.5"></rect><line x1="2" y1="17" x2="22" y2="17"></line><line x1="2" y1="6" x2="22" y2="6"></line><circle cx="7" cy="11.5" r="1.5"></circle><circle cx="17" cy="11.5" r="1.5"></circle>',
       stats: '<path d="M18 20V10M12 20V4M6 20v-6"></path>'
     };
@@ -576,7 +577,7 @@
       // Clean up names for button display
       var name = item.name;
       if (name === 'HSL Departures') name = 'HSL Live';
-      if (name === 'Guardian headlines') name = 'News';
+      if (name === 'Guardian headlines' || name === 'BBC News') name = 'News';
       if (name === 'Guest Wifi') name = 'Wifi';
       if (name === 'Wikipedia photo') name = 'Wiki Photo';
       if (name === 'Wikipedia article') name = 'Wiki Article';

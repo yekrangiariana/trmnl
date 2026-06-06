@@ -116,8 +116,7 @@
       // DITHERED FOOTER BAR
       html += '  <div class="trmnl-footer-bar">';
       html += '    <div class="trmnl-footer-badge">';
-      // Inline Sun SVG
-      html += '      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+      html += '      <svg viewBox="0 0 24 24"><path d="M17 18a5 5 0 00-10 0M12 2v7M4.22 10.22l4.95-4.95M19.78 10.22l-4.95-4.95"></path></svg>';
       html += '      <span>Sunrise &amp; Sunset</span>';
       html += '    </div>';
       html += '    <div class="trmnl-footer-meta">SOLAR PHASES</div>';

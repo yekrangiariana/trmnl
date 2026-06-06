@@ -227,7 +227,7 @@
 
       html += '  <div class="trmnl-footer-bar">';
       html += '    <div class="trmnl-footer-badge">';
-      html += '      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path></svg>';
+      html += '      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="11" y2="17"></line></svg>';
       html += '      <span>Wiki Random</span>';
       html += '    </div>';
       html += '    <div class="trmnl-footer-meta">RANDOM ARTICLE KNOWLEDGE</div>';

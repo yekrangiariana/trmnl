@@ -71,7 +71,10 @@
         wifiQrBase64: activeConfig.wifiQrBase64 || null,
         hslNeighbourhood: activeConfig.hslNeighbourhood || 'Kallio',
         hslRadius: activeConfig.hslRadius !== undefined ? activeConfig.hslRadius : 700,
-        digitransitApiKey: activeConfig.digitransitApiKey || ''
+        digitransitApiKey: activeConfig.digitransitApiKey || '',
+        todoistApiKey: activeConfig.todoistApiKey || '',
+        todoistFilter: activeConfig.todoistFilter || 'today | overdue',
+        todoistMaxTasks: activeConfig.todoistMaxTasks !== undefined ? activeConfig.todoistMaxTasks : 6
       }, savedDashboard);
 
       this.wifiQrBase64 = this.editedSettings.wifiQrBase64;
@@ -168,6 +171,15 @@
         if (writeInput) this.editedStats.writingStartDate = writeInput.value.trim();
         if (articlesInput) this.editedStats.articlesPerMonth = parseInt(articlesInput.value, 10) || 4;
         if (wordsInput) this.editedStats.wordsPerArticle = parseInt(wordsInput.value, 10) || 4000;
+      }
+      else if (this.activeTab === 'todoist') {
+        var keyInput = this.container.querySelector('#cfg-todoist-key');
+        var filterInput = this.container.querySelector('#cfg-todoist-filter');
+        var maxInput = this.container.querySelector('#cfg-todoist-max');
+
+        if (keyInput) this.editedSettings.todoistApiKey = keyInput.value.trim();
+        if (filterInput) this.editedSettings.todoistFilter = filterInput.value.trim();
+        if (maxInput) this.editedSettings.todoistMaxTasks = parseInt(maxInput.value, 10) || 6;
       }
     },
 
@@ -362,7 +374,7 @@
 
     checkForUpdates: function() {
       var self = this;
-      var currentVersion = "trmnl-dashboard-cache-v41";
+      var currentVersion = "trmnl-dashboard-cache-v44";
       
       if (!navigator.onLine) return;
       
@@ -415,6 +427,9 @@
       html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'stats' ? ' active' : '') + '" data-tab="stats">';
       html += '        <i class="fa-solid fa-chart-line"></i><span>PERSONAL STATS</span>';
+      html += '      </button>';
+      html += '      <button class="settings-tab-btn' + (activeTab === 'todoist' ? ' active' : '') + '" data-tab="todoist">';
+      html += '        <i class="fa-solid fa-list-check"></i><span>TODOIST</span>';
       html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'backup' ? ' active' : '') + '" data-tab="backup">';
       html += '        <i class="fa-solid fa-database"></i><span>BACKUP &amp; RESET</span>';
@@ -599,8 +614,28 @@
       html += '          </div>';
       html += '        </div>';
       html += '      </div>';
+      
+      // TAB 4: TODOIST PANE
+      html += '      <div class="settings-pane' + (activeTab === 'todoist' ? ' active' : '') + '" id="pane-todoist">';
+      html += '        <div class="settings-section-title">Todoist Integration</div>';
+      html += '        <div class="form-group">';
+      html += '          <label for="cfg-todoist-key">Personal API Token</label>';
+      html += '          <input type="password" id="cfg-todoist-key" value="' + (this.editedSettings.todoistApiKey || '') + '" placeholder="Paste Todoist API token here..." autocomplete="off">';
+      html += '          <div class="field-desc">Find your Personal API token in Todoist Settings &gt; Integrations &gt; Developer. Works on free accounts.</div>';
+      html += '        </div>';
+      html += '        <div class="form-group">';
+      html += '          <label for="cfg-todoist-filter">Task Filter Query</label>';
+      html += '          <input type="text" id="cfg-todoist-filter" value="' + (this.editedSettings.todoistFilter || 'today | overdue') + '" placeholder="e.g. today | overdue">';
+      html += '          <div class="field-desc">Todoist filter query (e.g. "today | overdue", "#Work", "priority 4"). Leave empty for all tasks.</div>';
+      html += '        </div>';
+      html += '        <div class="form-group">';
+      html += '          <label for="cfg-todoist-max">Max Tasks</label>';
+      html += '          <input type="number" id="cfg-todoist-max" value="' + (this.editedSettings.todoistMaxTasks || 6) + '" min="1" max="15" step="1">';
+      html += '          <div class="field-desc">Number of tasks to show (1-15).</div>';
+      html += '        </div>';
+      html += '      </div>';
 
-      // TAB 4: BACKUP & RESTORE PANE
+      // TAB 5: BACKUP & RESTORE PANE
       html += '      <div class="settings-pane' + (activeTab === 'backup' ? ' active' : '') + '" id="pane-backup">';
       html += '        <div class="settings-section-title">Backup &amp; Restore Configuration</div>';
       html += '        <div style="display:flex; margin-bottom: 20px;">';

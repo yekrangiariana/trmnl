@@ -30,4 +30,9 @@ window.DASHBOARD_CONFIG = {
   // (Register → Products → HSL → Subscribe → copy Primary Key)
   digitransitApiKey: '',
 
+  // Todoist Settings
+  todoistApiKey: '',         // Paste your Todoist Personal API Token here
+  todoistFilter: 'today | overdue', // Todoist filter query (e.g. 'today | overdue', '#Inbox', 'priority 4')
+  todoistMaxTasks: 6,        // Maximum number of tasks to display (1 to 15)
+
 };

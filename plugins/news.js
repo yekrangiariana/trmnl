@@ -1,14 +1,14 @@
 /**
- * The Guardian Headlines Plugin for TRMNL Dashboard
- * Fetches from /international/rss and sorts by date to show the latest headlines.
+ * News Headlines Plugin for TRMNL Dashboard
+ * Fetches from RSS and sorts by date to show the latest headlines.
  */
 
 (function() {
   'use strict';
 
-  var GuardianPlugin = {
-    id: 'guardian',
-    name: 'The Guardian',
+  var NewsPlugin = {
+    id: 'news',
+    name: 'BBC News',
     config: {},
     container: null,
 
@@ -18,13 +18,13 @@
 
     render: function(element) {
       this.container = element;
-      this.container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;font-family:var(--font-mono);font-size:16px;">RETRIEVING GUARDIAN HEADLINES...</div>';
+      this.container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;font-family:var(--font-mono);font-size:16px;">RETRIEVING BBC HEADLINES...</div>';
     },
 
     update: function() {
       var self = this;
       var cacheBuster = Math.floor(Date.now() / (3 * 60 * 60 * 1000));
-      var feedUrl = "https://www.theguardian.com/international/rss?_t=" + cacheBuster;
+      var feedUrl = "https://feeds.bbci.co.uk/news/world/rss.xml?_t=" + cacheBuster;
       var url = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
 
       fetch(url)
@@ -50,7 +50,7 @@
           }
         })
         .catch(function(err) {
-          console.error("Guardian news fetch failed:", err);
+          console.error("BBC news fetch failed:", err);
           self.renderError();
         });
     },
@@ -106,7 +106,7 @@
           desc = desc.substring(0, 130) + "...";
         }
 
-        var timeAgo = GuardianPlugin.formatTimeAgo(item.pubDate);
+        var timeAgo = NewsPlugin.formatTimeAgo(item.pubDate);
 
         html += '    <div class="news-item" style="display:flex; align-items: flex-start; margin-bottom: 10px;">';
         html += '      <span class="dither-bullet" style="height: 34px; width: 6px; margin-right: 12px; margin-top: 2px; flex-shrink: 0;"></span>';
@@ -124,7 +124,7 @@
       html += '    <div class="trmnl-footer-badge">';
       // Inline Newspaper SVG
       html += '      <svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M18 18h-8M16 6H10v4h6V6z"></path></svg>';
-      html += '      <span>Guardian headlines</span>';
+      html += '      <span>BBC headlines</span>';
       html += '    </div>';
       var updatedText = 'Not yet';
       if (this.lastUpdated) {
@@ -138,7 +138,7 @@
       }
       html += '    <div class="trmnl-footer-meta" style="display: flex; align-items: center;">';
       html += '      <span style="margin-right: 12px;">Updated ' + updatedText + '</span>';
-      html += '      <button id="guardian-refresh-btn" class="trmnl-btn" style="padding: 2px 10px; font-size: 11px; height: 26px; line-height: 1; border-radius: 4px; font-family: var(--font-sans); text-transform: uppercase; cursor: pointer;">Refresh</button>';
+      html += '      <button id="news-refresh-btn" class="trmnl-btn" style="padding: 2px 10px; font-size: 11px; height: 26px; line-height: 1; border-radius: 4px; font-family: var(--font-sans); text-transform: uppercase; cursor: pointer;">Refresh</button>';
       html += '    </div>';
       html += '  </div>';
 
@@ -148,7 +148,7 @@
       this.container.innerHTML = html;
 
       // Attach click event to refresh button
-      var refreshBtn = this.container.querySelector('#guardian-refresh-btn');
+      var refreshBtn = this.container.querySelector('#news-refresh-btn');
       if (refreshBtn) {
         refreshBtn.addEventListener('click', function(e) {
           e.stopPropagation();
@@ -167,13 +167,13 @@
         '<div class="trmnl-card" style="height:100%; justify-content:center; align-items:center; text-align:center;">' +
         '  <div style="font-size: 48px; margin-bottom: 16px;">📰</div>' +
         '  <div style="font-family: var(--font-mono); font-size: 16px; font-weight:700;">HEADLINES OFFLINE</div>' +
-        '  <div style="font-family: var(--font-mono); font-size: 12px; margin-top: 8px; opacity: 0.6;">Could not fetch Guardian RSS feed.</div>' +
+        '  <div style="font-family: var(--font-mono); font-size: 12px; margin-top: 8px; opacity: 0.6;">Could not fetch BBC RSS feed.</div>' +
         '</div>';
     }
   };
 
   // Register plugin
   window.Plugins = window.Plugins || {};
-  window.Plugins.guardian = GuardianPlugin;
+  window.Plugins.news = NewsPlugin;
 
 })();

@@ -125,7 +125,7 @@
       html += '  <div class="trmnl-footer-bar">';
       html += '    <div class="trmnl-footer-badge">';
       // Telescope/Globe SVG Icon
-      html += '      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--text-color);stroke-width:2.5;vertical-align:middle;flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path><path d="M2 12h20"></path></svg>';
+      html += '      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--text-color);stroke-width:2.5;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
       html += '      <span>NASA Space Photo</span>';
       html += '    </div>';
       html += '    <div class="trmnl-footer-meta">' + caption + '</div>';

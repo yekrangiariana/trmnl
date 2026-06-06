@@ -174,7 +174,7 @@
         var k = gtfsId.replace(/[^a-zA-Z0-9]/g, '_');
         return 's_' + k + ': stop(id: "' + gtfsId + '") {' +
                '  name code' +
-               '  stoptimesWithoutPatterns(numberOfDepartures: 8, omitNonPickups: true) {' +
+               '  stoptimesWithoutPatterns(numberOfDepartures: 12, omitNonPickups: true) {' +
                '    scheduledDeparture realtimeDeparture realtime serviceDay headsign' +
                '    trip { route { shortName mode } }' +
                '  }' +
@@ -259,7 +259,7 @@
 
     drawDepartures: function(departures, neighbourhood, now) {
       var self = this;
-      var shown = departures.slice(0, 9);
+      var shown = departures.slice(0, 10);
 
       var nowDate = new Date();
       var timeStr = nowDate.getHours().toString().padStart(2, '0') + ':' +
