@@ -581,6 +581,7 @@
       if (name === 'Wikipedia photo') name = 'Wiki Photo';
       if (name === 'Wikipedia article') name = 'Wiki Article';
       if (name === 'Personal Stats') name = 'Stats';
+      if (name === 'Laundry Cost') name = 'Laundry';
       
       btn.innerHTML = getPluginIcon(item.id) + '<span>' + name.toUpperCase() + '</span>';
       btn.addEventListener('click', function(e) {

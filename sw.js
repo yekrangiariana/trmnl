@@ -6,7 +6,7 @@
  * iOS 12 Safari Compatible.
  */
 
-var CACHE_NAME = "trmnl-dashboard-cache-v36";
+var CACHE_NAME = "trmnl-dashboard-cache-v41";
 var STATIC_ASSETS = [
   "/",
   "./",
@@ -18,6 +18,8 @@ var STATIC_ASSETS = [
   "icon-192.png",
   "icon-512.png",
   "apple-touch-icon.png",
+  "pixel_art_landscape.png",
+  "pixel_art_landscape_dark.png",
   "plugins/time.js",
   "plugins/history.js",
   "plugins/life.js",

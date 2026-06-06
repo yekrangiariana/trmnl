@@ -362,7 +362,7 @@
 
     checkForUpdates: function() {
       var self = this;
-      var currentVersion = "trmnl-dashboard-cache-v29";
+      var currentVersion = "trmnl-dashboard-cache-v41";
       
       if (!navigator.onLine) return;
       

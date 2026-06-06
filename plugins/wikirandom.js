@@ -65,23 +65,7 @@
       this.wasActive = isActiveNow;
 
       if (transitionedToActive) {
-        var activeConfig = window.Dashboard ? window.Dashboard.getActiveConfig() : {};
-        var refreshInterval = activeConfig.refreshInterval !== undefined ? activeConfig.refreshInterval : 60;
-        
-        if (refreshInterval > 0) {
-          // Cycling is turned on: a cycle has completed. Show next article.
-          this.loadNextArticle();
-        } else {
-          // Cycling is turned off: only update if the article is older than 15 minutes.
-          var historyObj = this.getHistory();
-          var timeLimit = 15 * 60 * 1000; // 15 minutes
-          if (Date.now() - historyObj.lastFetchTime > timeLimit) {
-            this.loadNextArticle();
-          } else {
-            // Keep showing current article
-            this.drawArticle(historyObj.articles[historyObj.currentIndex]);
-          }
-        }
+        this.loadNextArticle();
       }
     },
 
@@ -226,10 +210,11 @@
       var historyObj = this.getHistory();
       var isFirst = historyObj.currentIndex <= 0;
       var isLast = historyObj.currentIndex >= historyObj.articles.length - 1;
+      var buttonText = isLast ? 'New Random' : 'Next';
 
       html += '      <div style="margin-top: 28px; display: flex;">';
-      html += '        <button id="wiki-random-prev-btn" class="trmnl-btn secondary" style="font-size: 13px; padding: 8px 16px; margin-right: 12px;' + (isFirst ? ' opacity: 0.35; cursor: not-allowed;' : '') + '"' + (isFirst ? ' disabled' : '') + '>&larr; Prev</button>';
-      html += '        <button id="wiki-random-next-btn" class="trmnl-btn" style="font-size: 13px; padding: 8px 20px;">' + (isLast ? 'Next Article &rarr;' : 'Next &rarr;') + '</button>';
+      html += '        <button id="wiki-random-prev-btn" class="trmnl-btn secondary" style="font-size: 13px; padding: 8px 16px; margin-right: 12px;' + (isFirst ? ' opacity: 0.35; cursor: not-allowed;' : '') + '"' + (isFirst ? ' disabled' : '') + '><i class="fa-solid fa-arrow-left" style="margin-right: 6px;"></i>Prev</button>';
+      html += '        <button id="wiki-random-next-btn" class="trmnl-btn" style="font-size: 13px; padding: 8px 20px;">' + buttonText + '<i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i></button>';
       html += '      </div>';
       
       html += '    </div>';
@@ -273,7 +258,7 @@
         nextBtn.addEventListener('click', function(e) {
           e.stopPropagation();
           e.preventDefault();
-          nextBtn.textContent = 'Loading...';
+          nextBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i>Loading...';
           nextBtn.disabled = true;
           self.loadNextArticle();
         });

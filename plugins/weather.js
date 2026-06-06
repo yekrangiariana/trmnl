@@ -127,6 +127,20 @@
       var lowVal = daily.temperature_2m_min ? Math.round(daily.temperature_2m_min[0]) : 0;
       var descText = this.getWeatherDesc(current.weather_code);
 
+      // Cache weather summary for other plugins (like Time)
+      try {
+        var weatherSummary = {
+          temp: tempVal,
+          high: highVal,
+          low: lowVal,
+          desc: descText,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('trmnl_weather_cache', JSON.stringify(weatherSummary));
+      } catch (e) {
+        console.warn("Failed to cache weather data:", e);
+      }
+
       // Chance of Rain (current hour)
       var currentHour = new Date().getHours();
       var rainProb = 0;

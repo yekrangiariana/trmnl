@@ -972,6 +972,41 @@ button.trmnl-btn.secondary:active {
   margin: 4px 0; /* iOS 12 safe vertical spacing */
 }
 
+.time-pixel-widget-header-minimal {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-color);
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+
+.time-pixel-widget-clock-minimal {
+  font-family: var(--font-sans);
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--text-color);
+  margin: 0 0 10px 0;
+}
+
+.time-pixel-widget-weather {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-color);
+  opacity: 0.75;
+  border-top: var(--border-width-thin) dashed var(--border-color);
+  padding-top: 8px;
+  width: 100%;
+  text-align: center;
+}
+
 .time-pixel-landscape {
   position: absolute;
   top: 0;
@@ -987,8 +1022,16 @@ button.trmnl-btn.secondary:active {
   pointer-events: none;
 }
 
-body.theme-coal .time-pixel-landscape {
-  filter: invert(1);
+.time-pixel-landscape.dark-only {
+  display: none;
+}
+
+body.theme-coal .time-pixel-landscape.light-only {
+  display: none;
+}
+
+body.theme-coal .time-pixel-landscape.dark-only {
+  display: block;
   mix-blend-mode: screen;
 }
 

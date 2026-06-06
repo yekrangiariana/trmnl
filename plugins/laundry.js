@@ -95,7 +95,7 @@
       html += '      <div style="font-family: var(--font-mono); font-size: 17px; font-weight: 800; letter-spacing: 0.03em; line-height: 1.1;">ELECTROLUX EW2F3048C1</div>';
       html += '    </div>';
       
-      html += '    <div style="display: flex; align-items: center;">
+      html += '    <div style="display: flex; align-items: center;">';
       
       // Presets
       html += '      <div style="display: flex; margin-right: 16px;">';

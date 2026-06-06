@@ -26,6 +26,85 @@
       this.renderTime();
     },
 
+    getWeatherDesc: function(code) {
+      var desc = {
+        0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+        45: "Foggy", 48: "Depositing fog", 51: "Light drizzle", 53: "Drizzle",
+        55: "Dense drizzle", 61: "Light rain", 63: "Moderate rain", 65: "Heavy rain",
+        71: "Light snow", 73: "Moderate snow", 75: "Heavy snow", 77: "Snow grains",
+        80: "Slight showers", 81: "Rain showers", 82: "Heavy showers",
+        95: "Thunderstorm", 96: "Storm w/ hail", 99: "Heavy storm"
+      };
+      return desc[code] || "Overcast";
+    },
+
+    getWeather: function() {
+      var self = this;
+      var cached = localStorage.getItem('trmnl_weather_cache');
+      if (cached) {
+        try {
+          var data = JSON.parse(cached);
+          if (Date.now() - data.timestamp < 30 * 60 * 1000) {
+            return data;
+          }
+        } catch (e) {}
+      }
+
+      if (navigator.onLine) {
+        var activeConfig = window.Dashboard ? window.Dashboard.getActiveConfig() : {};
+        var lat = activeConfig.latitude !== undefined ? activeConfig.latitude : 60.1699;
+        var lon = activeConfig.longitude !== undefined ? activeConfig.longitude : 24.9384;
+        
+        var weatherUrl = "https://api.open-meteo.com/v1/forecast?" +
+                         "latitude=" + lat +
+                         "&longitude=" + lon +
+                         "&current=temperature_2m,weather_code" +
+                         "&daily=temperature_2m_max,temperature_2m_min" +
+                         "&timezone=auto" +
+                         "&forecast_days=1";
+
+        fetch(weatherUrl)
+          .then(function(res) {
+            if (res.ok) return res.json();
+          })
+          .then(function(weatherData) {
+            if (weatherData && weatherData.current && weatherData.daily) {
+              var current = weatherData.current;
+              var daily = weatherData.daily;
+              
+              var tempVal = Math.round(current.temperature_2m || 0);
+              var highVal = daily.temperature_2m_max ? Math.round(daily.temperature_2m_max[0]) : 0;
+              var lowVal = daily.temperature_2m_min ? Math.round(daily.temperature_2m_min[0]) : 0;
+              var descText = self.getWeatherDesc(current.weather_code);
+              
+              var weatherSummary = {
+                temp: tempVal,
+                high: highVal,
+                low: lowVal,
+                desc: descText,
+                timestamp: Date.now()
+              };
+              
+              localStorage.setItem('trmnl_weather_cache', JSON.stringify(weatherSummary));
+              
+              if (self.container && self.container.classList.contains('active')) {
+                self.renderTime();
+              }
+            }
+          })
+          .catch(function(err) {
+            console.warn("Failed to fetch background weather:", err);
+          });
+      }
+
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (e) {}
+      }
+      return null;
+    },
+
     renderTime: function() {
       if (!this.container) return;
 
@@ -44,81 +123,26 @@
       var ampm = hours >= 12 ? 'PM' : 'AM';
       hours = hours % 12;
       hours = hours ? hours : 12; // 0 should be 12
-      var timeStr = hours.toString().padStart(2, '0') + ':' + minutes.toString().padStart(2, '0');
+      var timeStr = hours + ':' + minutes.toString().padStart(2, '0') + ' ' + ampm;
 
-      // Year progress calculation
-      var start = new Date(year, 0, 1);
-      var diff = now - start;
-      var oneDay = 1000 * 60 * 60 * 24;
-      var dayOfYear = Math.floor(diff / oneDay) + 1;
-      var isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-      var totalDays = isLeap ? 366 : 365;
-      var progress = ((dayOfYear / totalDays) * 100).toFixed(1);
-
-      // Week number calculation
-      var pastDays = (now - start) / 86400000;
-      var weekNum = Math.ceil((pastDays + start.getDay() + 1) / 7);
-
-      // Generate Calendar HTML
-      var firstDay = new Date(year, now.getMonth(), 1).getDay();
-      var daysInMonth = new Date(year, now.getMonth() + 1, 0).getDate();
-      var prevMonthDays = new Date(year, now.getMonth(), 0).getDate();
-      
-      var calHtml = '';
-      calHtml += '<div style="display:grid; grid-template-columns: repeat(7, 1fr); grid-gap: 4px; gap: 4px; text-align: center; font-family: var(--font-mono); font-size: 13px;">';
-      
-      // Calendar Headers
-      var headers = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-      headers.forEach(function(h) {
-        calHtml += '<div style="font-weight: 800; border-bottom: var(--border-width-thin) solid var(--border-color); padding-bottom: 4px; opacity:0.8;">' + h + '</div>';
-      });
-
-      // Calendar Days
-      var dayCounter = 1;
-      var totalCells = 42; // 6 rows * 7 columns
-      for (var i = 0; i < totalCells; i++) {
-        if (i < firstDay) {
-          // Empty cell or previous month days muted
-          var prevDay = prevMonthDays - (firstDay - 1 - i);
-          calHtml += '<div style="opacity: 0.25; padding: 6px 0;">' + prevDay + '</div>';
-        } else if (dayCounter <= daysInMonth) {
-          var isToday = (dayCounter === dateNum);
-          var cellStyle = '';
-          if (isToday) {
-            cellStyle = 'background-color: var(--text-color); color: var(--bg-color); font-weight: 800; border-radius: 4px;';
-          }
-          calHtml += '<div style="padding: 6px 0; ' + cellStyle + '">' + dayCounter + '</div>';
-          dayCounter++;
-        } else {
-          // Next month days muted
-          var nextDay = dayCounter - daysInMonth;
-          calHtml += '<div style="opacity: 0.25; padding: 6px 0;">' + nextDay + '</div>';
-          dayCounter++;
-        }
+      var weather = this.getWeather();
+      var weatherHtml = '';
+      if (weather) {
+        weatherHtml = '<div class="time-pixel-widget-weather">' + 
+                      weather.temp + '° &bull; ' + weather.desc.toUpperCase() + ' &bull; H: ' + weather.high + '° L: ' + weather.low + '°' +
+                      '</div>';
       }
-      calHtml += '</div>';
-
-      // Year Progress Bar Draw (halftone dither representation)
-      var barBlocks = Math.round(progress / 5); // 20 blocks total
-      var progressBarHtml = '<div style="display:flex; border: var(--border-width-thin) solid var(--border-color); height: 16px; border-radius: 4px; overflow: hidden; background-color: var(--bg-color); margin-top: 8px;">';
-      for (var b = 0; b < 20; b++) {
-        if (b < barBlocks) {
-          progressBarHtml += '<div style="flex:1; background-color: var(--text-color); border-right: 0.5px solid var(--card-bg);"></div>';
-        } else {
-          progressBarHtml += '<div style="flex:1; background-color: transparent;"></div>';
-        }
-      }
-      progressBarHtml += '</div>';
 
       // Assemble Main HTML in pixel art landscape layout with floating widget
       var html = '<div class="trmnl-card time-pixel-card">';
-      html += '  <img src="pixel_art_landscape.png" class="time-pixel-landscape" alt="Pixel art mountain landscape">';
+      html += '  <img src="pixel_art_landscape.png" class="time-pixel-landscape light-only" alt="Pixel art mountain landscape">';
+      html += '  <img src="pixel_art_landscape_dark.png" class="time-pixel-landscape dark-only" alt="Pixel art forest at night">';
       html += '  <div class="time-pixel-widget">';
-      html += '    <div class="time-pixel-widget-header">';
-      html += '      <div class="time-pixel-widget-day">' + dayName.toUpperCase() + '</div>';
-      html += '      <div class="time-pixel-widget-date">' + monthName.toUpperCase() + ' ' + dateNum + ', ' + year + '</div>';
-      html += '    </div>';
-      html += '    <div class="time-pixel-widget-clock">' + timeStr + '</div>';
+      html += '    <div class="time-pixel-widget-header-minimal">' + dayName.toUpperCase() + ' &bull; ' + monthName.toUpperCase() + ' ' + dateNum + ', ' + year + '</div>';
+      html += '    <div class="time-pixel-widget-clock-minimal">' + timeStr + '</div>';
+      if (weatherHtml) {
+        html += '    ' + weatherHtml;
+      }
       html += '  </div>';
       html += '  <!-- Invisible footer bar for quick switcher activation -->';
       html += '  <div class="trmnl-footer-bar" style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: transparent; border: none; opacity: 0; z-index: 15; cursor: pointer;"></div>';
