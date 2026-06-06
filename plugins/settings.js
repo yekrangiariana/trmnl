@@ -74,7 +74,9 @@
         digitransitApiKey: activeConfig.digitransitApiKey || '',
         todoistApiKey: activeConfig.todoistApiKey || '',
         todoistFilter: activeConfig.todoistFilter || 'today | overdue',
-        todoistMaxTasks: activeConfig.todoistMaxTasks !== undefined ? activeConfig.todoistMaxTasks : 6
+        todoistMaxTasks: activeConfig.todoistMaxTasks !== undefined ? activeConfig.todoistMaxTasks : 6,
+        historyShowBirthsDeaths: activeConfig.historyShowBirthsDeaths !== undefined ? activeConfig.historyShowBirthsDeaths : false,
+        historyEventMode: activeConfig.historyEventMode || 'mix'
       }, savedDashboard);
 
       this.wifiQrBase64 = this.editedSettings.wifiQrBase64;
@@ -180,6 +182,13 @@
         if (keyInput) this.editedSettings.todoistApiKey = keyInput.value.trim();
         if (filterInput) this.editedSettings.todoistFilter = filterInput.value.trim();
         if (maxInput) this.editedSettings.todoistMaxTasks = parseInt(maxInput.value, 10) || 6;
+      }
+      else if (this.activeTab === 'history') {
+        var birthsDeathsSelect = this.container.querySelector('#cfg-history-births-deaths');
+        var eventModeSelect = this.container.querySelector('#cfg-history-event-mode');
+        
+        if (birthsDeathsSelect) this.editedSettings.historyShowBirthsDeaths = birthsDeathsSelect.value === 'true';
+        if (eventModeSelect) this.editedSettings.historyEventMode = eventModeSelect.value;
       }
     },
 
@@ -431,6 +440,9 @@
       html += '      <button class="settings-tab-btn' + (activeTab === 'todoist' ? ' active' : '') + '" data-tab="todoist">';
       html += '        <i class="fa-solid fa-list-check"></i><span>TODOIST</span>';
       html += '      </button>';
+      html += '      <button class="settings-tab-btn' + (activeTab === 'history' ? ' active' : '') + '" data-tab="history">';
+      html += '        <i class="fa-solid fa-clock-rotate-left"></i><span>HISTORY</span>';
+      html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'backup' ? ' active' : '') + '" data-tab="backup">';
       html += '        <i class="fa-solid fa-database"></i><span>BACKUP &amp; RESET</span>';
       html += '      </button>';
@@ -632,6 +644,28 @@
       html += '          <label for="cfg-todoist-max">Max Tasks</label>';
       html += '          <input type="number" id="cfg-todoist-max" value="' + (this.editedSettings.todoistMaxTasks || 6) + '" min="1" max="15" step="1">';
       html += '          <div class="field-desc">Number of tasks to show (1-15).</div>';
+      html += '        </div>';
+      html += '      </div>';
+
+      // TAB 5: HISTORY PANE
+      html += '      <div class="settings-pane' + (activeTab === 'history' ? ' active' : '') + '" id="pane-history">';
+      html += '        <div class="settings-section-title">Wikipedia Today in History</div>';
+      html += '        <div class="form-group">';
+      html += '          <label for="cfg-history-births-deaths">Show Births &amp; Deaths</label>';
+      html += '          <select id="cfg-history-births-deaths">';
+      html += '            <option value="true"' + (this.editedSettings.historyShowBirthsDeaths ? ' selected' : '') + '>Show Events, Births &amp; Deaths</option>';
+      html += '            <option value="false"' + (!this.editedSettings.historyShowBirthsDeaths ? ' selected' : '') + '>Show Events Only (Hides Births &amp; Deaths)</option>';
+      html += '          </select>';
+      html += '          <div class="field-desc">Choose whether to display daily births and deaths or maximize space for events.</div>';
+      html += '        </div>';
+      html += '        <div class="form-group">';
+      html += '          <label for="cfg-history-event-mode">Event Selection Mode</label>';
+      html += '          <select id="cfg-history-event-mode">';
+      html += '            <option value="default"' + (this.editedSettings.historyEventMode === 'default' ? ' selected' : '') + '>Newest First (Wikipedia Default)</option>';
+      html += '            <option value="oldest"' + (this.editedSettings.historyEventMode === 'oldest' ? ' selected' : '') + '>Oldest First (Chronological)</option>';
+      html += '            <option value="mix"' + (this.editedSettings.historyEventMode === 'mix' ? ' selected' : '') + '>Mixed Eras (Oldest, Mid-Era &amp; Recent)</option>';
+      html += '          </select>';
+      html += '          <div class="field-desc">Choose how events are sampled and sorted. Mixed mode shows a curated selection across history.</div>';
       html += '        </div>';
       html += '      </div>';
 

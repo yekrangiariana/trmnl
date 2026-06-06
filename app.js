@@ -36,7 +36,7 @@
     state.config.plugins = Object.assign({}, defaultConfig.plugins || {});
 
     // Deep merge local overrides
-    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks'];
+    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode'];
     rootKeys.forEach(function(key) {
       if (localOverrides[key] !== undefined) {
         state.config[key] = localOverrides[key];

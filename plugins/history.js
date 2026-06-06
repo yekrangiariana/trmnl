@@ -59,77 +59,170 @@
       return str.substring(0, maxLen) + "...";
     },
 
+    getSelectedEvents: function(events, mode, count) {
+      var N = events.length;
+      if (N === 0) return [];
+      
+      var selected = [];
+      if (mode === 'oldest') {
+        var actualCount = Math.min(count, N);
+        selected = events.slice(-actualCount);
+      } else if (mode === 'mix') {
+        if (N <= count) {
+          selected = events.slice();
+        } else {
+          // Determine counts for recent, middle, oldest
+          var recentCount = Math.floor(count * 0.25);
+          var middleCount = Math.floor(count * 0.25);
+          if (count === 7) {
+            recentCount = 1;
+            middleCount = 2;
+          } else if (count === 14) {
+            recentCount = 3;
+            middleCount = 4;
+          }
+          var oldestCount = count - recentCount - middleCount;
+          
+          var recentList = events.slice(0, recentCount);
+          var oldestList = events.slice(-oldestCount);
+          
+          var mid = Math.floor(N / 2);
+          var startMid = mid - Math.floor(middleCount / 2);
+          if (startMid < recentCount) startMid = recentCount;
+          if (startMid + middleCount > N - oldestCount) startMid = N - oldestCount - middleCount;
+          var middleList = events.slice(startMid, startMid + middleCount);
+          
+          selected = recentList.concat(middleList, oldestList);
+        }
+      } else {
+        // default / recent (Wikipedia default: newest first)
+        var actualCount = Math.min(count, N);
+        selected = events.slice(0, actualCount);
+      }
+      
+      // Sort the entire selected list from oldest to newest (chronological order)
+      return selected.sort(function(a, b) {
+        return parseInt(a.year, 10) - parseInt(b.year, 10);
+      });
+    },
+
     renderHistory: function(data) {
       var self = this;
       var events = data.events || [];
       var births = data.births || [];
       var deaths = data.deaths || [];
 
-      // Slices and lengths carefully tuned to fit exactly within a 560px container
-      var displayEvents = events.slice(0, 7);
-      var displayBirths = births.slice(0, 5);
-      var displayDeaths = deaths.slice(0, 5);
+      var activeConfig = window.Dashboard ? window.Dashboard.getActiveConfig() : {};
+      var showBirthsDeaths = activeConfig.historyShowBirthsDeaths !== undefined ? activeConfig.historyShowBirthsDeaths : false;
+      var mode = activeConfig.historyEventMode || 'mix';
 
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; padding: 0;">';
       
       // Columns Row
       html += '  <div class="grid-row" style="flex:1; margin-bottom: 12px;">';
-      
-      // Left Column: Events (Full Height, max 560px)
-      html += '    <div class="grid-col col-1" style="justify-content:space-between; height: 560px; overflow:hidden;">';
-      html += '      <h2 class="history-title" style="margin-bottom: 6px; font-size: 24px;">Events</h2>';
-      html += '      <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; overflow:hidden;">';
-      displayEvents.forEach(function(item) {
-        var cleanText = self.truncateText(item.text, 95);
-        html += '        <div class="history-item" style="margin-bottom: 5px; overflow:hidden;">';
-        html += '          <span class="dither-bullet" style="height: 15px; margin-top: 1px; flex-shrink:0;"></span>';
-        html += '          <div class="history-item-content">';
-        html += '            <span class="history-item-year" style="font-size: 15px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
-        html += '            <span class="history-item-text" style="font-size: 13.5px; line-height: 1.25;">' + cleanText + '</span>';
-        html += '          </div>';
-        html += '        </div>';
-      });
-      html += '      </div>';
-      html += '    </div>';
 
-      // Right Column: Births (Top Half) & Deaths (Bottom Half)
-      html += '    <div class="grid-col col-1" style="height: 560px; justify-content:space-between; overflow:hidden;">';
-      
-      // Births section
-      html += '      <div style="height: 270px; display:flex; flex-direction:column; overflow:hidden;">';
-      html += '        <h2 class="history-title" style="margin-bottom:4px; font-size: 24px;">Births</h2>';
-      html += '        <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; overflow:hidden;">';
-      displayBirths.forEach(function(item) {
-        var cleanText = self.truncateText(item.text, 90);
-        html += '          <div class="history-item" style="margin-bottom: 3px; overflow:hidden;">';
-        html += '            <span class="dither-bullet" style="height: 15px; margin-top: 1px; flex-shrink:0;"></span>';
-        html += '            <div class="history-item-content">';
-        html += '              <span class="history-item-year" style="font-size: 15px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
-        html += '              <span class="history-item-text" style="font-size: 13.5px; line-height: 1.25;">' + cleanText + '</span>';
-        html += '            </div>';
-        html += '          </div>';
+      if (showBirthsDeaths) {
+        // Case 1: Standard layout (Events in Left Column, Births/Deaths in Right Column)
+        var displayEvents = self.getSelectedEvents(events, mode, 7);
+        var displayBirths = births.slice(0, 5);
+        var displayDeaths = deaths.slice(0, 5);
+
+        // Left Column: Events (Full Height, max 560px)
+        html += '    <div class="grid-col col-1" style="justify-content:space-between; height: 560px; overflow:hidden;">';
+        html += '      <h2 class="history-title" style="margin-bottom: 6px; font-size: 24px;">On This Day</h2>';
+        html += '      <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; overflow:hidden;">';
+        displayEvents.forEach(function(item) {
+          var cleanText = self.truncateText(item.text, 95);
+          html += '        <div class="history-item" style="margin-bottom: 5px; overflow:hidden;">';
+          html += '          <span class="dither-bullet" style="height: 15px; margin-top: 1px; flex-shrink:0;"></span>';
+          html += '          <div class="history-item-content">';
+          html += '            <span class="history-item-year" style="font-size: 15px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
+          html += '            <span class="history-item-text" style="font-size: 13.5px; line-height: 1.25;">' + cleanText + '</span>';
+          html += '          </div>';
+          html += '        </div>';
         });
-      html += '        </div>';
-      html += '      </div>';
+        html += '      </div>';
+        html += '    </div>';
 
-      // Deaths section
-      html += '      <div style="height: 270px; display:flex; flex-direction:column; border-top: var(--border-width-thin) dashed var(--border-color); padding-top: 6px; overflow:hidden;">';
-      html += '        <h2 class="history-title" style="margin-bottom:4px; font-size: 24px;">Deaths</h2>';
-      html += '        <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; overflow:hidden;">';
-      displayDeaths.forEach(function(item) {
-        var cleanText = self.truncateText(item.text, 90);
-        html += '          <div class="history-item" style="margin-bottom: 3px; overflow:hidden;">';
-        html += '            <span class="dither-bullet" style="height: 15px; margin-top: 1px; flex-shrink:0;"></span>';
-        html += '            <div class="history-item-content">';
-        html += '              <span class="history-item-year" style="font-size: 15px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
-        html += '              <span class="history-item-text" style="font-size: 13.5px; line-height: 1.25;">' + cleanText + '</span>';
-        html += '            </div>';
-        html += '          </div>';
-      });
-      html += '        </div>';
-      html += '      </div>';
+        // Right Column: Births (Top Half) & Deaths (Bottom Half)
+        html += '    <div class="grid-col col-1" style="height: 560px; justify-content:space-between; overflow:hidden;">';
+        
+        // Births section
+        html += '      <div style="height: 270px; display:flex; flex-direction:column; overflow:hidden;">';
+        html += '        <h2 class="history-title" style="margin-bottom:4px; font-size: 24px;">Births</h2>';
+        html += '        <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; overflow:hidden;">';
+        displayBirths.forEach(function(item) {
+          var cleanText = self.truncateText(item.text, 90);
+          html += '          <div class="history-item" style="margin-bottom: 3px; overflow:hidden;">';
+          html += '            <span class="dither-bullet" style="height: 15px; margin-top: 1px; flex-shrink:0;"></span>';
+          html += '            <div class="history-item-content">';
+          html += '              <span class="history-item-year" style="font-size: 15px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
+          html += '              <span class="history-item-text" style="font-size: 13.5px; line-height: 1.25;">' + cleanText + '</span>';
+          html += '            </div>';
+          html += '          </div>';
+        });
+        html += '        </div>';
+        html += '      </div>';
 
-      html += '    </div>';
+        // Deaths section
+        html += '      <div style="height: 270px; display:flex; flex-direction:column; border-top: var(--border-width-thin) dashed var(--border-color); padding-top: 6px; overflow:hidden;">';
+        html += '        <h2 class="history-title" style="margin-bottom:4px; font-size: 24px;">Deaths</h2>';
+        html += '        <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; overflow:hidden;">';
+        displayDeaths.forEach(function(item) {
+          var cleanText = self.truncateText(item.text, 90);
+          html += '          <div class="history-item" style="margin-bottom: 3px; overflow:hidden;">';
+          html += '            <span class="dither-bullet" style="height: 15px; margin-top: 1px; flex-shrink:0;"></span>';
+          html += '            <div class="history-item-content">';
+          html += '              <span class="history-item-year" style="font-size: 15px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
+          html += '              <span class="history-item-text" style="font-size: 13.5px; line-height: 1.25;">' + cleanText + '</span>';
+          html += '            </div>';
+          html += '          </div>';
+        });
+        html += '        </div>';
+        html += '      </div>';
+
+        html += '    </div>';
+      } else {
+        // Case 2: Events Only layout (Hides Births & Deaths)
+        var displayEvents = self.getSelectedEvents(events, mode, 14);
+        var leftEvents = displayEvents.slice(0, 7);
+        var rightEvents = displayEvents.slice(7);
+
+        // Left Column
+        html += '    <div class="grid-col col-1" style="justify-content:space-between; height: 560px; overflow:hidden;">';
+        html += '      <h2 class="history-title" style="margin-bottom: 6px; font-size: 24px;">On This Day</h2>';
+        html += '      <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; overflow:hidden;">';
+        leftEvents.forEach(function(item) {
+          var cleanText = self.truncateText(item.text, 95);
+          html += '        <div class="history-item" style="margin-bottom: 5px; overflow:hidden;">';
+          html += '          <span class="dither-bullet" style="height: 15px; margin-top: 1px; flex-shrink:0;"></span>';
+          html += '          <div class="history-item-content">';
+          html += '            <span class="history-item-year" style="font-size: 15px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
+          html += '            <span class="history-item-text" style="font-size: 13.5px; line-height: 1.25;">' + cleanText + '</span>';
+          html += '          </div>';
+          html += '        </div>';
+        });
+        html += '      </div>';
+        html += '    </div>';
+
+        // Right Column
+        html += '    <div class="grid-col col-1" style="justify-content:space-between; height: 560px; overflow:hidden;">';
+        html += '      <h2 class="history-title" style="margin-bottom: 6px; font-size: 24px; visibility: hidden;">&nbsp;</h2>';
+        html += '      <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1; overflow:hidden;">';
+        rightEvents.forEach(function(item) {
+          var cleanText = self.truncateText(item.text, 95);
+          html += '        <div class="history-item" style="margin-bottom: 5px; overflow:hidden;">';
+          html += '          <span class="dither-bullet" style="height: 15px; margin-top: 1px; flex-shrink:0;"></span>';
+          html += '          <div class="history-item-content">';
+          html += '            <span class="history-item-year" style="font-size: 15px; font-weight:800; margin-right: 4px;">' + item.year + '</span>';
+          html += '            <span class="history-item-text" style="font-size: 13.5px; line-height: 1.25;">' + cleanText + '</span>';
+          html += '          </div>';
+          html += '        </div>';
+        });
+        html += '      </div>';
+        html += '    </div>';
+      }
+
       html += '  </div>';
 
       // Custom Dithered Footer Bar

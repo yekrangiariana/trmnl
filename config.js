@@ -35,4 +35,7 @@ window.DASHBOARD_CONFIG = {
   todoistFilter: 'today | overdue', // Todoist filter query (e.g. 'today | overdue', '#Inbox', 'priority 4')
   todoistMaxTasks: 6,        // Maximum number of tasks to display (1 to 15)
 
+  // Wikipedia History Settings
+  historyShowBirthsDeaths: false,     // Toggle to show/hide births and deaths
+  historyEventMode: 'mix',       // Event selection mode: 'default' (newest first), 'oldest' (oldest first), 'mix' (mix of oldest, middle, recent)
 };
