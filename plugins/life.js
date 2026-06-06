@@ -82,9 +82,9 @@
       html += '      Your Life in Weeks: Lived ' + formattedLifeLived + ' of ' + formattedLifeTotal + ' (' + lifePercentage + '%)';
       html += '    </div>';
       
-      // High-resolution Canvas replacing the heavy 4,680 DOM divs
-      html += '    <div style="width: 630px; display: flex; justify-content: center; align-items: center; overflow: hidden;">';
-      html += '      <canvas id="life-weeks-canvas" style="width: 629px; height: 363px; display: block;"></canvas>';
+      // High-resolution Canvas replacing the heavy 4,680 DOM divs (adjusted for wider & shorter aspect ratio)
+      html += '    <div style="width: 900px; display: flex; justify-content: center; align-items: center; overflow: hidden;">';
+      html += '      <canvas id="life-weeks-canvas" style="width: 899px; height: 311px; display: block;"></canvas>';
       html += '    </div>';
       html += '  </div>';
 
@@ -98,7 +98,7 @@
       html += '      </div>';
       
       // 4 rows (Q1-Q4) of 13 columns = 52 weeks
-      html += '      <div style="display: grid; grid-template-columns: 16px repeat(13, 13px); gap: 4px; align-items: center; justify-content: center;">';
+      html += '      <div style="display: grid; grid-template-columns: 16px repeat(13, 13px); grid-gap: 4px; gap: 4px; align-items: center; justify-content: center;">';
       for (var q = 0; q < 4; q++) {
         // Quarter Label
         html += '        <div style="font-family: var(--font-mono); font-size: 9px; font-weight: 700; width: 16px; text-align: left; opacity: 0.65;">Q' + (q + 1) + '</div>';
@@ -122,15 +122,15 @@
       }
       html += '      </div>';
       html += '    </div>';
-
+ 
       // SECTION 3: Days in Month
       html += '    <div class="trmnl-card" style="flex: 0.9; padding: 10px 14px; display: flex; flex-direction: column; align-items: center; justify-content: space-around;">';
       html += '      <div style="font-family: var(--font-sans); font-size: 15.5px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; width: 100%; margin-bottom: 4px;">';
       html += '        ' + currentMonthName.toUpperCase() + ': Day ' + currentDayOfMonth + ' of ' + totalDaysInMonth + ' (' + monthPercentage + '%)';
       html += '      </div>';
-
+ 
       // Calendar grid (7 columns: Sun-Sat)
-      html += '      <div style="display: grid; grid-template-columns: repeat(7, 13px); gap: 4px; justify-content: center; align-items: center; margin-top: 4px;">';
+      html += '      <div style="display: grid; grid-template-columns: repeat(7, 13px); grid-gap: 4px; gap: 4px; justify-content: center; align-items: center; margin-top: 4px;">';
       
       // Day headers row
       var daysHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -190,10 +190,10 @@
         var ctx = canvas.getContext('2d');
         if (ctx) {
           var dpr = window.devicePixelRatio || 1;
-          canvas.width = 629 * dpr;
-          canvas.height = 363 * dpr;
-          canvas.style.width = '629px';
-          canvas.style.height = '363px';
+          canvas.width = 899 * dpr;
+          canvas.height = 311 * dpr;
+          canvas.style.width = '899px';
+          canvas.style.height = '311px';
           ctx.scale(dpr, dpr);
 
           var styles = window.getComputedStyle(document.body);
@@ -201,24 +201,24 @@
           var borderColor = styles.getPropertyValue('--border-color').trim() || '#111111';
           var cardBg = styles.getPropertyValue('--card-bg').trim() || '#ffffff';
 
-          ctx.clearRect(0, 0, 629, 363);
+          ctx.clearRect(0, 0, 899, 311);
           
           for (var week = 0; week < 52; week++) {
             for (var year = 0; year < 90; year++) {
               var index = (year * 52) + week;
               var isLived = index < weeksLived;
               
-              var x = year * 7;
-              var y = week * 7;
+              var x = year * 10;
+              var y = week * 6;
               
               if (isLived) {
                 ctx.fillStyle = textColor;
-                ctx.fillRect(x, y, 6, 6);
+                ctx.fillRect(x, y, 9, 5);
               } else {
                 ctx.fillStyle = borderColor;
-                ctx.fillRect(x, y, 6, 6);
+                ctx.fillRect(x, y, 9, 5);
                 ctx.fillStyle = cardBg;
-                ctx.fillRect(x + 1, y + 1, 4, 4);
+                ctx.fillRect(x + 1, y + 1, 7, 3);
               }
             }
           }

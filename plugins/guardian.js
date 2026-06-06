@@ -136,8 +136,8 @@
         m = m < 10 ? '0' + m : m;
         updatedText = h + ':' + m + ' ' + ampm;
       }
-      html += '    <div class="trmnl-footer-meta" style="display: flex; align-items: center; gap: 12px;">';
-      html += '      <span>Updated ' + updatedText + '</span>';
+      html += '    <div class="trmnl-footer-meta" style="display: flex; align-items: center;">';
+      html += '      <span style="margin-right: 12px;">Updated ' + updatedText + '</span>';
       html += '      <button id="guardian-refresh-btn" class="trmnl-btn" style="padding: 2px 10px; font-size: 11px; height: 26px; line-height: 1; border-radius: 4px; font-family: var(--font-sans); text-transform: uppercase; cursor: pointer;">Refresh</button>';
       html += '    </div>';
       html += '  </div>';

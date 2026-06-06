@@ -65,7 +65,7 @@
       var prevMonthDays = new Date(year, now.getMonth(), 0).getDate();
       
       var calHtml = '';
-      calHtml += '<div style="display:grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-family: var(--font-mono); font-size: 13px;">';
+      calHtml += '<div style="display:grid; grid-template-columns: repeat(7, 1fr); grid-gap: 4px; gap: 4px; text-align: center; font-family: var(--font-mono); font-size: 13px;">';
       
       // Calendar Headers
       var headers = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -110,14 +110,16 @@
       }
       progressBarHtml += '</div>';
 
-      // Assemble Main HTML in pixel art landscape layout
+      // Assemble Main HTML in pixel art landscape layout with floating widget
       var html = '<div class="trmnl-card time-pixel-card">';
-      html += '  <div class="time-pixel-header">';
-      html += '    <div>' + dayName.toUpperCase() + '</div>';
-      html += '    <div>' + monthName.toUpperCase() + ' ' + dateNum + ', ' + year + '</div>';
-      html += '  </div>';
-      html += '  <div class="time-pixel-clock">' + timeStr + '</div>';
       html += '  <img src="pixel_art_landscape.png" class="time-pixel-landscape" alt="Pixel art mountain landscape">';
+      html += '  <div class="time-pixel-widget">';
+      html += '    <div class="time-pixel-widget-header">';
+      html += '      <div class="time-pixel-widget-day">' + dayName.toUpperCase() + '</div>';
+      html += '      <div class="time-pixel-widget-date">' + monthName.toUpperCase() + ' ' + dateNum + ', ' + year + '</div>';
+      html += '    </div>';
+      html += '    <div class="time-pixel-widget-clock">' + timeStr + '</div>';
+      html += '  </div>';
       html += '  <!-- Invisible footer bar for quick switcher activation -->';
       html += '  <div class="trmnl-footer-bar" style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: transparent; border: none; opacity: 0; z-index: 15; cursor: pointer;"></div>';
       html += '</div>';

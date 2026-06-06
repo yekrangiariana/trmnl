@@ -227,8 +227,8 @@
       var isFirst = historyObj.currentIndex <= 0;
       var isLast = historyObj.currentIndex >= historyObj.articles.length - 1;
 
-      html += '      <div style="margin-top: 28px; display: flex; gap: 12px;">';
-      html += '        <button id="wiki-random-prev-btn" class="trmnl-btn secondary" style="font-size: 13px; padding: 8px 16px;' + (isFirst ? ' opacity: 0.35; cursor: not-allowed;' : '') + '"' + (isFirst ? ' disabled' : '') + '>&larr; Prev</button>';
+      html += '      <div style="margin-top: 28px; display: flex;">';
+      html += '        <button id="wiki-random-prev-btn" class="trmnl-btn secondary" style="font-size: 13px; padding: 8px 16px; margin-right: 12px;' + (isFirst ? ' opacity: 0.35; cursor: not-allowed;' : '') + '"' + (isFirst ? ' disabled' : '') + '>&larr; Prev</button>';
       html += '        <button id="wiki-random-next-btn" class="trmnl-btn" style="font-size: 13px; padding: 8px 20px;">' + (isLast ? 'Next Article &rarr;' : 'Next &rarr;') + '</button>';
       html += '      </div>';
       

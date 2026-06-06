@@ -89,7 +89,9 @@
         mealsPerDay: 2,
         articlesPerMonth: 4,
         wordsPerArticle: 4000,
-        sleepHoursPerDay: 8
+        sleepHoursPerDay: 8,
+        storySessionsPerWeek: 7,
+        storyDurationMinutes: 10
       };
       
       var savedStats = {};
@@ -159,6 +161,10 @@
         if (cookInput) this.editedStats.cookingStartDate = cookInput.value.trim();
         if (mealsInput) this.editedStats.mealsPerDay = parseInt(mealsInput.value, 10) || 2;
         if (sleepInput) this.editedStats.sleepHoursPerDay = parseFloat(sleepInput.value) || 8;
+        var storiesInput = this.container.querySelector('#stats-story-frequency');
+        if (storiesInput) this.editedStats.storySessionsPerWeek = parseInt(storiesInput.value, 10) || 7;
+        var storyDurationInput = this.container.querySelector('#stats-story-duration');
+        if (storyDurationInput) this.editedStats.storyDurationMinutes = parseInt(storyDurationInput.value, 10) || 10;
         if (writeInput) this.editedStats.writingStartDate = writeInput.value.trim();
         if (articlesInput) this.editedStats.articlesPerMonth = parseInt(articlesInput.value, 10) || 4;
         if (wordsInput) this.editedStats.wordsPerArticle = parseInt(wordsInput.value, 10) || 4000;
@@ -551,7 +557,18 @@
       html += '          </div>';
       html += '        </div>';
 
-      html += '        <div class="settings-section-title">Habits, Cooking &amp; Writing Metrics</div>';
+      html += '        <div class="form-row">';
+      html += '          <div class="form-group">';
+      html += '            <label for="stats-story-frequency">Bedtime Stories / Week</label>';
+      html += '            <input type="number" id="stats-story-frequency" value="' + (this.editedStats.storySessionsPerWeek !== undefined ? this.editedStats.storySessionsPerWeek : 7) + '" min="1" max="7" step="1">';
+      html += '          </div>';
+      html += '          <div class="form-group">';
+      html += '            <label for="stats-story-duration">Story Duration (mins)</label>';
+      html += '            <input type="number" id="stats-story-duration" value="' + (this.editedStats.storyDurationMinutes !== undefined ? this.editedStats.storyDurationMinutes : 10) + '" min="5" max="60" step="5">';
+      html += '          </div>';
+      html += '        </div>';
+
+      html += '        <div class="settings-section-title">Habits &amp; Making Things Metrics</div>';
       html += '        <div class="form-row">';
       html += '          <div class="form-group" style="flex: 1.5;">';
       html += '            <label for="stats-cook-date">Cooking Start Date (YYYY-MM-DD)</label>';
@@ -586,8 +603,8 @@
       // TAB 4: BACKUP & RESTORE PANE
       html += '      <div class="settings-pane' + (activeTab === 'backup' ? ' active' : '') + '" id="pane-backup">';
       html += '        <div class="settings-section-title">Backup &amp; Restore Configuration</div>';
-      html += '        <div style="display:flex; gap:12px; margin-bottom: 20px;">';
-      html += '          <button class="trmnl-btn" id="btn-export-settings" style="flex:1;"><i class="fa-solid fa-download" style="margin-right:8px;"></i>EXPORT BACKUP</button>';
+      html += '        <div style="display:flex; margin-bottom: 20px;">';
+      html += '          <button class="trmnl-btn" id="btn-export-settings" style="flex:1; margin-right:12px;"><i class="fa-solid fa-download" style="margin-right:8px;"></i>EXPORT BACKUP</button>';
       html += '          <input type="file" id="btn-import-file" accept=".json" style="display:none;">';
       html += '          <button class="trmnl-btn" id="btn-import-trigger" style="flex:1;"><i class="fa-solid fa-upload" style="margin-right:8px;"></i>IMPORT BACKUP</button>';
       html += '        </div>';

@@ -173,7 +173,10 @@ body::after {
 /* Page dots */
 .page-dots {
   display: flex;
-  gap: 8px;
+}
+
+.page-dot:not(:last-child) {
+  margin-right: 8px;
 }
 
 .page-dot {
@@ -387,14 +390,20 @@ body.theme-coal .dither-bullet {
 .life-grid {
   display: flex;
   flex-direction: column;
-  gap: 1.5px;
   width: 765px;
   margin: 0 auto;
 }
 
+.life-row:not(:last-child) {
+  margin-bottom: 1.5px;
+}
+
 .life-row {
   display: flex;
-  gap: 1.5px;
+}
+
+.life-week:not(:last-child) {
+  margin-right: 1.5px;
 }
 
 .life-week {
@@ -860,6 +869,7 @@ button.trmnl-btn.secondary:active {
 .quick-switcher-content {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-gap: 10px;
   gap: 10px;
   padding: 16px;
 }
@@ -897,50 +907,83 @@ button.trmnl-btn.secondary:active {
   flex-direction: column !important;
   height: 100% !important;
   width: 100% !important;
-  justify-content: space-between !important;
+  justify-content: center !important;
+  align-items: center !important;
   padding: 0 !important;
   margin: 0 !important;
   position: relative !important;
   overflow: hidden !important;
 }
 
-.time-pixel-header {
+.time-pixel-widget {
+  position: absolute;
+  top: 36%; /* Raised higher to leave more of the forest background visible */
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--card-bg);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: 12px;
+  padding: 22px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  min-width: 440px;
+  text-align: center;
+}
+
+.time-pixel-widget-header {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  padding: 28px 36px 0 36px;
-  font-family: var(--font-sans);
-  font-size: 22px;
+  border-bottom: var(--border-width-thin) dashed var(--border-color);
+  padding-bottom: 8px;
+  margin-bottom: 12px; /* iOS 12 safe vertical spacing */
+}
+
+.time-pixel-widget-day {
+  font-family: var(--font-mono);
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-color);
+  margin-right: 16px; /* iOS 12 safe minimum horizontal spacing */
 }
 
-.time-pixel-clock {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-  font-family: var(--font-sans);
-  font-size: 150px;
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  line-height: 1;
+.time-pixel-widget-date {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--text-color);
-  z-index: 10;
-  margin-top: 15px;
+  opacity: 0.85;
+}
+
+.time-pixel-widget-clock {
+  font-family: var(--font-sans);
+  font-size: 84px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--text-color);
+  margin: 4px 0; /* iOS 12 safe vertical spacing */
 }
 
 .time-pixel-landscape {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 400px;
+  height: 100%;
   object-fit: cover;
   object-position: center bottom;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   mix-blend-mode: multiply;
-  margin-top: auto;
+  z-index: 1;
   pointer-events: none;
 }
 
@@ -987,7 +1030,6 @@ body.theme-coal .time-pixel-landscape {
   display: flex;
   flex: 1;
   overflow: hidden;
-  gap: 20px;
   min-height: 0; /* Important for inner scroll */
 }
 
@@ -995,9 +1037,9 @@ body.theme-coal .time-pixel-landscape {
   width: 240px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
   border-right: var(--border-width-thin) solid var(--border-color);
   padding-right: 15px;
+  margin-right: 20px;
   flex-shrink: 0;
   overflow-y: auto;
 }
@@ -1005,7 +1047,6 @@ body.theme-coal .time-pixel-landscape {
 .settings-tab-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
   width: 100%;
   padding: 12px 14px;
   border: var(--border-width-thin) solid transparent;
@@ -1021,10 +1062,15 @@ body.theme-coal .time-pixel-landscape {
   transition: all 0.15s ease;
 }
 
+.settings-tab-btn:not(:last-child) {
+  margin-bottom: 6px;
+}
+
 .settings-tab-btn i {
   font-size: 13px;
   width: 16px;
   text-align: center;
+  margin-right: 10px;
 }
 
 .settings-tab-btn.active {
@@ -1055,7 +1101,6 @@ body.theme-coal .time-pixel-landscape {
 .settings-pane {
   display: none;
   flex-direction: column;
-  gap: 12px;
 }
 
 .settings-pane.active {
@@ -1122,7 +1167,7 @@ body.theme-coal .time-pixel-landscape {
 
 .form-row {
   display: flex;
-  gap: 15px;
+  margin-bottom: 12px;
 }
 
 .form-row > .form-group {
@@ -1130,14 +1175,21 @@ body.theme-coal .time-pixel-landscape {
   margin-bottom: 0;
 }
 
+.form-row > .form-group:not(:last-child) {
+  margin-right: 15px;
+}
+
 .settings-footer {
   display: flex;
-  gap: 12px;
   justify-content: flex-end;
   padding-top: 12px;
   border-top: var(--border-width-thin) solid var(--border-color);
   margin-top: 15px;
   flex-shrink: 0;
+}
+
+.settings-footer > button:not(:last-child) {
+  margin-right: 12px;
 }
 
 #cfg-save-btn {
@@ -1152,7 +1204,10 @@ body.theme-coal .time-pixel-landscape {
 .file-upload-wrapper {
   display: flex;
   align-items: center;
-  gap: 12px;
+}
+
+.file-upload-wrapper > *:not(:last-child) {
+  margin-right: 12px;
 }
 
 .file-upload-btn {

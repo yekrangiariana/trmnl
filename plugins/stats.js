@@ -43,7 +43,9 @@
         mealsPerDay: 2,
         articlesPerMonth: 4,
         wordsPerArticle: 4000,
-        sleepHoursPerDay: 8
+        sleepHoursPerDay: 8,
+        storySessionsPerWeek: 7,
+        storyDurationMinutes: 10
       };
 
       try {
@@ -170,12 +172,17 @@
       var child1Date = this.parseDate(this.config.child1Date);
       var child1Days = Math.max(0, Math.floor((today - child1Date) / (1000 * 60 * 60 * 24)));
       var parentDays = child1Days;
+      var storySessionsPerWeek = this.config.storySessionsPerWeek !== undefined ? this.config.storySessionsPerWeek : 7;
+      var totalStorySessions = Math.round(parentDays * (storySessionsPerWeek / 7));
+      var storyDurationMinutes = this.config.storyDurationMinutes !== undefined ? this.config.storyDurationMinutes : 10;
+      var bedtimeHours = Math.round((totalStorySessions * storyDurationMinutes) / 60);
 
       // 2. Marriage calculations
       var marriageDate = this.parseDate(this.config.marriageDate);
       var marriageDays = Math.max(0, Math.floor((today - marriageDate) / (1000 * 60 * 60 * 24)));
       var marriageYears = marriageDays / 365.25;
       var marriageSunKm = marriageYears * 940000000;
+      var marriageMilkyWayKm = marriageDays * 24 * 828000;
 
       // 3. Cooking calculations
       var cookDate = this.parseDate(this.config.cookingStartDate);
@@ -227,7 +234,8 @@
       html += '              <div style="font-family: var(--font-sans); font-size: 36px; font-weight: 800; line-height: 1.05; margin-bottom: 8px;">' + self.formatNumber(marriageDays) + '</div>';
       html += '              <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; opacity: 0.65; text-transform: uppercase;">Days Married</div>';
       html += '              <div style="font-family: var(--font-sans); font-size: 13px; font-weight: 700; line-height: 1.4; opacity: 0.75; margin-top: 8px;">';
-      html += '                Travelled <b>' + (marriageSunKm / 1000000000).toFixed(2) + 'B km</b> around the Sun together';
+      html += '                Travelled <b>' + (marriageSunKm / 1000000000).toFixed(2) + 'B km</b> around the Sun together<br>';
+      html += '                and cruised <b>' + (marriageMilkyWayKm / 1000000000).toFixed(2) + 'B km</b> around the Milky Way together';
       html += '              </div>';
       html += '            </div>';
       
@@ -239,6 +247,9 @@
       html += '              <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">PARENTHOOD</div>';
       html += '              <div style="font-family: var(--font-sans); font-size: 30px; font-weight: 800; line-height: 1.05; margin-bottom: 8px;">' + self.formatNumber(parentDays) + '</div>';
       html += '              <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; opacity: 0.65; text-transform: uppercase;">Days as Parents</div>';
+      html += '              <div style="font-family: var(--font-sans); font-size: 13px; font-weight: 700; line-height: 1.4; opacity: 0.75; margin-top: 8px;">';
+      html += '                Spent more than <b>' + self.formatNumber(bedtimeHours) + ' hours</b> reading bedtime stories (' + self.formatNumber(totalStorySessions) + ' sessions)';
+      html += '              </div>';
       html += '            </div>';
       
       html += '          </div>'; // End Left Column
@@ -284,34 +295,55 @@
       // ROW 2: Cooking & Writing & Cosmic Paths
       html += '  <div class="grid-row" style="flex: 0.7; margin-bottom: 8px;">';
 
-      // Card 3: Cooking & Writing (Left)
+      // Card 3: Making Things (Left)
+      var hobbitContext;
+      var hobbitMealsPerYear = 7 * 365.25;
+      var hobbitMealsPerMonth = 7 * 30.44;
+      if (totalMeals >= hobbitMealsPerYear) {
+        hobbitContext = (totalMeals / hobbitMealsPerYear).toFixed(1) + ' years';
+      } else {
+        hobbitContext = (totalMeals / hobbitMealsPerMonth).toFixed(1) + ' months';
+      }
+
       html += '    <div class="grid-col col-1 trmnl-card" style="padding: 12px 16px; justify-content: space-between; overflow: hidden; margin-right: 10px;">';
       html += '      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between;">';
       html += '        <div>';
-      html += '          <div class="trmnl-card-header" style="margin-bottom: 6px; font-size: 14px;">COOKING &amp; WRITING</div>';
-      html += '          <div style="font-family: var(--font-sans); font-size: 20px; font-weight: 800; line-height: 1.1; margin-bottom: 12px;">' + self.formatNumber(totalMeals) + ' Meals Prepared</div>';
-      html += '          <div style="font-family: var(--font-sans); font-size: 20px; font-weight: 800; line-height: 1.1;">' + self.formatNumber(totalWords) + ' Words Written</div>';
+      html += '          <div class="trmnl-card-header" style="margin-bottom: 6px; font-size: 14px;">MAKING THINGS</div>';
+      html += '          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6px;">';
+      html += '            <div>';
+      html += '              <div style="font-family: var(--font-sans); font-size: 24px; font-weight: 800; line-height: 1.1;">' + self.formatNumber(totalMeals) + '</div>';
+      html += '              <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; opacity: 0.6; text-transform: uppercase; margin-top: 2px;">Meals Prepared</div>';
+      html += '            </div>';
+      html += '            <div style="text-align: right;">';
+      html += '              <div style="font-family: var(--font-sans); font-size: 24px; font-weight: 800; line-height: 1.1;">' + self.formatNumber(totalWords) + '</div>';
+      html += '              <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; opacity: 0.6; text-transform: uppercase; margin-top: 2px;">Words Written</div>';
+      html += '            </div>';
+      html += '          </div>';
       html += '        </div>';
       
       html += '        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 2px 0;">';
       html += '          <canvas id="canvas-writing" style="width: 430px; height: 100px; display: block;"></canvas>';
       html += '        </div>';
-      html += '        <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.6; text-transform: uppercase;">';
-      html += '          Writing output = ' + (totalWords / 480000).toFixed(1) + 'x Lord of the Rings trilogies';
+      
+      html += '        <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; opacity: 0.6; text-transform: uppercase; display: flex; justify-content: space-between;">';
+      html += '          <span>Cooked: Fed a Hobbit for ' + hobbitContext + '</span>';
+      html += '          <span>Written: ' + (totalWords / 480000).toFixed(1) + 'x Lord of the Rings</span>';
       html += '        </div>';
       html += '      </div>';
       html += '    </div>';
 
       // Card 4: Cosmic Stats (Right)
+      var galaxyLogo = '<svg viewBox="0 0 24 24" style="width:20px; height:20px; stroke:var(--text-color); fill:none; stroke-width:2.5; margin-right:8px; flex-shrink:0; vertical-align:middle;"><circle cx="12" cy="12" r="3" fill="var(--text-color)" /><ellipse cx="12" cy="12" rx="9" ry="3" transform="rotate(-30 12 12)" /><ellipse cx="12" cy="12" rx="9" ry="3" transform="rotate(30 12 12)" /></svg>';
+
       html += '    <div class="grid-col col-1 trmnl-card" style="padding: 12px 16px; justify-content: space-between; overflow: hidden; display: flex; flex-direction: column; height: 100%;">';
       html += '      <div style="display: flex; flex-direction: column; flex: 1; justify-content: space-between; height: 100%;">';
       html += '        <div class="trmnl-card-header" style="margin-bottom: 6px; font-size: 14px;">COSMIC STATS</div>';
       html += '        <div style="display: flex; flex: 1; align-items: center; min-height: 130px;">';
-      html += '          <div style="flex: 1.4; display: flex; flex-direction: column; justify-content: space-between; font-family: var(--font-sans); font-size: 14px; font-weight: 700; height: 130px; line-height: 1.5; padding: 4px 0;">';
-      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-bed" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Spent <b>' + sleepYears + ' years</b> sleeping (' + this.config.sleepHoursPerDay + 'h/day)</span></div>';
-      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-sun" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Travelled <b>' + (sunKm / 1000000000).toFixed(1) + 'B km</b> around the Sun</span></div>';
-      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-rocket" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Cruised <b>' + (milkyWayKm / 1000000000).toFixed(1) + 'B km</b> through the galaxy</span></div>';
-      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-moon" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Moon completed <b>' + self.formatNumber(moonOrbits) + ' orbits</b> (27.3d each)</span></div>';
+      html += '          <div style="flex: 1.4; display: flex; flex-direction: column; font-family: var(--font-sans); font-size: 13px; font-weight: 700; line-height: 1.4; padding: 4px 0;">';
+      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;"><i class="fa-solid fa-bed" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Spent <b>' + sleepYears + ' years</b> sleeping (' + this.config.sleepHoursPerDay + 'h/day)</span></div>';
+      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;"><i class="fa-solid fa-sun" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Travelled <b>' + (sunKm / 1000000000).toFixed(1) + 'B km</b> around the Sun</span></div>';
+      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;">' + galaxyLogo + '<span>Cruised <b>' + (milkyWayKm / 1000000000).toFixed(1) + 'B km</b> around the Milky Way</span></div>';
+      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-moon" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Moon circled Earth <b>' + self.formatNumber(moonOrbits) + ' times</b></span></div>';
       html += '          </div>';
       html += '          <div style="flex: 0.8; display: flex; align-items: center; justify-content: center; height: 130px;">';
       html += '            <canvas id="canvas-cosmic" style="width: 150px; height: 130px; display: block;"></canvas>';
