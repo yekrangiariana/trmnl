@@ -274,7 +274,7 @@
       state.cycleTimer = null;
     }
 
-    var interval = state.config.refreshInterval || 60; // default 60s
+    var interval = state.config.refreshInterval !== undefined ? state.config.refreshInterval : 60; // default 60s
     if (interval > 0) {
       state.cycleTimer = setInterval(function() {
         showPage(state.activeIndex + 1);
@@ -443,11 +443,14 @@
     },
     resetTimer: function() {
       resetCycleTimer();
+    },
+    openSettings: function(tabId) {
+      openSettings(tabId);
     }
   };
 
   // 12. Settings Panel View Controllers
-  function openSettings() {
+  function openSettings(tabId) {
     // Stop the auto cycle timer
     if (state.cycleTimer) {
       clearInterval(state.cycleTimer);
@@ -471,12 +474,13 @@
       settingsView.classList.add('active');
     }
 
-
-
     // Run settings update/render
     var registry = window.Plugins || {};
     var settingsPlugin = registry['settings'];
     if (settingsPlugin) {
+      if (tabId && typeof settingsPlugin.setTab === 'function') {
+        settingsPlugin.setTab(tabId);
+      }
       settingsPlugin.update();
     }
   }
@@ -491,9 +495,15 @@
       if (settingsView) {
         var isActive = settingsView.classList.contains('active');
         if (isActive) {
-          // Exit settings, go back to page 0
-          settingsView.classList.remove('active');
-          showPage(0);
+          // Exit settings using the settingsPlugin's cancel routine
+          var registry = window.Plugins || {};
+          var settingsPlugin = registry['settings'];
+          if (settingsPlugin && typeof settingsPlugin.cancelSettings === 'function') {
+            settingsPlugin.cancelSettings();
+          } else {
+            settingsView.classList.remove('active');
+            showPage(0);
+          }
         } else {
           // Open settings
           openSettings();

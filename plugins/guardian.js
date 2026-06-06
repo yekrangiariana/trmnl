@@ -23,9 +23,9 @@
 
     update: function() {
       var self = this;
-      var feedUrl = "https://www.theguardian.com/international/rss";
       var cacheBuster = Math.floor(Date.now() / (3 * 60 * 60 * 1000));
-      var url = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl) + "&_t=" + cacheBuster;
+      var feedUrl = "https://www.theguardian.com/international/rss?_t=" + cacheBuster;
+      var url = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
 
       fetch(url)
         .then(function(response) {

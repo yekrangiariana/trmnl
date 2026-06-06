@@ -33,6 +33,8 @@
       var activeConfig = window.Dashboard ? window.Dashboard.getActiveConfig() : {};
       var defaults = {
         birthdate: activeConfig.birthdate || '1995-04-12',
+        child1Name: 'Child 1',
+        child2Name: 'Child 2',
         child1Date: '2020-06-01',
         child2Date: '2023-06-01',
         marriageDate: '2021-06-15',
@@ -86,14 +88,73 @@
       return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     },
 
+    calculateChildAge: function(birthdateStr, today) {
+      var birthdate = this.parseDate(birthdateStr);
+      if (isNaN(birthdate.getTime())) return { years: 0, months: 0, pct: 0 };
+
+      var todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // Completed years
+      var years = todayMidnight.getFullYear() - birthdate.getFullYear();
+      var testBday = new Date(birthdate.getFullYear() + years, birthdate.getMonth(), birthdate.getDate());
+      if (todayMidnight < testBday) years--;
+
+      // Completed months within current year
+      var lastBday = new Date(birthdate.getFullYear() + years, birthdate.getMonth(), birthdate.getDate());
+      var months = (todayMidnight.getFullYear() - lastBday.getFullYear()) * 12 + (todayMidnight.getMonth() - lastBday.getMonth());
+      var testMonth = new Date(lastBday.getFullYear(), lastBday.getMonth() + months, lastBday.getDate());
+      if (todayMidnight < testMonth) months--;
+      months = Math.max(0, months);
+
+      // Percentage based on actual days elapsed vs total days from birth to 18th birthday
+      var bday18 = new Date(birthdate.getFullYear() + 18, birthdate.getMonth(), birthdate.getDate());
+      var totalDays = Math.round((bday18.getTime() - birthdate.getTime()) / (1000 * 60 * 60 * 24));
+      var elapsedDays = Math.round((todayMidnight.getTime() - birthdate.getTime()) / (1000 * 60 * 60 * 24));
+      var pct = Math.min(100, Math.max(0, (elapsedDays / totalDays) * 100));
+
+      // Fractional years for partial-year bar fill
+      var nextBday = new Date(birthdate.getFullYear() + years + 1, birthdate.getMonth(), birthdate.getDate());
+      var daysInThisYear = Math.round((nextBday.getTime() - lastBday.getTime()) / (1000 * 60 * 60 * 24));
+      var daysSinceLastBday = Math.round((todayMidnight.getTime() - lastBday.getTime()) / (1000 * 60 * 60 * 24));
+      var yearFraction = Math.min(1, daysSinceLastBday / daysInThisYear);
+
+      return {
+        years: Math.max(0, Math.min(18, years)),
+        months: months,
+        pct: pct,
+        yearFraction: yearFraction
+      };
+    },
+
+    buildChildProgressBar: function(childAge) {
+      var barHtml = '<div style="display: flex; height: 22px; border: var(--border-width) solid var(--border-color); border-radius: 4px; overflow: hidden;">';
+      for (var i = 0; i < 18; i++) {
+        var borderR = i < 17 ? 'border-right: var(--border-width-thin) solid var(--border-color);' : '';
+        var bg;
+        if (i < childAge.years) {
+          bg = 'background-color: var(--text-color);';
+        } else if (i === childAge.years && childAge.years < 18) {
+          // Partial fill for current year using a gradient
+          var fillPct = Math.round(childAge.yearFraction * 100);
+          bg = 'background: linear-gradient(to right, var(--text-color) ' + fillPct + '%, var(--card-bg) ' + fillPct + '%);';
+        } else {
+          bg = 'background-color: var(--card-bg);';
+        }
+        barHtml += '<div style="flex: 1; ' + bg + borderR + '"></div>';
+      }
+      barHtml += '</div>';
+
+      // Year markers
+      barHtml += '<div style="display: flex; justify-content: space-between; margin-top: 3px; font-family: var(--font-mono); font-size: 9px; font-weight: 700; opacity: 0.45;">';
+      barHtml += '<span>0</span><span>3</span><span>6</span><span>9</span><span>12</span><span>15</span><span>18</span>';
+      barHtml += '</div>';
+
+      return barHtml;
+    },
+
     renderView: function() {
       if (!this.container) return;
-
-      if (this.editMode) {
-        this.renderEditPanel();
-      } else {
-        this.renderStatsPanel();
-      }
+      this.renderStatsPanel();
     },
 
     renderStatsPanel: function() {
@@ -102,15 +163,12 @@
       var birthdateStr = this.config.birthdate || '1995-04-12';
       
       // 1. Childhood calculations
-      var child1Date = this.parseDate(this.config.child1Date);
-      var child1Days = Math.max(0, Math.floor((today - child1Date) / (1000 * 60 * 60 * 24)));
-      var child1Weeks = Math.floor(child1Days / 7);
-
-      var child2Date = this.parseDate(this.config.child2Date);
-      var child2Days = Math.max(0, Math.floor((today - child2Date) / (1000 * 60 * 60 * 24)));
-      var child2Weeks = Math.floor(child2Days / 7);
+      var child1Age = this.calculateChildAge(this.config.child1Date, today);
+      var child2Age = this.calculateChildAge(this.config.child2Date, today);
 
       // Parent days starts from the birth of Child 1
+      var child1Date = this.parseDate(this.config.child1Date);
+      var child1Days = Math.max(0, Math.floor((today - child1Date) / (1000 * 60 * 60 * 24)));
       var parentDays = child1Days;
 
       // 2. Marriage calculations
@@ -149,105 +207,118 @@
       // 27.32 days per orbit of Moon
       var moonOrbits = Math.floor(lifeDays / 27.32);
 
-      // Layout: 2 Rows (2x2 Grid Layout)
+      // Layout: 2 Rows
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; box-sizing:border-box; padding: 2px 0 0 0;">';
 
-      // ROW 1: Childhood Reflections & Marriage Reflection
-      html += '  <div class="grid-row" style="flex: 1.15; margin-bottom: 8px;">';
-      
-      // Card 1: Childhood Reflections (Left)
-      html += '    <div class="grid-col col-1 trmnl-card" style="padding: 10px 14px; justify-content: space-between; overflow: hidden; margin-right: 10px;">';
+      // ROW 1: Marriage & Family Combined Card (Full Width)
+      html += '  <div class="grid-row" style="flex: 1.3; margin-bottom: 8px;">';
+      html += '    <div class="trmnl-card" style="flex: 1; padding: 14px 20px; display: flex; flex-direction: column; overflow: hidden;">';
       html += '      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between;">';
-      html += '        <div class="trmnl-card-header" style="margin-bottom: 4px;">CHILDHOOD REFLECTIONS</div>';
+      html += '        <div class="trmnl-card-header" style="margin-bottom: 8px; font-size: 15px;">MARRIAGE &amp; FAMILY</div>';
       
-      // Child 1 Section
-      html += '        <div>';
-      html += '          <div style="font-family: var(--font-sans); font-size: 14px; font-weight: 800; line-height: 1.1; margin-bottom: 2px;">Child 1</div>';
-      html += '          <div style="display: flex; justify-content: center; margin: 1px 0;">';
-      html += '            <canvas id="canvas-child1" style="width: 363px; height: 72px; display: block;"></canvas>';
-      html += '          </div>';
-      html += '          <div style="font-family: var(--font-mono); font-size: 8.5px; font-weight: 700; opacity: 0.6; text-transform: uppercase;">';
-      html += '            ' + child1Weeks + ' of 936 weeks before age 18 (' + ((child1Weeks / 936) * 100).toFixed(1) + '%)';
-      html += '          </div>';
-      html += '        </div>';
-
+      html += '        <div style="display: flex; flex-direction: row; flex: 1; align-items: stretch;">';
+      
+      // Left Column (Marriage & Parenthood Stats)
+      html += '          <div style="flex: 0.85; display: flex; flex-direction: column; justify-content: space-around; padding-right: 22px; border-right: var(--border-width-thin) solid var(--border-color);">';
+      
+      // Marriage Section
+      html += '            <div>';
+      html += '              <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">MARRIAGE JOURNEY</div>';
+      html += '              <div style="font-family: var(--font-sans); font-size: 36px; font-weight: 800; line-height: 1.05; margin-bottom: 8px;">' + self.formatNumber(marriageDays) + '</div>';
+      html += '              <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; opacity: 0.65; text-transform: uppercase;">Days Married</div>';
+      html += '              <div style="font-family: var(--font-sans); font-size: 13px; font-weight: 700; line-height: 1.4; opacity: 0.75; margin-top: 8px;">';
+      html += '                Travelled <b>' + (marriageSunKm / 1000000000).toFixed(2) + 'B km</b> around the Sun together';
+      html += '              </div>';
+      html += '            </div>';
+      
       // Dotted Divider
-      html += '        <div class="dotted-divider" style="margin: 3px 0;"></div>';
-
-      // Child 2 Section
-      html += '        <div>';
-      html += '          <div style="font-family: var(--font-sans); font-size: 14px; font-weight: 800; line-height: 1.1; margin-bottom: 2px;">Child 2</div>';
-      html += '          <div style="display: flex; justify-content: center; margin: 1px 0;">';
-      html += '            <canvas id="canvas-child2" style="width: 363px; height: 72px; display: block;"></canvas>';
-      html += '          </div>';
-      html += '          <div style="font-family: var(--font-mono); font-size: 8.5px; font-weight: 700; opacity: 0.6; text-transform: uppercase;">';
-      html += '            ' + child2Weeks + ' of 936 weeks before age 18 (' + ((child2Weeks / 936) * 100).toFixed(1) + '%)';
-      html += '          </div>';
-      html += '        </div>';
-
-      html += '      </div>';
-      html += '    </div>';
-
-      // Card 2: Marriage & Parenthood Reflection (Right)
-      html += '    <div class="grid-col col-1 trmnl-card" style="padding: 10px 14px; justify-content: space-between; overflow: hidden; display: flex; flex-direction: column;">';
-      html += '      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between;">';
-      html += '        <div class="trmnl-card-header" style="margin-bottom: 6px;">MARRIAGE &amp; FAMILY</div>';
-      html += '        <div>';
-      html += '          <div style="font-family: var(--font-sans); font-size: 19px; font-weight: 800; line-height: 1.1; margin-bottom: 2px;">' + self.formatNumber(marriageDays) + ' Days of Marriage</div>';
-      html += '          <div style="font-family: var(--font-sans); font-size: 14.5px; font-weight: 700; opacity: 0.8; margin-top: 4px;">Been parents for ' + self.formatNumber(parentDays) + ' days</div>';
-      html += '        </div>';
-      html += '        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 2px 0; flex: 1;">';
-      html += '          <canvas id="canvas-marriage" style="width: 363px; height: 100px; display: block;"></canvas>';
-      html += '        </div>';
-      html += '        <div style="font-family: var(--font-mono); font-size: 9px; font-weight: 700; opacity: 0.7; line-height: 1.25;">';
-      html += '          Together you have travelled <b>' + (marriageSunKm / 1000000000).toFixed(2) + ' Billion km</b> riding Earth around the Sun!';
-      html += '        </div>';
-      html += '      </div>';
-      html += '    </div>';
-
+      html += '            <div class="dotted-divider" style="margin: 10px 0;"></div>';
+      
+      // Parenthood Section
+      html += '            <div>';
+      html += '              <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">PARENTHOOD</div>';
+      html += '              <div style="font-family: var(--font-sans); font-size: 30px; font-weight: 800; line-height: 1.05; margin-bottom: 8px;">' + self.formatNumber(parentDays) + '</div>';
+      html += '              <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; opacity: 0.65; text-transform: uppercase;">Days as Parents</div>';
+      html += '            </div>';
+      
+      html += '          </div>'; // End Left Column
+      
+      // Right Column (Childhood Progress Bars)
+      html += '          <div style="flex: 1.15; display: flex; flex-direction: column; justify-content: space-around; padding-left: 22px;">';
+      
+      // Child 1
+      html += '            <div>';
+      html += '              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px;">';
+      html += '                <div style="font-family: var(--font-sans); font-size: 16px; font-weight: 800; line-height: 1.1;">' + (this.config.child1Name || 'Child 1') + '</div>';
+      html += '                <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; opacity: 0.7;">' + child1Age.years + ' yrs ' + child1Age.months + ' mos</div>';
+      html += '              </div>';
+      html += '              ' + self.buildChildProgressBar(child1Age);
+      html += '              <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.55; text-transform: uppercase; margin-top: 5px;">';
+      html += '                ' + child1Age.pct.toFixed(1) + '% of childhood elapsed &middot; ' + (100 - child1Age.pct).toFixed(1) + '% remaining';
+      html += '              </div>';
+      html += '            </div>';
+      
+      // Divider
+      html += '            <div class="dotted-divider" style="margin: 10px 0;"></div>';
+      
+      // Child 2
+      html += '            <div>';
+      html += '              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px;">';
+      html += '                <div style="font-family: var(--font-sans); font-size: 16px; font-weight: 800; line-height: 1.1;">' + (this.config.child2Name || 'Child 2') + '</div>';
+      html += '                <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; opacity: 0.7;">' + child2Age.years + ' yrs ' + child2Age.months + ' mos</div>';
+      html += '              </div>';
+      html += '              ' + self.buildChildProgressBar(child2Age);
+      html += '              <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.55; text-transform: uppercase; margin-top: 5px;">';
+      html += '                ' + child2Age.pct.toFixed(1) + '% of childhood elapsed &middot; ' + (100 - child2Age.pct).toFixed(1) + '% remaining';
+      html += '              </div>';
+      html += '            </div>';
+      
+      html += '          </div>'; // End Right Column
+      
+      html += '        </div>'; // End flex-row
+      html += '      </div>'; // End container
+      html += '    </div>'; // End Card
+      
       html += '  </div>';
 
       // ROW 2: Cooking & Writing & Cosmic Paths
-      html += '  <div class="grid-row" style="flex: 0.85; margin-bottom: 8px;">';
+      html += '  <div class="grid-row" style="flex: 0.7; margin-bottom: 8px;">';
 
       // Card 3: Cooking & Writing (Left)
-      html += '    <div class="grid-col col-1 trmnl-card" style="padding: 10px 14px; justify-content: space-between; overflow: hidden; margin-right: 10px;">';
+      html += '    <div class="grid-col col-1 trmnl-card" style="padding: 12px 16px; justify-content: space-between; overflow: hidden; margin-right: 10px;">';
       html += '      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between;">';
       html += '        <div>';
-      html += '          <div class="trmnl-card-header" style="margin-bottom: 6px;">COOKING &amp; WRITING</div>';
-      html += '          <div style="font-family: var(--font-sans); font-size: 15.5px; font-weight: 800; line-height: 1.1; margin-bottom: 2px;">' + self.formatNumber(totalMeals) + ' Meals Prepared</div>';
-      html += '          <div style="font-family: var(--font-mono); font-size: 9px; font-weight: 700; opacity: 0.55; text-transform: uppercase; margin-bottom: 6px;">Avg ' + this.config.mealsPerDay + ' meals/day since ' + this.config.cookingStartDate + '</div>';
+      html += '          <div class="trmnl-card-header" style="margin-bottom: 6px; font-size: 14px;">COOKING &amp; WRITING</div>';
+      html += '          <div style="font-family: var(--font-sans); font-size: 20px; font-weight: 800; line-height: 1.1; margin-bottom: 3px;">' + self.formatNumber(totalMeals) + ' Meals Prepared</div>';
+      html += '          <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.55; text-transform: uppercase; margin-bottom: 8px;">Avg ' + this.config.mealsPerDay + ' meals/day since ' + this.config.cookingStartDate + '</div>';
       
-      html += '          <div style="font-family: var(--font-sans); font-size: 15.5px; font-weight: 800; line-height: 1.1; margin-bottom: 2px;">' + self.formatNumber(totalWords) + ' Words Written</div>';
-      html += '          <div style="font-family: var(--font-mono); font-size: 9px; font-weight: 700; opacity: 0.55; text-transform: uppercase;">' + totalArticles + ' articles (avg ' + this.config.wordsPerArticle + ' words) since ' + this.config.writingStartDate + '</div>';
+      html += '          <div style="font-family: var(--font-sans); font-size: 20px; font-weight: 800; line-height: 1.1; margin-bottom: 3px;">' + self.formatNumber(totalWords) + ' Words Written</div>';
+      html += '          <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.55; text-transform: uppercase;">' + totalArticles + ' articles (avg ' + this.config.wordsPerArticle + ' words) since ' + this.config.writingStartDate + '</div>';
       html += '        </div>';
       
       html += '        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 2px 0;">';
-      html += '          <canvas id="canvas-writing" style="width: 363px; height: 90px; display: block;"></canvas>';
+      html += '          <canvas id="canvas-writing" style="width: 430px; height: 100px; display: block;"></canvas>';
       html += '        </div>';
-      html += '        <div style="font-family: var(--font-mono); font-size: 8.5px; font-weight: 700; opacity: 0.6; text-transform: uppercase;">';
-      html += '          Writing output is equivalent to ' + (totalWords / 480000).toFixed(1) + 'x Lord of the Rings trilogies';
+      html += '        <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.6; text-transform: uppercase;">';
+      html += '          Writing output = ' + (totalWords / 480000).toFixed(1) + 'x Lord of the Rings trilogies';
       html += '        </div>';
       html += '      </div>';
       html += '    </div>';
 
-      // Card 4: Cosmic / Sleep Stats (Right)
-      html += '    <div class="grid-col col-1 trmnl-card" style="padding: 12px 14px; justify-content: space-between; overflow: hidden; display: flex; flex-direction: column; height: 100%;">';
+      // Card 4: Cosmic Stats (Right)
+      html += '    <div class="grid-col col-1 trmnl-card" style="padding: 12px 16px; justify-content: space-between; overflow: hidden; display: flex; flex-direction: column; height: 100%;">';
       html += '      <div style="display: flex; flex-direction: column; flex: 1; justify-content: space-between; height: 100%;">';
-      html += '        <div class="trmnl-card-header" style="margin-bottom: 6px;">COSMIC PATHS &amp; SLEEP</div>';
-      html += '        <div style="display: flex; flex: 1; align-items: center; min-height: 125px;">';
-      html += '          <div style="flex: 1.4; display: flex; flex-direction: column; justify-content: space-around; font-family: var(--font-sans); font-size: 11px; font-weight: 700; height: 125px; line-height: 1.4; padding: 2px 0;">';
-      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-bed" style="font-size:12px; width:16px; margin-right:6px; flex-shrink: 0;"></i><span>You spent <b>' + sleepYears + ' years</b> sleeping (at a rate of ' + this.config.sleepHoursPerDay + ' hours/day)</span></div>';
-      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-sun" style="font-size:12px; width:16px; margin-right:6px; flex-shrink: 0;"></i><span>Travelled <b>' + (sunKm / 1000000000).toFixed(2) + 'B km</b> riding Earth around the Sun (940M km/yr)</span></div>';
-      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-rocket" style="font-size:12px; width:16px; margin-right:6px; flex-shrink: 0;"></i><span>Cruised <b>' + (milkyWayKm / 1000000000).toFixed(1) + 'B km</b> around Milky Way center (7.26B km/yr)</span></div>';
-      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-moon" style="font-size:12px; width:16px; margin-right:6px; flex-shrink: 0;"></i><span>The Moon completed <b>' + self.formatNumber(moonOrbits) + ' orbits</b> around Earth (27.3 days/orbit)</span></div>';
+      html += '        <div class="trmnl-card-header" style="margin-bottom: 6px; font-size: 14px;">COSMIC STATS</div>';
+      html += '        <div style="display: flex; flex: 1; align-items: center; min-height: 130px;">';
+      html += '          <div style="flex: 1.4; display: flex; flex-direction: column; justify-content: space-between; font-family: var(--font-sans); font-size: 14px; font-weight: 700; height: 130px; line-height: 1.5; padding: 4px 0;">';
+      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-bed" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Spent <b>' + sleepYears + ' years</b> sleeping (' + this.config.sleepHoursPerDay + 'h/day)</span></div>';
+      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-sun" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Travelled <b>' + (sunKm / 1000000000).toFixed(1) + 'B km</b> around the Sun</span></div>';
+      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-rocket" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Cruised <b>' + (milkyWayKm / 1000000000).toFixed(1) + 'B km</b> through the galaxy</span></div>';
+      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-moon" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Moon completed <b>' + self.formatNumber(moonOrbits) + ' orbits</b> (27.3d each)</span></div>';
       html += '          </div>';
-      html += '          <div style="flex: 0.8; display: flex; align-items: center; justify-content: center; height: 125px;">';
-      html += '            <canvas id="canvas-cosmic" style="width: 140px; height: 120px; display: block;"></canvas>';
+      html += '          <div style="flex: 0.8; display: flex; align-items: center; justify-content: center; height: 130px;">';
+      html += '            <canvas id="canvas-cosmic" style="width: 150px; height: 130px; display: block;"></canvas>';
       html += '          </div>';
-      html += '        </div>';
-      html += '        <div style="font-family: var(--font-mono); font-size: 10px; font-weight: 700; opacity: 0.6; text-transform: uppercase; margin-top: 6px;">';
-      html += '          Based on birthdate metrics';
       html += '        </div>';
       html += '      </div>';
       html += '    </div>';
@@ -260,172 +331,30 @@
       html += '      <svg viewBox="0 0 24 24" style="width:14px; height:14px; stroke:var(--text-color); fill:none; stroke-width:2.5; vertical-align:middle; flex-shrink:0;"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>';
       html += '      <span>Personal Stats</span>';
       html += '    </div>';
-      html += '    <button id="stats-edit-btn" style="cursor: pointer; background: transparent; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 10px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--text-color); outline: none;">[ EDIT DATES ]</button>';
-      html += '  </div>';
+    html += '    <button id="stats-edit-btn" style="cursor: pointer; background: transparent; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 10px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--text-color); outline: none;">[ EDIT SETTINGS ]</button>';
+    html += '  </div>';
 
-      html += '</div>';
+    html += '</div>';
 
-      this.container.innerHTML = html;
+    this.container.innerHTML = html;
 
-      // Bind edit button
-      var editBtn = this.container.querySelector('#stats-edit-btn');
-      if (editBtn) {
-        editBtn.addEventListener('click', function(e) {
-          e.stopPropagation(); // Prevent opening the quick switcher
-          self.editMode = true;
-          self.renderView();
-        });
-      }
+    // Bind edit button
+    var editBtn = this.container.querySelector('#stats-edit-btn');
+    if (editBtn) {
+      editBtn.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent opening the quick switcher
+        if (window.Dashboard && typeof window.Dashboard.openSettings === 'function') {
+          window.Dashboard.openSettings('stats');
+        }
+      });
+    }
 
       // Draw Canvases
-      this.drawChildhoodGrid('canvas-child1', child1Weeks);
-      this.drawChildhoodGrid('canvas-child2', child2Weeks);
-      this.drawMarriageHeart();
       this.drawWritingBooks(totalWords);
       this.drawCosmicOrbits();
     },
 
-    renderEditPanel: function() {
-      var self = this;
-      
-      var fieldStyle = 'margin-bottom: 12px;';
-      var labelStyle = 'font-family:var(--font-mono); font-size:10px; font-weight:700; display:block; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.04em; opacity:0.75;';
-      
-      var html = '<div class="trmnl-card" style="display:flex; flex-direction:column; height:100%; padding: 24px 28px; box-sizing:border-box;">';
-      html += '  <div class="trmnl-card-header" style="margin-bottom: 14px;">EDIT PERSONAL STATS CONFIGURATION</div>';
-      
-      html += '  <div class="grid-row" style="flex:1; overflow:hidden; gap:24px;">';
-      
-      // Left Column
-      html += '    <div class="grid-col col-1" style="justify-content: flex-start;">';
-      html += '      <div style="' + fieldStyle + '">';
-      html += '        <label style="' + labelStyle + '">BIRTHDATE (YYYY-MM-DD)</label>';
-      html += '        <input type="text" id="stats-birthdate" value="' + this.config.birthdate + '">';
-      html += '      </div>';
 
-      html += '      <div style="' + fieldStyle + '">';
-      html += '        <label style="' + labelStyle + '">CHILD 1 START DATE (YYYY-MM-DD)</label>';
-      html += '        <input type="text" id="stats-child1-date" value="' + this.config.child1Date + '">';
-      html += '      </div>';
-
-      html += '      <div style="' + fieldStyle + '">';
-      html += '        <label style="' + labelStyle + '">CHILD 2 START DATE (YYYY-MM-DD)</label>';
-      html += '        <input type="text" id="stats-child2-date" value="' + this.config.child2Date + '">';
-      html += '      </div>';
-
-      html += '      <div style="' + fieldStyle + '">';
-      html += '        <label style="' + labelStyle + '">MARRIAGE DATE (YYYY-MM-DD)</label>';
-      html += '        <input type="text" id="stats-marriage-date" value="' + this.config.marriageDate + '">';
-      html += '      </div>';
-      html += '    </div>';
-      
-      // Right Column
-      html += '    <div class="grid-col col-1" style="justify-content: flex-start;">';
-      html += '      <div style="' + fieldStyle + '">';
-      html += '        <label style="' + labelStyle + '">COOKING START DATE (YYYY-MM-DD)</label>';
-      html += '        <input type="text" id="stats-cook-date" value="' + this.config.cookingStartDate + '">';
-      html += '      </div>';
-
-      html += '      <div style="' + fieldStyle + '">';
-      html += '        <label style="' + labelStyle + '">AVERAGE MEALS PER DAY</label>';
-      html += '        <input type="number" id="stats-meals-per-day" value="' + this.config.mealsPerDay + '" min="1" max="6">';
-      html += '      </div>';
-
-      html += '      <div style="' + fieldStyle + '">';
-      html += '        <label style="' + labelStyle + '">AVERAGE SLEEP HOURS PER DAY</label>';
-      html += '        <input type="number" id="stats-sleep-hours" value="' + this.config.sleepHoursPerDay + '" min="4" max="12" step="0.5">';
-      html += '      </div>';
-
-      html += '      <div style="' + fieldStyle + '">';
-      html += '        <label style="' + labelStyle + '">WRITING START DATE (YYYY-MM-DD)</label>';
-      html += '        <input type="text" id="stats-write-date" value="' + this.config.writingStartDate + '">';
-      html += '      </div>';
-      
-      html += '      <div style="' + fieldStyle + '">';
-      html += '        <label style="' + labelStyle + '">ARTICLES WRITTEN PER MONTH</label>';
-      html += '        <input type="number" id="stats-articles-per-month" value="' + this.config.articlesPerMonth + '" min="1" max="30">';
-      html += '      </div>';
-      
-      html += '      <div style="' + fieldStyle + '">';
-      html += '        <label style="' + labelStyle + '">AVERAGE WORDS PER ARTICLE</label>';
-      html += '        <input type="number" id="stats-words-per-article" value="' + this.config.wordsPerArticle + '" step="100" min="500">';
-      html += '      </div>';
-
-      html += '      <div style="margin-top: 14px; display:flex; flex-direction:column; gap:10px;">';
-      html += '        <button class="trmnl-btn" id="stats-save-btn" style="width: 100%;">SAVE STATS SETTINGS</button>';
-      html += '        <button class="trmnl-btn secondary" id="stats-cancel-btn" style="width: 100%; border-style:dashed;">CANCEL</button>';
-      html += '      </div>';
-      html += '    </div>';
-      
-      html += '  </div>';
-      html += '</div>';
-
-      this.container.innerHTML = html;
-
-      // Event listeners
-      var saveBtn = this.container.querySelector('#stats-save-btn');
-      var cancelBtn = this.container.querySelector('#stats-cancel-btn');
-
-      // Stop event propagation inside form inputs so clicking them doesn't do anything weird
-      var inputs = this.container.querySelectorAll('input, select');
-      for (var i = 0; i < inputs.length; i++) {
-        inputs[i].addEventListener('click', function(e) {
-          e.stopPropagation();
-        });
-      }
-
-      if (saveBtn) {
-        saveBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          var birthD = self.container.querySelector('#stats-birthdate').value.trim();
-          var child1D = self.container.querySelector('#stats-child1-date').value.trim();
-          var child2D = self.container.querySelector('#stats-child2-date').value.trim();
-          var marD = self.container.querySelector('#stats-marriage-date').value.trim();
-          var cookD = self.container.querySelector('#stats-cook-date').value.trim();
-          var writeD = self.container.querySelector('#stats-write-date').value.trim();
-          var meals = parseInt(self.container.querySelector('#stats-meals-per-day').value, 10) || 2;
-          var sleep = parseFloat(self.container.querySelector('#stats-sleep-hours').value) || 8;
-          var articles = parseInt(self.container.querySelector('#stats-articles-per-month').value, 10) || 4;
-          var words = parseInt(self.container.querySelector('#stats-words-per-article').value, 10) || 4000;
-
-          // Simple date check
-          var dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-          if (!dateRegex.test(birthD) || !dateRegex.test(child1D) || !dateRegex.test(child2D) || !dateRegex.test(marD) || !dateRegex.test(cookD) || !dateRegex.test(writeD)) {
-            alert("Please use YYYY-MM-DD format for dates.");
-            return;
-          }
-
-          self.saveConfig({
-            birthdate: birthD,
-            child1Date: child1D,
-            child2Date: child2D,
-            marriageDate: marD,
-            cookingStartDate: cookD,
-            writingStartDate: writeD,
-            mealsPerDay: meals,
-            sleepHoursPerDay: sleep,
-            articlesPerMonth: articles,
-            wordsPerArticle: words
-          });
-
-          self.editMode = false;
-          
-          if (window.Dashboard && typeof window.Dashboard.reloadSettings === 'function') {
-            window.Dashboard.reloadSettings();
-          } else {
-            self.renderView();
-          }
-        });
-      }
-
-      if (cancelBtn) {
-        cancelBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          self.editMode = false;
-          self.renderView();
-        });
-      }
-    },
 
     // Canvas drawing helper for colors based on theme
     getThemeColors: function() {
@@ -455,136 +384,49 @@
       return ctx;
     },
 
-    drawChildhoodGrid: function(canvasId, dadWeeks) {
-      var ctx = this.setupCanvas(canvasId, 363, 72);
-      if (!ctx) return;
 
-      var colors = this.getThemeColors();
-      ctx.clearRect(0, 0, 363, 72);
 
-      var boxSize = 3;
-      var gap = 1; // 3 + 1 = 4px spacing
-      var startX = 78;
-      var startY = 0;
 
-      for (var y = 0; y < 18; y++) {
-        for (var w = 0; w < 52; w++) {
-          var weekIndex = y * 52 + w;
-          var isLived = weekIndex < dadWeeks;
-          var px = startX + w * (boxSize + gap);
-          var py = startY + y * (boxSize + gap);
-
-          if (isLived) {
-            ctx.fillStyle = colors.text;
-            ctx.fillRect(px, py, boxSize, boxSize);
-          } else {
-            // Draw hollow box
-            ctx.strokeStyle = colors.border;
-            ctx.lineWidth = 0.5;
-            ctx.strokeRect(px + 0.25, py + 0.25, boxSize - 0.5, boxSize - 0.5);
-          }
-        }
-      }
-
-      // Draw faint lines dividing key childhood segments
-      ctx.strokeStyle = colors.text;
-      ctx.lineWidth = 0.5;
-      ctx.setLineDash([1, 2]);
-
-      // Row line after row 3 (Age 3)
-      ctx.beginPath();
-      ctx.moveTo(startX, startY + 3 * 4 - 0.5);
-      ctx.lineTo(startX + 207, startY + 3 * 4 - 0.5);
-      ctx.stroke();
-
-      // Row line after row 6 (Age 6)
-      ctx.beginPath();
-      ctx.moveTo(startX, startY + 6 * 4 - 0.5);
-      ctx.lineTo(startX + 207, startY + 6 * 4 - 0.5);
-      ctx.stroke();
-
-      // Row line after row 13 (Age 13)
-      ctx.beginPath();
-      ctx.moveTo(startX, startY + 13 * 4 - 0.5);
-      ctx.lineTo(startX + 207, startY + 13 * 4 - 0.5);
-      ctx.stroke();
-
-      ctx.setLineDash([]); // Reset dash
-    },
-
-    drawMarriageHeart: function() {
-      var ctx = this.setupCanvas('canvas-marriage', 363, 100);
-      if (!ctx) return;
-
-      var colors = this.getThemeColors();
-      ctx.clearRect(0, 0, 363, 100);
-
-      var cx = 180;
-      var cy = 34;
-
-      ctx.strokeStyle = colors.border;
-      ctx.lineWidth = 3.5;
-      ctx.fillStyle = colors.bg;
-
-      // Draw heart shape using cubic bezier curves
-      ctx.beginPath();
-      ctx.moveTo(cx, cy + 12);
-      ctx.bezierCurveTo(cx - 22, cy - 15, cx - 35, cy + 8, cx, cy + 32);
-      ctx.bezierCurveTo(cx + 35, cy + 8, cx + 22, cy - 15, cx, cy + 12);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // Add small pixel sparkles around the heart for e-ink charm
-      ctx.fillStyle = colors.text;
-      // Star 1
-      ctx.fillRect(cx - 40, cy - 8, 2, 2);
-      ctx.fillRect(cx - 41, cy - 7, 4, 1);
-      ctx.fillRect(cx - 40, cy - 9, 1, 4);
-      // Star 2
-      ctx.fillRect(cx + 38, cy + 20, 2, 2);
-      ctx.fillRect(cx + 37, cy + 21, 4, 1);
-    },
 
     drawWritingBooks: function(totalWords) {
-      var ctx = this.setupCanvas('canvas-writing', 363, 90);
+      var ctx = this.setupCanvas('canvas-writing', 430, 100);
       if (!ctx) return;
 
       var colors = this.getThemeColors();
-      ctx.clearRect(0, 0, 363, 90);
+      ctx.clearRect(0, 0, 430, 100);
 
       // 1 book spine = 100,000 words.
       var booksCount = Math.floor(totalWords / 100000);
       if (booksCount < 1 && totalWords > 0) booksCount = 1;
       
-      var shelfY = 78;
+      var shelfY = 88;
       var startX = 40;
 
       // Draw shelf line
       ctx.strokeStyle = colors.border;
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(20, shelfY);
-      ctx.lineTo(343, shelfY);
+      ctx.lineTo(410, shelfY);
       ctx.stroke();
 
       // Draw brackets
-      ctx.lineWidth = 1.25;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(30, shelfY);
       ctx.lineTo(26, shelfY + 10);
-      ctx.moveTo(333, shelfY);
-      ctx.lineTo(337, shelfY + 10);
+      ctx.moveTo(400, shelfY);
+      ctx.lineTo(404, shelfY + 10);
       ctx.stroke();
 
-      var bookWidth = 9;
-      var spacing = 11;
+      var bookWidth = 11;
+      var spacing = 14;
 
       for (var i = 0; i < booksCount; i++) {
-        var h = 38 + (i % 4) * 5; // varying heights
+        var h = 42 + (i % 4) * 6;
         var bx = startX + i * spacing;
 
-        if (bx > 320) {
+        if (bx > 380) {
           // Leaning books at the end
           var angle = 20 * Math.PI / 180;
           ctx.save();
@@ -594,13 +436,13 @@
           ctx.fillStyle = colors.bg;
           ctx.fillRect(0, -h, bookWidth, h);
           ctx.strokeStyle = colors.border;
-          ctx.lineWidth = 1;
+          ctx.lineWidth = 1.25;
           ctx.strokeRect(0, -h, bookWidth, h);
 
           // Draw stripe on book
           ctx.beginPath();
-          ctx.moveTo(3, -h + 6);
-          ctx.lineTo(3, -6);
+          ctx.moveTo(3.5, -h + 6);
+          ctx.lineTo(3.5, -6);
           ctx.stroke();
 
           ctx.restore();
@@ -611,129 +453,108 @@
         ctx.fillRect(bx, shelfY - h, bookWidth, h);
         
         ctx.strokeStyle = colors.border;
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1.25;
         ctx.strokeRect(bx, shelfY - h, bookWidth, h);
 
         // Pattern designs on spine
         ctx.fillStyle = colors.text;
         ctx.strokeStyle = colors.text;
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1.25;
 
         if (i % 3 === 0) {
           // Horizontal double bands
-          ctx.fillRect(bx + 1, shelfY - h + 5, bookWidth - 2, 3);
-          ctx.fillRect(bx + 1, shelfY - 10, bookWidth - 2, 3);
+          ctx.fillRect(bx + 1.5, shelfY - h + 5, bookWidth - 3, 3.5);
+          ctx.fillRect(bx + 1.5, shelfY - 10, bookWidth - 3, 3.5);
         } else if (i % 3 === 1) {
           // Ladder pattern
           ctx.beginPath();
-          for (var sy = shelfY - h + 5; sy < shelfY - 7; sy += 5) {
-            ctx.moveTo(bx + 2, sy);
-            ctx.lineTo(bx + bookWidth - 2, sy);
+          for (var sy = shelfY - h + 6; sy < shelfY - 7; sy += 6) {
+            ctx.moveTo(bx + 2.5, sy);
+            ctx.lineTo(bx + bookWidth - 2.5, sy);
           }
           ctx.stroke();
         } else {
           // Solid spine with white label
           ctx.fillRect(bx + 1, shelfY - h + 1, bookWidth - 2, h - 2);
           ctx.fillStyle = colors.bg;
-          ctx.fillRect(bx + 2.5, shelfY - h + 8, bookWidth - 5, h - 16);
+          ctx.fillRect(bx + 3, shelfY - h + 8, bookWidth - 6, h - 16);
         }
       }
     },
 
     drawCosmicOrbits: function() {
-      var ctx = this.setupCanvas('canvas-cosmic', 140, 120);
+      var ctx = this.setupCanvas('canvas-cosmic', 150, 130);
       if (!ctx) return;
 
       var colors = this.getThemeColors();
-      ctx.clearRect(0, 0, 140, 120);
+      ctx.clearRect(0, 0, 150, 130);
 
-      // Draw sleeping crescent moon with a nightcap, floating in a starry sky with a ringed Saturn planet.
-      // 1. Crescent Moon outline
-      ctx.fillStyle = colors.text;
-      ctx.beginPath();
-      ctx.arc(88, 62, 28, 0, 2 * Math.PI);
-      ctx.fill();
+      var cx = 75;
+      var cy = 65;
 
-      // Mask circle to create crescent shape
-      ctx.fillStyle = colors.bg;
-      ctx.beginPath();
-      ctx.arc(77, 62, 28, 0, 2 * Math.PI);
-      ctx.fill();
-
-      // Draw outer crescent stroke
+      // 1. Draw Orbit Ellipses
       ctx.strokeStyle = colors.border;
-      ctx.lineWidth = 1.75;
+      ctx.lineWidth = 1;
+      
+      // Orbit 1
       ctx.beginPath();
-      ctx.arc(88, 62, 28, -Math.PI / 2, Math.PI / 2);
-      ctx.arc(77, 62, 28, Math.PI / 2, -Math.PI / 2, true);
+      ctx.ellipse(cx, cy, 32, 22, -10 * Math.PI / 180, 0, 2 * Math.PI);
       ctx.stroke();
 
-      // 2. Closed sleeping eye on the moon
+      // Orbit 2
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 52, 36, -10 * Math.PI / 180, 0, 2 * Math.PI);
+      ctx.stroke();
+
+      // Orbit 3
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 70, 48, -10 * Math.PI / 180, 0, 2 * Math.PI);
+      ctx.stroke();
+
+      // 2. Draw Sun in center
+      ctx.fillStyle = colors.bg;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 8, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+
+      // Sun rays
+      ctx.strokeStyle = colors.border;
       ctx.lineWidth = 1.25;
-      ctx.beginPath();
-      ctx.arc(89, 64, 3.5, 0, Math.PI);
-      ctx.stroke();
-      
-      // Eyelashes
-      ctx.beginPath();
-      ctx.moveTo(86.5, 65.5); ctx.lineTo(84.5, 68);
-      ctx.moveTo(91.5, 65.5); ctx.lineTo(93.5, 68);
-      ctx.stroke();
-
-      // 3. Draping nightcap on moon's top point
-      ctx.fillStyle = colors.bg;
-      ctx.beginPath();
-      ctx.moveTo(80, 36);
-      ctx.lineTo(96, 40);
-      ctx.lineTo(66, 52); // draping tip
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // Pom-pom at nightcap tip
-      ctx.fillStyle = colors.text;
-      ctx.beginPath();
-      ctx.arc(66, 52, 3.5, 0, 2 * Math.PI);
-      ctx.fill();
-
-      // 4. Ringed planet (Saturn) in bottom-left
-      var px = 28, py = 80, pr = 7;
-      ctx.fillStyle = colors.bg;
-      ctx.strokeStyle = colors.border;
-      ctx.lineWidth = 1.75;
-      
-      // Ring under planet
-      ctx.beginPath();
-      ctx.ellipse(px, py, 14, 3.5, -20 * Math.PI / 180, 0.9 * Math.PI, 1.9 * Math.PI);
-      ctx.stroke();
-
-      // Planet sphere
-      ctx.beginPath();
-      ctx.arc(px, py, pr, 0, 2 * Math.PI);
-      ctx.fill();
-      ctx.stroke();
-
-      // Ring over planet
-      ctx.beginPath();
-      ctx.ellipse(px, py, 14, 3.5, -20 * Math.PI / 180, -0.1 * Math.PI, 0.9 * Math.PI);
-      ctx.stroke();
-
-      // 5. Star sparkles
-      drawSparkle(ctx, 32, 28, colors);
-      drawSparkle(ctx, 115, 30, colors);
-      drawSparkle(ctx, 72, 18, colors);
-      drawSparkle(ctx, 118, 92, colors);
-      
-      function drawSparkle(c, x, y, col) {
-        c.strokeStyle = col.border;
-        c.lineWidth = 1;
-        c.beginPath();
-        c.moveTo(x - 3.5, y); c.lineTo(x + 3.5, y);
-        c.moveTo(x, y - 3.5); c.lineTo(x, y + 3.5);
-        c.stroke();
-        c.fillStyle = col.text;
-        c.fillRect(x - 0.5, y - 0.5, 2, 2);
+      for (var a = 0; a < 360; a += 45) {
+        var rad = a * Math.PI / 180;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(rad) * 11, cy + Math.sin(rad) * 11);
+        ctx.lineTo(cx + Math.cos(rad) * 14, cy + Math.sin(rad) * 14);
+        ctx.stroke();
       }
+
+      // 3. Draw Planets
+      ctx.fillStyle = colors.text;
+
+      // Planet 1
+      var p1Rad = (30 - 10) * Math.PI / 180;
+      var p1x = cx + Math.cos(p1Rad) * 32 * Math.cos(-10 * Math.PI / 180) - Math.sin(p1Rad) * 22 * Math.sin(-10 * Math.PI / 180);
+      var p1y = cy + Math.cos(p1Rad) * 32 * Math.sin(-10 * Math.PI / 180) + Math.sin(p1Rad) * 22 * Math.cos(-10 * Math.PI / 180);
+      ctx.beginPath();
+      ctx.arc(p1x, p1y, 3, 0, 2 * Math.PI);
+      ctx.fill();
+
+      // Planet 2
+      var p2Rad = (145 - 10) * Math.PI / 180;
+      var p2x = cx + Math.cos(p2Rad) * 52 * Math.cos(-10 * Math.PI / 180) - Math.sin(p2Rad) * 36 * Math.sin(-10 * Math.PI / 180);
+      var p2y = cy + Math.cos(p2Rad) * 52 * Math.sin(-10 * Math.PI / 180) + Math.sin(p2Rad) * 36 * Math.cos(-10 * Math.PI / 180);
+      ctx.beginPath();
+      ctx.arc(p2x, p2y, 4, 0, 2 * Math.PI);
+      ctx.fill();
+
+      // Planet 3
+      var p3Rad = (280 - 10) * Math.PI / 180;
+      var p3x = cx + Math.cos(p3Rad) * 70 * Math.cos(-10 * Math.PI / 180) - Math.sin(p3Rad) * 48 * Math.sin(-10 * Math.PI / 180);
+      var p3y = cy + Math.cos(p3Rad) * 70 * Math.sin(-10 * Math.PI / 180) + Math.sin(p3Rad) * 48 * Math.cos(-10 * Math.PI / 180);
+      ctx.beginPath();
+      ctx.arc(p3x, p3y, 5, 0, 2 * Math.PI);
+      ctx.fill();
     }
   };
 

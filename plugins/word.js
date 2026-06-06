@@ -69,7 +69,7 @@
         var cached = localStorage.getItem('trmnl_word_of_day_cache');
         if (cached) {
           var parsed = JSON.parse(cached);
-          if (parsed && parsed.cacheDate === todayDateStr) {
+          if (parsed && parsed.cacheDate === todayDateStr && parsed.source === "Wiktionary") {
             self.drawWord(parsed);
             return;
           }
@@ -80,7 +80,8 @@
 
       // If online, attempt to fetch live word
       if (navigator.onLine) {
-        var feedUrl = "https://www.merriam-webster.com/wotd/feed/rss2";
+        var cacheBuster = Math.floor(Date.now() / (3 * 60 * 60 * 1000));
+        var feedUrl = "https://en.wiktionary.org/w/api.php?action=featuredfeed&feed=wotd&feedformat=rss&_t=" + cacheBuster;
         var proxyUrl = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
 
         fetch(proxyUrl)
@@ -90,11 +91,69 @@
           })
           .then(function(rssData) {
             if (rssData && rssData.status === "ok" && rssData.items && rssData.items.length > 0) {
-              var liveWord = rssData.items[0].title.trim().toLowerCase();
+              // Wiktionary RSS items are in chronological order; the last item is the most recent
+              var item = rssData.items[rssData.items.length - 1];
+              var rawDesc = item.description || "";
               
-              // Now fetch dictionary definition for this word
+              var parser = new DOMParser();
+              var doc = parser.parseFromString(rawDesc, "text/html");
+              
+              // Extract the word
+              var titleSpan = doc.getElementById("WOTD-rss-title");
+              var liveWord = "";
+              if (titleSpan) {
+                liveWord = titleSpan.textContent.trim().toLowerCase();
+              } else {
+                var bAnchor = doc.querySelector("b a");
+                if (bAnchor) {
+                  liveWord = bAnchor.textContent.trim().toLowerCase();
+                }
+              }
+
+              if (!liveWord) {
+                throw new Error("Could not parse word from Wiktionary feed");
+              }
+
+              // Extract part of speech
+              var partOfSpeech = "noun";
+              var posElem = doc.querySelector("b + i") || doc.querySelector("a + i") || doc.querySelector("i");
+              if (posElem) {
+                partOfSpeech = posElem.textContent.trim().toLowerCase();
+              }
+              var posMapping = {
+                "n": "noun",
+                "v": "verb",
+                "adj": "adjective",
+                "adv": "adverb",
+                "prep": "preposition",
+                "conj": "conjunction",
+                "pron": "pronoun",
+                "interj": "interjection",
+                "phrase": "phrase"
+              };
+              if (posMapping[partOfSpeech]) {
+                partOfSpeech = posMapping[partOfSpeech];
+              }
+
+              // Extract definition
+              var definitionText = "No definition available.";
+              var defElem = doc.querySelector("#WOTD-rss-description li") || doc.querySelector("ol li");
+              if (defElem) {
+                var tempDiv = document.createElement("div");
+                tempDiv.innerHTML = defElem.innerHTML;
+                var subElems = tempDiv.querySelectorAll("ol, ul, dl, audio, style, script");
+                subElems.forEach(function(el) {
+                  el.remove();
+                });
+                definitionText = tempDiv.textContent.trim();
+              }
+
+              // Attempt to fetch phonetic transcription and usage example from the Free Dictionary API
+              var phoneticText = "";
+              var exampleText = "";
               var dictUrl = "https://api.dictionaryapi.dev/api/v2/entries/en/" + encodeURIComponent(liveWord);
-              return fetch(dictUrl)
+
+              fetch(dictUrl)
                 .then(function(dictRes) {
                   if (!dictRes.ok) throw new Error("Dictionary lookup failed");
                   return dictRes.json();
@@ -104,7 +163,7 @@
                     var entry = dictData[0];
                     
                     // Parse phonetic transcription
-                    var phoneticText = entry.phonetic || "";
+                    phoneticText = entry.phonetic || "";
                     if (!phoneticText && entry.phonetics && entry.phonetics.length > 0) {
                       for (var i = 0; i < entry.phonetics.length; i++) {
                         if (entry.phonetics[i].text) {
@@ -114,46 +173,53 @@
                       }
                     }
 
-                    // Parse type, definition, and example
-                    var partOfSpeech = "noun";
-                    var definitionText = "No definition available.";
-                    var exampleText = "";
-
+                    // Parse example sentence
                     if (entry.meanings && entry.meanings.length > 0) {
-                      partOfSpeech = entry.meanings[0].partOfSpeech || "noun";
-                      if (entry.meanings[0].definitions && entry.meanings[0].definitions.length > 0) {
-                        definitionText = entry.meanings[0].definitions[0].definition || definitionText;
-                        exampleText = entry.meanings[0].definitions[0].example || "";
+                      for (var m = 0; m < entry.meanings.length; m++) {
+                        var meaning = entry.meanings[m];
+                        if (meaning.definitions && meaning.definitions.length > 0) {
+                          for (var d = 0; d < meaning.definitions.length; d++) {
+                            if (meaning.definitions[d].example) {
+                              exampleText = meaning.definitions[d].example;
+                              break;
+                            }
+                          }
+                        }
+                        if (exampleText) break;
                       }
                     }
-
-                    // Format example
-                    if (exampleText && !exampleText.startsWith('"') && !exampleText.startsWith('“')) {
-                      exampleText = '"' + exampleText + '"';
-                    }
-
-                    var newWordObj = {
-                      word: liveWord,
-                      phonetic: phoneticText,
-                      type: partOfSpeech,
-                      definition: definitionText,
-                      example: exampleText,
-                      source: "M-W / Wiktionary",
-                      cacheDate: todayDateStr
-                    };
-
-                    // Cache in localStorage
-                    try {
-                      localStorage.setItem('trmnl_word_of_day_cache', JSON.stringify(newWordObj));
-                    } catch (err) {
-                      console.warn("Failed to write word cache:", err);
-                    }
-
-                    self.drawWord(newWordObj);
-                  } else {
-                    throw new Error("Empty dictionary data");
                   }
+                  finalizeAndRender();
+                })
+                .catch(function(err) {
+                  console.warn("Free Dictionary lookup failed/skipped for word: " + liveWord, err);
+                  finalizeAndRender();
                 });
+
+              function finalizeAndRender() {
+                if (exampleText && !exampleText.startsWith('"') && !exampleText.startsWith('“')) {
+                  exampleText = '"' + exampleText + '"';
+                }
+
+                var newWordObj = {
+                  word: liveWord,
+                  phonetic: phoneticText,
+                  type: partOfSpeech,
+                  definition: definitionText,
+                  example: exampleText,
+                  source: "Wiktionary",
+                  cacheDate: todayDateStr
+                };
+
+                // Cache in localStorage
+                try {
+                  localStorage.setItem('trmnl_word_of_day_cache', JSON.stringify(newWordObj));
+                } catch (err) {
+                  console.warn("Failed to write word cache:", err);
+                }
+
+                self.drawWord(newWordObj);
+              }
             } else {
               throw new Error("Invalid RSS proxy data");
             }
@@ -179,7 +245,19 @@
       var selected = this.britishDictionary[dayOfYear % dictSize];
       
       // Add offline source tag
-      var fallbackObj = Object.assign({}, selected, { source: "Local Curated List" });
+      var todayDateStr = new Date().toDateString();
+      var fallbackObj = Object.assign({}, selected, { 
+        source: "Local Curated List",
+        cacheDate: todayDateStr
+      });
+
+      // Cache fallback word so we don't continuously request on subsequent ticks
+      try {
+        localStorage.setItem('trmnl_word_of_day_cache', JSON.stringify(fallbackObj));
+      } catch (err) {
+        console.warn("Failed to write word cache:", err);
+      }
+
       this.drawWord(fallbackObj);
     },
 
@@ -217,7 +295,7 @@
       html += '  </div>';
 
       // Dithered Footer Bar
-      var sourceMeta = selected.source || "M-W / Wiktionary";
+      var sourceMeta = selected.source || "Wiktionary";
       html += '  <div class="trmnl-footer-bar">';
       html += '    <div class="trmnl-footer-badge">';
       // Inline Book/Dictionary SVG

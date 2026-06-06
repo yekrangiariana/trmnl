@@ -787,6 +787,7 @@ button.trmnl-btn {
   background-color: var(--text-color);
   color: var(--bg-color);
   border: var(--border-width) solid var(--border-color);
+  border-radius: 12px;
   cursor: pointer;
 }
 
@@ -869,7 +870,7 @@ button.trmnl-btn.secondary:active {
   justify-content: center;
   padding: 12px 6px;
   border: var(--border-width-thin) solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 12px;
   background-color: var(--card-bg);
   color: var(--text-color);
   font-family: var(--font-mono);
@@ -947,4 +948,229 @@ body.theme-coal .time-pixel-landscape {
   filter: invert(1);
   mix-blend-mode: screen;
 }
+
+/* Modern Tabbed Settings Panel Layout */
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.settings-header {
+  border-bottom: var(--border-width-thin) solid var(--border-color);
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+  flex-shrink: 0;
+}
+
+.settings-title {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text-color);
+}
+
+.settings-subtitle {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+.settings-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  gap: 20px;
+  min-height: 0; /* Important for inner scroll */
+}
+
+.settings-sidebar {
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-right: var(--border-width-thin) solid var(--border-color);
+  padding-right: 15px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.settings-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: var(--border-width-thin) solid transparent;
+  border-radius: 12px;
+  background-color: transparent;
+  color: var(--text-color);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.settings-tab-btn i {
+  font-size: 13px;
+  width: 16px;
+  text-align: center;
+}
+
+.settings-tab-btn.active {
+  background-color: var(--text-color);
+  color: var(--bg-color);
+  border-color: var(--border-color);
+}
+
+.settings-tab-btn:not(.active):hover {
+  background-color: var(--highlight-bg);
+  opacity: 0.9;
+}
+
+.settings-tab-btn:not(.active):active {
+  background-color: var(--text-color);
+  color: var(--bg-color);
+}
+
+.settings-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 8px;
+}
+
+.settings-pane {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-pane.active {
+  display: flex;
+}
+
+.settings-section-title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  border-bottom: var(--border-width-thin) dashed var(--border-color);
+  padding-bottom: 4px;
+  margin: 10px 0 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+
+.settings-section-title:first-child {
+  margin-top: 0;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  opacity: 0.75;
+  letter-spacing: 0.04em;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="password"],
+.form-group select {
+  font-size: 16px; /* Prevents iOS Safari zoom-on-focus */
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: var(--border-width-thin) solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--border-color);
+  box-shadow: 0 0 0 1px var(--border-color);
+}
+
+.form-group .field-desc {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  margin-top: 4px;
+  opacity: 0.55;
+  line-height: 1.3;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-row > .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.settings-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: var(--border-width-thin) solid var(--border-color);
+  margin-top: 15px;
+  flex-shrink: 0;
+}
+
+#cfg-save-btn {
+  min-width: 200px;
+}
+
+#cfg-cancel-btn {
+  min-width: 120px;
+}
+
+/* File selector override */
+.file-upload-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.file-upload-btn {
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  border: var(--border-width-thin) solid var(--border-color);
+  border-radius: 12px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.file-upload-btn:active {
+  background-color: var(--text-color);
+  color: var(--bg-color);
+}
+
 
