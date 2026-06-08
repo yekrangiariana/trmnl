@@ -8,7 +8,7 @@
   'use strict';
 
   var StatsPlugin = {
-    id: 'stats',
+    id: 'personal_stats',
     name: 'Personal Stats',
     config: {},
     container: null,
@@ -87,38 +87,38 @@
     },
 
     formatNumber: function(num) {
-      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      var parts = num.toString().split(".");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return parts.join(".");
     },
 
     calculateChildAge: function(birthdateStr, today) {
       var birthdate = this.parseDate(birthdateStr);
       if (isNaN(birthdate.getTime())) return { years: 0, months: 0, pct: 0 };
 
-      var todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
       // Completed years
-      var years = todayMidnight.getFullYear() - birthdate.getFullYear();
-      var testBday = new Date(birthdate.getFullYear() + years, birthdate.getMonth(), birthdate.getDate());
-      if (todayMidnight < testBday) years--;
+      var years = today.getFullYear() - birthdate.getFullYear();
+      var testBday = new Date(birthdate.getFullYear() + years, birthdate.getMonth(), birthdate.getDate(), birthdate.getHours(), birthdate.getMinutes());
+      if (today < testBday) years--;
 
       // Completed months within current year
-      var lastBday = new Date(birthdate.getFullYear() + years, birthdate.getMonth(), birthdate.getDate());
-      var months = (todayMidnight.getFullYear() - lastBday.getFullYear()) * 12 + (todayMidnight.getMonth() - lastBday.getMonth());
-      var testMonth = new Date(lastBday.getFullYear(), lastBday.getMonth() + months, lastBday.getDate());
-      if (todayMidnight < testMonth) months--;
+      var lastBday = new Date(birthdate.getFullYear() + years, birthdate.getMonth(), birthdate.getDate(), birthdate.getHours(), birthdate.getMinutes());
+      var months = (today.getFullYear() - lastBday.getFullYear()) * 12 + (today.getMonth() - lastBday.getMonth());
+      var testMonth = new Date(lastBday.getFullYear(), lastBday.getMonth() + months, lastBday.getDate(), lastBday.getHours(), lastBday.getMinutes());
+      if (today < testMonth) months--;
       months = Math.max(0, months);
 
-      // Percentage based on actual days elapsed vs total days from birth to 18th birthday
-      var bday18 = new Date(birthdate.getFullYear() + 18, birthdate.getMonth(), birthdate.getDate());
-      var totalDays = Math.round((bday18.getTime() - birthdate.getTime()) / (1000 * 60 * 60 * 24));
-      var elapsedDays = Math.round((todayMidnight.getTime() - birthdate.getTime()) / (1000 * 60 * 60 * 24));
-      var pct = Math.min(100, Math.max(0, (elapsedDays / totalDays) * 100));
+      // Percentage based on actual milliseconds elapsed vs total milliseconds from birth to 18th birthday
+      var bday18 = new Date(birthdate.getFullYear() + 18, birthdate.getMonth(), birthdate.getDate(), birthdate.getHours(), birthdate.getMinutes());
+      var totalMs = bday18.getTime() - birthdate.getTime();
+      var elapsedMs = today.getTime() - birthdate.getTime();
+      var pct = Math.min(100, Math.max(0, (elapsedMs / totalMs) * 100));
 
       // Fractional years for partial-year bar fill
-      var nextBday = new Date(birthdate.getFullYear() + years + 1, birthdate.getMonth(), birthdate.getDate());
-      var daysInThisYear = Math.round((nextBday.getTime() - lastBday.getTime()) / (1000 * 60 * 60 * 24));
-      var daysSinceLastBday = Math.round((todayMidnight.getTime() - lastBday.getTime()) / (1000 * 60 * 60 * 24));
-      var yearFraction = Math.min(1, daysSinceLastBday / daysInThisYear);
+      var nextBday = new Date(birthdate.getFullYear() + years + 1, birthdate.getMonth(), birthdate.getDate(), birthdate.getHours(), birthdate.getMinutes());
+      var msInThisYear = nextBday.getTime() - lastBday.getTime();
+      var msSinceLastBday = today.getTime() - lastBday.getTime();
+      var yearFraction = Math.min(1, msSinceLastBday / msInThisYear);
 
       return {
         years: Math.max(0, Math.min(18, years)),
@@ -163,6 +163,30 @@
       var self = this;
       var today = new Date();
       var birthdateStr = this.config.birthdate || '1995-04-12';
+
+      function isStoryDay(dayOfWeek, sessionsPerWeek) {
+        if (sessionsPerWeek >= 7) return true;
+        if (sessionsPerWeek === 6) return dayOfWeek !== 0;
+        if (sessionsPerWeek === 5) return dayOfWeek >= 1 && dayOfWeek <= 5;
+        if (sessionsPerWeek === 4) return dayOfWeek === 1 || dayOfWeek === 2 || dayOfWeek === 4 || dayOfWeek === 5;
+        if (sessionsPerWeek === 3) return dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5;
+        if (sessionsPerWeek === 2) return dayOfWeek === 2 || dayOfWeek === 4;
+        if (sessionsPerWeek === 1) return dayOfWeek === 0;
+        return false;
+      }
+
+      function getSleepToday(hour, minute, sleepHoursPerDay) {
+        var currentMin = hour * 60 + minute;
+        var sleepStartMin = 23 * 60; // 11 PM
+        var morningEndMin = (sleepHoursPerDay - 1) * 60;
+        if (currentMin < morningEndMin) {
+          return sleepHoursPerDay - (morningEndMin - currentMin) / 60;
+        } else if (currentMin >= sleepStartMin) {
+          return (currentMin - sleepStartMin) / 60;
+        } else {
+          return sleepHoursPerDay;
+        }
+      }
       
       // 1. Childhood calculations
       var child1Age = this.calculateChildAge(this.config.child1Date, today);
@@ -170,49 +194,88 @@
 
       // Parent days starts from the birth of Child 1
       var child1Date = this.parseDate(this.config.child1Date);
-      var child1Days = Math.max(0, Math.floor((today - child1Date) / (1000 * 60 * 60 * 24)));
-      var parentDays = child1Days;
+      var parentDaysFloat = Math.max(0, (today - child1Date) / (1000 * 60 * 60 * 24));
+      var parentDays = Math.floor(parentDaysFloat);
+      
+      var completedWeeks = Math.floor(parentDays / 7);
       var storySessionsPerWeek = this.config.storySessionsPerWeek !== undefined ? this.config.storySessionsPerWeek : 7;
-      var totalStorySessions = Math.round(parentDays * (storySessionsPerWeek / 7));
+      var totalStorySessions = completedWeeks * storySessionsPerWeek;
+      
+      var remainingDays = parentDays % 7;
+      var startOfRemaining = new Date(today.getFullYear(), today.getMonth(), today.getDate() - remainingDays);
+      for (var d = 0; d <= remainingDays; d++) {
+        var checkDay = new Date(startOfRemaining.getFullYear(), startOfRemaining.getMonth(), startOfRemaining.getDate() + d);
+        var dayOfWeek = checkDay.getDay();
+        if (isStoryDay(dayOfWeek, storySessionsPerWeek)) {
+          if (d === remainingDays) {
+            if (today.getHours() >= 20) totalStorySessions++;
+          } else {
+            totalStorySessions++;
+          }
+        }
+      }
+      
       var storyDurationMinutes = this.config.storyDurationMinutes !== undefined ? this.config.storyDurationMinutes : 10;
       var bedtimeHours = Math.round((totalStorySessions * storyDurationMinutes) / 60);
 
       // 2. Marriage calculations
       var marriageDate = this.parseDate(this.config.marriageDate);
-      var marriageDays = Math.max(0, Math.floor((today - marriageDate) / (1000 * 60 * 60 * 24)));
-      var marriageYears = marriageDays / 365.25;
+      var marriageDaysFloat = Math.max(0, (today - marriageDate) / (1000 * 60 * 60 * 24));
+      var marriageDays = Math.floor(marriageDaysFloat);
+      var marriageYears = marriageDaysFloat / 365.25;
       var marriageSunKm = marriageYears * 940000000;
-      var marriageMilkyWayKm = marriageDays * 24 * 828000;
+      var marriageMilkyWayKm = marriageDaysFloat * 24 * 828000;
 
       // 3. Cooking calculations
       var cookDate = this.parseDate(this.config.cookingStartDate);
-      var cookDays = Math.max(0, Math.floor((today - cookDate) / (1000 * 60 * 60 * 24)));
-      var totalMeals = Math.floor(cookDays * this.config.mealsPerDay);
+      var cookDaysFloat = Math.max(0, (today - cookDate) / (1000 * 60 * 60 * 24));
+      var cookDays = Math.floor(cookDaysFloat);
+      
+      var mealsToday = 0;
+      var hour = today.getHours();
+      var mealsPerDay = this.config.mealsPerDay || 2;
+      if (mealsPerDay === 1) {
+        if (hour >= 17) mealsToday = 1;
+      } else if (mealsPerDay === 2) {
+        if (hour >= 12) mealsToday += 1;
+        if (hour >= 19) mealsToday += 1;
+      } else if (mealsPerDay === 3) {
+        if (hour >= 8) mealsToday += 1;
+        if (hour >= 13) mealsToday += 1;
+        if (hour >= 19) mealsToday += 1;
+      } else {
+        var startHour = 8;
+        var endHour = 20;
+        var interval = (endHour - startHour) / (mealsPerDay - 1);
+        for (var m = 0; m < mealsPerDay; m++) {
+          if (hour >= (startHour + m * interval)) mealsToday++;
+        }
+      }
+      var totalMeals = cookDays * mealsPerDay + mealsToday;
 
       // 4. Writing calculations
       var writeDate = this.parseDate(this.config.writingStartDate);
-      var writeMonths = (today.getFullYear() - writeDate.getFullYear()) * 12 + (today.getMonth() - writeDate.getMonth());
-      if (today.getDate() < writeDate.getDate()) {
-        writeMonths = Math.max(0, writeMonths - 1);
-      }
-      writeMonths = Math.max(0, writeMonths);
-      var totalArticles = Math.floor(writeMonths * this.config.articlesPerMonth);
-      var totalWords = totalArticles * this.config.wordsPerArticle;
+      var writeDaysFloat = Math.max(0, (today - writeDate) / (1000 * 60 * 60 * 24));
+      var wordsPerDay = (this.config.articlesPerMonth * this.config.wordsPerArticle) / 30.4375;
+      var totalWords = Math.floor(writeDaysFloat * wordsPerDay);
+      var totalArticles = Math.floor(totalWords / this.config.wordsPerArticle);
 
       // 5. Cosmic & Sleep calculations
       var birthDate = this.parseDate(birthdateStr);
-      var lifeDays = Math.max(0, Math.floor((today - birthDate) / (1000 * 60 * 60 * 24)));
-      var lifeYears = lifeDays / 365.25;
+      var lifeDaysFloat = Math.max(0, (today - birthDate) / (1000 * 60 * 60 * 24));
+      var lifeDays = Math.floor(lifeDaysFloat);
+      var lifeYears = lifeDaysFloat / 365.25;
 
-      var totalSleepHours = lifeDays * this.config.sleepHoursPerDay;
+      var sleepToday = getSleepToday(today.getHours(), today.getMinutes(), this.config.sleepHoursPerDay || 8);
+      var totalSleepHours = lifeDays * (this.config.sleepHoursPerDay || 8) + sleepToday;
       var sleepYears = (totalSleepHours / (24 * 365.25)).toFixed(1);
 
       // 940M km around Sun per year
       var sunKm = lifeYears * 940000000;
       // 828,000 km/h around Milky Way center
-      var milkyWayKm = lifeDays * 24 * 828000;
+      var milkyWayKm = lifeDaysFloat * 24 * 828000;
       // 27.32 days per orbit of Moon
-      var moonOrbits = Math.floor(lifeDays / 27.32);
+      var moonOrbitsFloat = lifeDaysFloat / 27.32;
 
       // Layout: 2 Rows
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; box-sizing:border-box; padding: 2px 0 0 0;">';
@@ -234,8 +297,8 @@
       html += '              <div style="font-family: var(--font-sans); font-size: 36px; font-weight: 800; line-height: 1.05; margin-bottom: 8px;">' + self.formatNumber(marriageDays) + '</div>';
       html += '              <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; opacity: 0.65; text-transform: uppercase;">Days Married</div>';
       html += '              <div style="font-family: var(--font-sans); font-size: 13px; font-weight: 700; line-height: 1.4; opacity: 0.75; margin-top: 8px;">';
-      html += '                Travelled <b>' + (marriageSunKm / 1000000000).toFixed(2) + 'B km</b> around the Sun together<br>';
-      html += '                and cruised <b>' + (marriageMilkyWayKm / 1000000000).toFixed(2) + 'B km</b> around the Milky Way together';
+      html += '                Travelled <b>' + self.formatNumber(Math.floor(marriageSunKm)) + ' km</b> around the Sun together<br>';
+      html += '                and cruised <b>' + self.formatNumber(Math.floor(marriageMilkyWayKm)) + ' km</b> around the Milky Way together';
       html += '              </div>';
       html += '            </div>';
       
@@ -265,7 +328,7 @@
       html += '              </div>';
       html += '              ' + self.buildChildProgressBar(child1Age);
       html += '              <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.55; text-transform: uppercase; margin-top: 5px;">';
-      html += '                ' + child1Age.pct.toFixed(1) + '% of childhood elapsed &middot; ' + (100 - child1Age.pct).toFixed(1) + '% remaining';
+      html += '                ' + child1Age.pct.toFixed(5) + '% of childhood elapsed &middot; ' + (100 - child1Age.pct).toFixed(5) + '% remaining';
       html += '              </div>';
       html += '            </div>';
       
@@ -280,7 +343,7 @@
       html += '              </div>';
       html += '              ' + self.buildChildProgressBar(child2Age);
       html += '              <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; opacity: 0.55; text-transform: uppercase; margin-top: 5px;">';
-      html += '                ' + child2Age.pct.toFixed(1) + '% of childhood elapsed &middot; ' + (100 - child2Age.pct).toFixed(1) + '% remaining';
+      html += '                ' + child2Age.pct.toFixed(5) + '% of childhood elapsed &middot; ' + (100 - child2Age.pct).toFixed(5) + '% remaining';
       html += '              </div>';
       html += '            </div>';
       
@@ -291,10 +354,10 @@
       html += '    </div>'; // End Card
       
       html += '  </div>';
-
+ 
       // ROW 2: Cooking & Writing & Cosmic Paths
       html += '  <div class="grid-row" style="flex: 0.7; margin-bottom: 8px;">';
-
+ 
       // Card 3: Making Things (Left)
       var hobbitContext;
       var hobbitMealsPerYear = 7 * 365.25;
@@ -304,7 +367,7 @@
       } else {
         hobbitContext = (totalMeals / hobbitMealsPerMonth).toFixed(1) + ' months';
       }
-
+ 
       html += '    <div class="grid-col col-1 trmnl-card" style="padding: 12px 16px; justify-content: space-between; overflow: hidden; margin-right: 10px;">';
       html += '      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between;">';
       html += '        <div>';
@@ -331,19 +394,19 @@
       html += '        </div>';
       html += '      </div>';
       html += '    </div>';
-
+ 
       // Card 4: Cosmic Stats (Right)
       var galaxyLogo = '<svg viewBox="0 0 24 24" style="width:20px; height:20px; stroke:var(--text-color); fill:none; stroke-width:2.5; margin-right:8px; flex-shrink:0; vertical-align:middle;"><circle cx="12" cy="12" r="3" fill="var(--text-color)" /><ellipse cx="12" cy="12" rx="9" ry="3" transform="rotate(-30 12 12)" /><ellipse cx="12" cy="12" rx="9" ry="3" transform="rotate(30 12 12)" /></svg>';
-
+ 
       html += '    <div class="grid-col col-1 trmnl-card" style="padding: 12px 16px; justify-content: space-between; overflow: hidden; display: flex; flex-direction: column; height: 100%;">';
       html += '      <div style="display: flex; flex-direction: column; flex: 1; justify-content: space-between; height: 100%;">';
       html += '        <div class="trmnl-card-header" style="margin-bottom: 6px; font-size: 14px;">COSMIC STATS</div>';
       html += '        <div style="display: flex; flex: 1; align-items: center; min-height: 130px;">';
       html += '          <div style="flex: 1.4; display: flex; flex-direction: column; font-family: var(--font-sans); font-size: 13px; font-weight: 700; line-height: 1.4; padding: 4px 0;">';
-      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;">' + window.getIcon('bed', 'margin-right:8px;', '16px') + '<span>Spent <b>' + sleepYears + ' years</b> sleeping (' + this.config.sleepHoursPerDay + 'h/day)</span></div>';
-      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;">' + window.getIcon('sun', 'margin-right:8px;', '16px') + '<span>Travelled <b>' + (sunKm / 1000000000).toFixed(1) + 'B km</b> around the Sun</span></div>';
-      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;">' + galaxyLogo + '<span>Cruised <b>' + (milkyWayKm / 1000000000).toFixed(1) + 'B km</b> around the Milky Way</span></div>';
-      html += '            <div style="display: flex; align-items: center; padding-right: 4px;">' + window.getIcon('moon', 'margin-right:8px;', '16px') + '<span>Moon circled Earth <b>' + self.formatNumber(moonOrbits) + ' times</b></span></div>';
+      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;">' + window.getIcon('bed', 'margin-right:8px;', '16px') + '<span>Spent <b>' + sleepYears + ' years</b> sleeping (' + self.formatNumber(Math.floor(totalSleepHours)) + ' hours)</span></div>';
+      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;">' + window.getIcon('sun', 'margin-right:8px;', '16px') + '<span>Travelled <b>' + self.formatNumber(Math.floor(sunKm)) + ' km</b> around the Sun</span></div>';
+      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;">' + galaxyLogo + '<span>Cruised <b>' + self.formatNumber(Math.floor(milkyWayKm)) + ' km</b> around the Milky Way</span></div>';
+      html += '            <div style="display: flex; align-items: center; padding-right: 4px;">' + window.getIcon('moon', 'margin-right:8px;', '16px') + '<span>Moon circled Earth <b>' + self.formatNumber(moonOrbitsFloat.toFixed(3)) + ' times</b></span></div>';
       html += '          </div>';
       html += '          <div style="flex: 0.8; display: flex; align-items: center; justify-content: center; height: 130px;">';
       html += '            <canvas id="canvas-cosmic" style="width: 150px; height: 130px; display: block;"></canvas>';
@@ -558,11 +621,15 @@
         ctx.stroke();
       }
 
-      // 3. Draw Planets
+      // 3. Draw Planets at dynamic angles based on current time
       ctx.fillStyle = colors.text;
 
+      var timeMs = new Date().getTime();
+      var p1Rad = (timeMs / 4000) % (2 * Math.PI);  // orbits every 4s
+      var p2Rad = (timeMs / 10000) % (2 * Math.PI); // orbits every 10s
+      var p3Rad = (timeMs / 25000) % (2 * Math.PI); // orbits every 25s
+
       // Planet 1
-      var p1Rad = (30 - 10) * Math.PI / 180;
       var p1x = cx + Math.cos(p1Rad) * 32 * Math.cos(-10 * Math.PI / 180) - Math.sin(p1Rad) * 22 * Math.sin(-10 * Math.PI / 180);
       var p1y = cy + Math.cos(p1Rad) * 32 * Math.sin(-10 * Math.PI / 180) + Math.sin(p1Rad) * 22 * Math.cos(-10 * Math.PI / 180);
       ctx.beginPath();
@@ -570,7 +637,6 @@
       ctx.fill();
 
       // Planet 2
-      var p2Rad = (145 - 10) * Math.PI / 180;
       var p2x = cx + Math.cos(p2Rad) * 52 * Math.cos(-10 * Math.PI / 180) - Math.sin(p2Rad) * 36 * Math.sin(-10 * Math.PI / 180);
       var p2y = cy + Math.cos(p2Rad) * 52 * Math.sin(-10 * Math.PI / 180) + Math.sin(p2Rad) * 36 * Math.cos(-10 * Math.PI / 180);
       ctx.beginPath();
@@ -578,7 +644,6 @@
       ctx.fill();
 
       // Planet 3
-      var p3Rad = (280 - 10) * Math.PI / 180;
       var p3x = cx + Math.cos(p3Rad) * 70 * Math.cos(-10 * Math.PI / 180) - Math.sin(p3Rad) * 48 * Math.sin(-10 * Math.PI / 180);
       var p3y = cy + Math.cos(p3Rad) * 70 * Math.sin(-10 * Math.PI / 180) + Math.sin(p3Rad) * 48 * Math.cos(-10 * Math.PI / 180);
       ctx.beginPath();
@@ -589,6 +654,6 @@
 
   // Register plugin
   window.Plugins = window.Plugins || {};
-  window.Plugins.stats = StatsPlugin;
+  window.Plugins.personal_stats = StatsPlugin;
 
 })();

@@ -205,7 +205,7 @@
       }
       else if (this.activeTab === 'plugins') {
         var registry = window.Plugins || {};
-        var order = ['time', 'history', 'life', 'stats', 'weather', 'sun', 'todoist', 'word', 'finnish', 'wifi', 'news', 'wikirandom', 'wikiphoto', 'laundry', 'hsl'];
+        var order = ['time', 'today_in_history', 'life_in_weeks', 'personal_stats', 'weather', 'sunrise_sunset', 'todoist', 'word_of_the_day', 'finnish_idioms', 'guest_wifi', 'news_headlines', 'random_wikipedia', 'nasa_space_photo', 'laundry_cost', 'hsl_departures'];
         
         if (!this.editedSettings.plugins) {
           this.editedSettings.plugins = {};
@@ -424,9 +424,9 @@
 
     checkForUpdates: function() {
       var self = this;
-      var currentVersion = "trmnl-dashboard-cache-v44";
       
       if (!navigator.onLine) return;
+      if (!window.caches || !caches.keys) return;
       
       fetch('./sw.js?t=' + Date.now())
         .then(function(res) {
@@ -437,12 +437,23 @@
           var match = text.match(/CACHE_NAME\s*=\s*["']([^"']+)["']/);
           if (match && match[1]) {
             var serverVersion = match[1];
-            if (serverVersion !== currentVersion) {
-              var wrapper = self.container ? self.container.querySelector('#cfg-update-indicator-wrapper') : null;
-              if (wrapper) {
-                wrapper.style.display = 'block';
+            
+            caches.keys().then(function(keys) {
+              // Check if we have at least one trmnl cache stored locally
+              var hasAnyTrmnlCache = keys.some(function(key) {
+                return key.indexOf('trmnl-dashboard-cache-') === 0;
+              });
+              
+              // If there is an existing cache, but it doesn't match the server version, show update button
+              if (hasAnyTrmnlCache && keys.indexOf(serverVersion) === -1) {
+                var wrapper = self.container ? self.container.querySelector('#cfg-update-indicator-wrapper') : null;
+                if (wrapper) {
+                  wrapper.style.display = 'block';
+                }
               }
-            }
+            }).catch(function(err) {
+              console.warn("Failed to read cache keys:", err);
+            });
           }
         })
         .catch(function(err) {
@@ -751,7 +762,7 @@
       html += '          <tbody>';
 
       var registry = window.Plugins || {};
-      var order = ['time', 'history', 'life', 'stats', 'weather', 'sun', 'todoist', 'word', 'finnish', 'wifi', 'news', 'wikirandom', 'wikiphoto', 'laundry', 'hsl'];
+      var order = ['time', 'today_in_history', 'life_in_weeks', 'personal_stats', 'weather', 'sunrise_sunset', 'todoist', 'word_of_the_day', 'finnish_idioms', 'guest_wifi', 'news_headlines', 'random_wikipedia', 'nasa_space_photo', 'laundry_cost', 'hsl_departures'];
       
       var self = this;
       order.forEach(function(pluginId) {
@@ -759,7 +770,6 @@
         if (!plugin) return;
 
         var cleanName = plugin.name || pluginId;
-        if (cleanName === 'This Day in History (Wikipedia)') cleanName = 'This Day in History';
         
         var pluginConf = self.editedSettings.plugins && self.editedSettings.plugins[pluginId] ? self.editedSettings.plugins[pluginId] : {};
         

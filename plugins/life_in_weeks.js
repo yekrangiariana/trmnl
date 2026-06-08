@@ -7,8 +7,8 @@
   'use strict';
 
   var LifePlugin = {
-    id: 'life',
-    name: 'Your Life in Weeks',
+    id: 'life_in_weeks',
+    name: 'Life in Weeks',
     config: {},
     container: null,
 
@@ -175,7 +175,7 @@
       html += '  <div class="trmnl-footer-bar" style="margin-top: 12px;">';
       html += '    <div class="trmnl-footer-badge">';
       html += '      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"></path></svg>';
-      html += '      <span>Time Progression</span>';
+      html += '      <span>Life in Weeks</span>';
       html += '    </div>';
       html += '    <div class="trmnl-footer-meta">LIFE, YEAR, & MONTH METRICS</div>';
       html += '  </div>';
@@ -229,6 +229,6 @@
 
   // Register plugin
   window.Plugins = window.Plugins || {};
-  window.Plugins.life = LifePlugin;
+  window.Plugins.life_in_weeks = LifePlugin;
 
 })();

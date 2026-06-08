@@ -8,8 +8,8 @@
   'use strict';
 
   var NASAPhotoPlugin = {
-    id: 'wikiphoto',
-    name: 'Space Photo',
+    id: 'nasa_space_photo',
+    name: 'NASA Space Photo',
     config: {},
     container: null,
 
@@ -190,6 +190,6 @@
 
   // Register plugin
   window.Plugins = window.Plugins || {};
-  window.Plugins.wikiphoto = NASAPhotoPlugin;
+  window.Plugins.nasa_space_photo = NASAPhotoPlugin;
 
 })();

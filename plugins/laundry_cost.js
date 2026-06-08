@@ -8,7 +8,7 @@
   'use strict';
 
   var LaundryPlugin = {
-    id: 'laundry',
+    id: 'laundry_cost',
     name: 'Laundry Cost',
     config: {},
     container: null,
@@ -226,6 +226,6 @@
 
   // Register plugin
   window.Plugins = window.Plugins || {};
-  window.Plugins.laundry = LaundryPlugin;
+  window.Plugins.laundry_cost = LaundryPlugin;
 
 })();

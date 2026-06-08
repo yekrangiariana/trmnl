@@ -1375,8 +1375,11 @@ input[type="checkbox"].trmnl-checkbox:checked::after {
 .wallpaper-preview-container {
   display: flex;
   align-items: center;
-  gap: 16px;
   margin-top: 8px;
+}
+
+.wallpaper-preview-container > *:not(:last-child) {
+  margin-right: 16px;
 }
 
 .wallpaper-current-preview {
@@ -1401,7 +1404,10 @@ input[type="checkbox"].trmnl-checkbox:checked::after {
 .wallpaper-current-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+}
+
+.wallpaper-current-info > *:not(:last-child) {
+  margin-bottom: 8px;
 }
 
 .wallpaper-current-name {
@@ -1553,6 +1559,7 @@ input[type="checkbox"].trmnl-checkbox:checked::after {
 .wallpaper-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-gap: 16px;
   gap: 16px;
   padding-bottom: 8px;
 }
@@ -1634,11 +1641,14 @@ input[type="checkbox"].trmnl-checkbox:checked::after {
 .wallpaper-modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
   border-top: var(--border-width-thin) solid var(--border-color);
   padding-top: 12px;
   margin-top: 8px;
   flex-shrink: 0;
+}
+
+.wallpaper-modal-footer > *:not(:last-child) {
+  margin-right: 12px;
 }
 
 .wallpaper-modal-footer button {

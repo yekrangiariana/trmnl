@@ -9,7 +9,7 @@
   'use strict';
 
   var FinnishPlugin = {
-    id: 'finnish',
+    id: 'finnish_idioms',
     name: 'Finnish Idioms',
     config: {},
     container: null,
@@ -249,7 +249,7 @@
       html += '    <div class="trmnl-footer-badge">';
       // Inline Speech Bubble SVG Icon
       html += '      <svg viewBox="0 0 24 24" style="stroke-width: 2.5;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
-      html += '      <span>Finnish Idiom</span>';
+      html += '      <span>Finnish Idioms</span>';
       html += '    </div>';
       var totalIdioms = this.idioms ? this.idioms.length : 170;
       var seenCount = this.seenList ? this.seenList.length : 1;
@@ -300,7 +300,7 @@
                  '  </div>' +
                  '  <div class="trmnl-footer-bar">' +
                  '    <div class="trmnl-footer-badge">' +
-                 '      <span>Finnish Idiom</span>' +
+                 '      <span>Finnish Idioms</span>' +
                  '    </div>' +
                  '    <div class="trmnl-footer-meta">LATATAAN...</div>' +
                  '  </div>' +
@@ -317,7 +317,7 @@
                  '  </div>' +
                  '  <div class="trmnl-footer-bar">' +
                  '    <div class="trmnl-footer-badge">' +
-                 '      <span>Finnish Idiom</span>' +
+                 '      <span>Finnish Idioms</span>' +
                  '    </div>' +
                  '    <div class="trmnl-footer-meta">VIRHE / ERROR</div>' +
                  '  </div>' +
@@ -328,6 +328,6 @@
 
   // Register plugin
   window.Plugins = window.Plugins || {};
-  window.Plugins.finnish = FinnishPlugin;
+  window.Plugins.finnish_idioms = FinnishPlugin;
 
 })();

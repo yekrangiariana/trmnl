@@ -7,8 +7,8 @@
   'use strict';
 
   var HistoryPlugin = {
-    id: 'history',
-    name: 'This Day in History (Wikipedia)',
+    id: 'today_in_history',
+    name: 'Today in History',
     config: {},
     container: null,
 
@@ -282,7 +282,7 @@
       html += '  <div class="trmnl-footer-bar">';
       html += '    <div class="trmnl-footer-badge">';
       html += '      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>';
-      html += '      <span>This Day in History (Wikipedia)</span>';
+      html += '      <span>Today in History</span>';
       html += '    </div>';
       html += '    <div class="trmnl-footer-meta">' + this.formatLongDate() + '</div>';
       html += '  </div>';
@@ -304,6 +304,6 @@
 
   // Register plugin
   window.Plugins = window.Plugins || {};
-  window.Plugins.history = HistoryPlugin;
+  window.Plugins.today_in_history = HistoryPlugin;
 
 })();

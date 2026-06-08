@@ -8,8 +8,8 @@
   'use strict';
 
   var WifiPlugin = {
-    id: 'wifi',
-    name: 'Guest Wifi',
+    id: 'guest_wifi',
+    name: 'Guest Wi-Fi',
     config: {},
     container: null,
 
@@ -75,6 +75,6 @@
 
   // Register plugin
   window.Plugins = window.Plugins || {};
-  window.Plugins.wifi = WifiPlugin;
+  window.Plugins.guest_wifi = WifiPlugin;
 
 })();

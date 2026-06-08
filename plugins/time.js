@@ -9,7 +9,7 @@
 
   var TimePlugin = {
     id: 'time',
-    name: 'Time',
+    name: 'Time & Date',
     config: {},
     container: null,
     localTimer: null,

@@ -8,8 +8,8 @@
   'use strict';
 
   var WikiRandomPlugin = {
-    id: 'wikirandom',
-    name: 'Wiki Random',
+    id: 'random_wikipedia',
+    name: 'Random Wikipedia',
     config: {},
     container: null,
     wasActive: false,
@@ -227,7 +227,7 @@
       html += '  <div class="trmnl-footer-bar">';
       html += '    <div class="trmnl-footer-badge">';
       html += '      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="11" y2="17"></line></svg>';
-      html += '      <span>Wiki Random</span>';
+      html += '      <span>Random Wikipedia</span>';
       html += '    </div>';
       html += '    <div class="trmnl-footer-meta">RANDOM ARTICLE KNOWLEDGE</div>';
       html += '  </div>';
@@ -271,7 +271,7 @@
                  '  </div>' +
                  '  <div class="trmnl-footer-bar">' +
                  '    <div class="trmnl-footer-badge">' +
-                 '      <span>Wiki Random</span>' +
+                 '      <span>Random Wikipedia</span>' +
                  '    </div>' +
                  '    <div class="trmnl-footer-meta">RANDOM ARTICLE KNOWLEDGE</div>' +
                  '  </div>' +
@@ -288,7 +288,7 @@
                  '  </div>' +
                  '  <div class="trmnl-footer-bar">' +
                  '    <div class="trmnl-footer-badge">' +
-                 '      <span>Wiki Random</span>' +
+                 '      <span>Random Wikipedia</span>' +
                  '    </div>' +
                  '    <div class="trmnl-footer-meta">CONNECTION TIMEOUT</div>' +
                  '  </div>' +
@@ -305,7 +305,7 @@
                  '  </div>' +
                  '  <div class="trmnl-footer-bar">' +
                  '    <div class="trmnl-footer-badge">' +
-                 '      <span>Wiki Random</span>' +
+                 '      <span>Random Wikipedia</span>' +
                  '    </div>' +
                  '    <div class="trmnl-footer-meta">OFFLINE</div>' +
                  '  </div>' +
@@ -316,6 +316,6 @@
 
   // Register plugin
   window.Plugins = window.Plugins || {};
-  window.Plugins.wikirandom = WikiRandomPlugin;
+  window.Plugins.random_wikipedia = WikiRandomPlugin;
 
 })();

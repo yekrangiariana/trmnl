@@ -7,7 +7,7 @@
   'use strict';
 
   var SunPlugin = {
-    id: 'sun',
+    id: 'sunrise_sunset',
     name: 'Sunrise & Sunset',
     config: {},
     container: null,
@@ -139,6 +139,6 @@
 
   // Register plugin
   window.Plugins = window.Plugins || {};
-  window.Plugins.sun = SunPlugin;
+  window.Plugins.sunrise_sunset = SunPlugin;
 
 })();

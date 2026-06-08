@@ -7,8 +7,8 @@
   'use strict';
 
   var NewsPlugin = {
-    id: 'news',
-    name: 'BBC News',
+    id: 'news_headlines',
+    name: 'News Headlines',
     config: {},
     container: null,
 
@@ -188,7 +188,7 @@
       html += '    <div class="trmnl-footer-badge">';
       // Inline Newspaper SVG
       html += '      <svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M18 18h-8M16 6H10v4h6V6z"></path></svg>';
-      html += '      <span>BBC headlines</span>';
+      html += '      <span>News Headlines</span>';
       html += '    </div>';
       var updatedText = 'Not yet';
       if (this.lastUpdated) {
@@ -238,6 +238,6 @@
 
   // Register plugin
   window.Plugins = window.Plugins || {};
-  window.Plugins.news = NewsPlugin;
+  window.Plugins.news_headlines = NewsPlugin;
 
 })();

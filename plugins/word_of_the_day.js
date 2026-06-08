@@ -9,7 +9,7 @@
   'use strict';
 
   var WordPlugin = {
-    id: 'word',
+    id: 'word_of_the_day',
     name: 'Word of the Day',
     config: {},
     container: null,
@@ -313,6 +313,6 @@
 
   // Register plugin
   window.Plugins = window.Plugins || {};
-  window.Plugins.word = WordPlugin;
+  window.Plugins.word_of_the_day = WordPlugin;
 
 })();

@@ -41,7 +41,7 @@ window.DASHBOARD_CONFIG = {
 
   // Plugin Settings
   plugins: {
-    finnish: {
+    finnish_idioms: {
       enabled: true
     }
   }
