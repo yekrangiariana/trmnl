@@ -6,7 +6,7 @@
  * iOS 12 Safari Compatible.
  */
 
-var CACHE_NAME = "trmnl-dashboard-cache-v49";
+var CACHE_NAME = "trmnl-dashboard-cache-v50";
 var STATIC_ASSETS = [
   "/",
   "./",
@@ -18,8 +18,9 @@ var STATIC_ASSETS = [
   "icon-192.png",
   "icon-512.png",
   "apple-touch-icon.png",
-  "pixel_art_landscape.png",
-  "pixel_art_landscape_dark.png",
+  "wallpapers/pixel_art_landscape.png",
+  "wallpapers/pixel_art_landscape_dark.png",
+  "plugins/icons.js",
   "plugins/time.js",
   "plugins/history.js",
   "plugins/life.js",
@@ -88,24 +89,50 @@ self.addEventListener("fetch", function (event) {
   var isApiRequest = requestUrl.origin !== self.location.origin;
 
   if (isApiRequest) {
-    // Network-First strategy: try the network, fall back to cache if offline
-    event.respondWith(
-      fetch(event.request)
-        .then(function (response) {
-          // If response is valid, clone it and cache it for offline fallback
-          if (response && response.status === 200) {
-            var responseClone = response.clone();
-            caches.open(CACHE_NAME).then(function (cache) {
-              cache.put(event.request, responseClone);
+    // Check if it's a static CDN asset (like Google Fonts)
+    var isStaticCDN = requestUrl.hostname.indexOf("fonts.googleapis.com") !== -1 ||
+                      requestUrl.hostname.indexOf("fonts.gstatic.com") !== -1;
+
+    if (isStaticCDN) {
+      // Stale-While-Revalidate strategy for CDN static assets (Fonts)
+      event.respondWith(
+        caches.match(event.request).then(function (cachedResponse) {
+          var fetchPromise = fetch(event.request)
+            .then(function (networkResponse) {
+              if (networkResponse && networkResponse.status === 200) {
+                var responseClone = networkResponse.clone();
+                caches.open(CACHE_NAME).then(function (cache) {
+                  cache.put(event.request, responseClone);
+                });
+              }
+              return networkResponse;
+            })
+            .catch(function () {
+              // Ignore fetch failures when offline
             });
-          }
-          return response;
+          return cachedResponse || fetchPromise;
         })
-        .catch(function () {
-          // Offline fallback: load from cache
-          return caches.match(event.request);
-        }),
-    );
+      );
+    } else {
+      // Network-First strategy for dynamic API responses (Open-Meteo, Wikipedia, Todoist, etc.)
+      event.respondWith(
+        fetch(event.request)
+          .then(function (response) {
+            // If response is valid, clone it and cache it for offline fallback
+            if (response && response.status === 200) {
+              var responseClone = response.clone();
+              caches.open(CACHE_NAME).then(function (cache) {
+                cache.put(event.request, responseClone);
+              });
+            }
+            return response;
+          })
+          .catch(function () {
+            // Offline fallback: load from cache
+            return caches.match(event.request);
+          }),
+      );
+    }
   } else {
     // Stale-While-Revalidate strategy: serve from cache immediately,
     // and fetch updated version in the background

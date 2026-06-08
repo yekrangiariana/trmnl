@@ -19,6 +19,18 @@
 
     render: function(element) {
       this.container = element;
+      var cachedStr = localStorage.getItem('trmnl_weather_full_cache');
+      if (cachedStr) {
+        try {
+          var cached = JSON.parse(cachedStr);
+          if (cached && cached.weatherData && cached.aqiData) {
+            this.renderDashboard(cached.weatherData, cached.aqiData);
+            return;
+          }
+        } catch (e) {
+          console.warn("Error parsing weather cache in render:", e);
+        }
+      }
       this.container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;font-family:var(--font-mono);font-size:16px;">LOADING DETAILED WEATHER DASHBOARD...</div>';
     },
 
@@ -78,6 +90,35 @@
       var lat = self.config.latitude !== undefined ? self.config.latitude : 60.1699;
       var lon = self.config.longitude !== undefined ? self.config.longitude : 24.9384;
       
+      var cachedStr = localStorage.getItem('trmnl_weather_full_cache');
+      var needsFetch = true;
+      
+      if (cachedStr) {
+        try {
+          var cached = JSON.parse(cachedStr);
+          if (cached && cached.weatherData && cached.aqiData && cached.timestamp) {
+            var age = Date.now() - cached.timestamp;
+            if (age < 15 * 60 * 1000) {
+              needsFetch = false;
+              if (self.container) {
+                self.renderDashboard(cached.weatherData, cached.aqiData);
+              }
+            } else {
+              // Cache is old, but render it first to avoid loading flash
+              if (self.container) {
+                self.renderDashboard(cached.weatherData, cached.aqiData);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("Error checking weather cache in update:", e);
+        }
+      }
+      
+      if (!needsFetch) {
+        return;
+      }
+      
       var weatherUrl = "https://api.open-meteo.com/v1/forecast?" +
                        "latitude=" + lat +
                        "&longitude=" + lon +
@@ -97,10 +138,29 @@
         fetch(airQualityUrl).then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
       ])
       .then(function(results) {
+        var cacheObj = {
+          timestamp: Date.now(),
+          weatherData: results[0],
+          aqiData: results[1]
+        };
+        try {
+          localStorage.setItem('trmnl_weather_full_cache', JSON.stringify(cacheObj));
+        } catch (e) {
+          console.warn("Failed to set weather full cache:", e);
+        }
         self.renderDashboard(results[0], results[1]);
       })
       .catch(function(err) {
         console.error("Weather/AQI fetch failed:", err);
+        if (cachedStr) {
+          try {
+            var cached = JSON.parse(cachedStr);
+            if (cached && cached.weatherData && cached.aqiData) {
+              self.renderDashboard(cached.weatherData, cached.aqiData);
+              return;
+            }
+          } catch (e) {}
+        }
         self.renderError();
       });
     },

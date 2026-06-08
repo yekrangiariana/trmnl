@@ -76,7 +76,10 @@
         todoistFilter: activeConfig.todoistFilter || 'today | overdue',
         todoistMaxTasks: activeConfig.todoistMaxTasks !== undefined ? activeConfig.todoistMaxTasks : 6,
         historyShowBirthsDeaths: activeConfig.historyShowBirthsDeaths !== undefined ? activeConfig.historyShowBirthsDeaths : false,
-        historyEventMode: activeConfig.historyEventMode || 'mix'
+        historyEventMode: activeConfig.historyEventMode || 'mix',
+        wallpaper: activeConfig.wallpaper || 'pixel_art_landscape.png',
+        customWallpaperBase64: activeConfig.customWallpaperBase64 || null,
+        wallpaperDark: activeConfig.wallpaperDark || null
       }, savedDashboard);
 
       // Deep merge plugins config so we don't lose existing settings keys
@@ -467,25 +470,25 @@
       // Sidebar Navigation
       html += '    <div class="settings-sidebar">';
       html += '      <button class="settings-tab-btn' + (activeTab === 'general' ? ' active' : '') + '" data-tab="general">';
-      html += '        <i class="fa-solid fa-sliders"></i><span>GENERAL</span>';
+      html += '        ' + window.getIcon('sliders') + '<span>GENERAL</span>';
       html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'transit' ? ' active' : '') + '" data-tab="transit">';
-      html += '        <i class="fa-solid fa-bus"></i><span>LOCATION &amp; TRANSIT</span>';
+      html += '        ' + window.getIcon('bus') + '<span>LOCATION &amp; TRANSIT</span>';
       html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'stats' ? ' active' : '') + '" data-tab="stats">';
-      html += '        <i class="fa-solid fa-chart-line"></i><span>PERSONAL STATS</span>';
+      html += '        ' + window.getIcon('chart-line') + '<span>PERSONAL STATS</span>';
       html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'todoist' ? ' active' : '') + '" data-tab="todoist">';
-      html += '        <i class="fa-solid fa-list-check"></i><span>TODOIST</span>';
+      html += '        ' + window.getIcon('list-check') + '<span>TODOIST</span>';
       html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'history' ? ' active' : '') + '" data-tab="history">';
-      html += '        <i class="fa-solid fa-clock-rotate-left"></i><span>HISTORY</span>';
+      html += '        ' + window.getIcon('clock-rotate-left') + '<span>HISTORY</span>';
       html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'plugins' ? ' active' : '') + '" data-tab="plugins">';
-      html += '        <i class="fa-solid fa-puzzle-piece"></i><span>PLUGINS</span>';
+      html += '        ' + window.getIcon('puzzle-piece') + '<span>PLUGINS</span>';
       html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'backup' ? ' active' : '') + '" data-tab="backup">';
-      html += '        <i class="fa-solid fa-database"></i><span>BACKUP &amp; RESET</span>';
+      html += '        ' + window.getIcon('database') + '<span>BACKUP &amp; RESET</span>';
       html += '      </button>';
       html += '    </div>';
 
@@ -540,6 +543,27 @@
       html += '            <span id="cfg-wifi-qr-preview" style="font-family:var(--font-mono); font-size:11px; opacity:0.75;">';
       html += (this.wifiQrBase64 ? '✓ Wifi QR Loaded' : 'No image loaded (shows placeholder)');
       html += '            </span>';
+      html += '          </div>';
+      html += '        </div>';
+
+      html += '        <div class="form-group">';
+      html += '          <label>Wallpaper Background</label>';
+      html += '          <div class="wallpaper-preview-container">';
+      html += '            <div class="wallpaper-current-preview">';
+      if (this.editedSettings.wallpaper === 'custom' && this.editedSettings.customWallpaperBase64) {
+        html += '              <img src="' + this.editedSettings.customWallpaperBase64 + '" alt="Custom Wallpaper">';
+      } else {
+        html += '              <img src="wallpapers/' + (this.editedSettings.wallpaper || 'pixel_art_landscape.png') + '" alt="Current Wallpaper" onerror="this.src=\'wallpapers/pixel_art_landscape.png\'">';
+      }
+      html += '            </div>';
+      html += '            <div class="wallpaper-current-info">';
+      var wallName = this.editedSettings.wallpaper || 'pixel_art_landscape.png';
+      if (wallName === 'custom') {
+        wallName = 'Custom (Uploaded)';
+      }
+      html += '              <div class="wallpaper-current-name" id="cfg-wallpaper-current-name">' + wallName.replace('.png', '').replace('.jpg', '').replace('.jpeg', '') + '</div>';
+      html += '              <button class="wallpaper-change-btn" id="cfg-wallpaper-change-btn" type="button">Change Wallpaper</button>';
+      html += '            </div>';
       html += '          </div>';
       html += '        </div>';
 
@@ -765,9 +789,9 @@
       html += '      <div class="settings-pane' + (activeTab === 'backup' ? ' active' : '') + '" id="pane-backup">';
       html += '        <div class="settings-section-title">Backup &amp; Restore Configuration</div>';
       html += '        <div style="display:flex; margin-bottom: 20px;">';
-      html += '          <button class="trmnl-btn" id="btn-export-settings" style="flex:1; margin-right:12px;"><i class="fa-solid fa-download" style="margin-right:8px;"></i>EXPORT BACKUP</button>';
+      html += '          <button class="trmnl-btn" id="btn-export-settings" style="flex:1; margin-right:12px;">' + window.getIcon('download', 'margin-right:8px;') + 'EXPORT BACKUP</button>';
       html += '          <input type="file" id="btn-import-file" accept=".json" style="display:none;">';
-      html += '          <button class="trmnl-btn" id="btn-import-trigger" style="flex:1;"><i class="fa-solid fa-upload" style="margin-right:8px;"></i>IMPORT BACKUP</button>';
+      html += '          <button class="trmnl-btn" id="btn-import-trigger" style="flex:1;">' + window.getIcon('upload', 'margin-right:8px;') + 'IMPORT BACKUP</button>';
       html += '        </div>';
 
       html += '        <div class="settings-section-title">Factory Reset</div>';
@@ -784,6 +808,35 @@
       html += '  </div>';
 
       html += '</div>'; // End Settings Container
+
+      // Wallpaper Selection Modal Overlay
+      html += '<div class="wallpaper-modal-overlay" id="wallpaper-modal">';
+      html += '  <div class="wallpaper-modal">';
+      html += '    <div class="wallpaper-modal-header">';
+      html += '      <div class="wallpaper-modal-title">Select Wallpaper</div>';
+      html += '      <button class="wallpaper-modal-close" id="wallpaper-modal-close" type="button">&times;</button>';
+      html += '    </div>';
+      html += '    <div class="wallpaper-modal-body">';
+      
+      // Upload Section
+      html += '      <div class="wallpaper-upload-section" id="wallpaper-upload-section">';
+      html += '        ' + window.getIcon('cloud-arrow-up', '', '22px');
+      html += '        <span>Upload Custom Photo</span>';
+      html += '        <input type="file" id="wallpaper-file-input" accept="image/*" style="display:none;">';
+      html += '      </div>';
+      
+      // Gallery Grid
+      html += '      <div class="wallpaper-grid" id="wallpaper-grid-container">';
+      html += '        <div style="grid-column: span 3; text-align: center; font-family: var(--font-mono); font-size: 11px; padding: 20px; opacity: 0.7;">Loading gallery...</div>';
+      html += '      </div>';
+      
+      html += '    </div>';
+      html += '    <div class="wallpaper-modal-footer">';
+      html += '      <button class="trmnl-btn secondary" id="wallpaper-modal-cancel" type="button">Cancel</button>';
+      html += '      <button class="trmnl-btn" id="wallpaper-modal-apply" type="button">Select Wallpaper</button>';
+      html += '    </div>';
+      html += '  </div>';
+      html += '</div>';
 
       this.container.innerHTML = html;
 
@@ -898,6 +951,269 @@
         wifiFileClearBtn.addEventListener('click', function(e) {
           e.stopPropagation();
           self.wifiQrBase64 = null;
+          self.renderPanel();
+        });
+      }
+
+      // --- Wallpaper Modal Event Bindings & Logic ---
+      var wpChangeBtn = this.container.querySelector('#cfg-wallpaper-change-btn');
+      var wpModal = this.container.querySelector('#wallpaper-modal');
+      var wpCloseBtn = this.container.querySelector('#wallpaper-modal-close');
+      var wpCancelBtn = this.container.querySelector('#wallpaper-modal-cancel');
+      var wpApplyBtn = this.container.querySelector('#wallpaper-modal-apply');
+      var wpUploadSection = this.container.querySelector('#wallpaper-upload-section');
+      var wpFileInput = this.container.querySelector('#wallpaper-file-input');
+      var wpGridContainer = this.container.querySelector('#wallpaper-grid-container');
+
+      var modalSelectedWallpaper = self.editedSettings.wallpaper || 'pixel_art_landscape.png';
+      var modalCustomBase64 = self.editedSettings.customWallpaperBase64 || null;
+
+      function resizeImage(base64Str, maxWidth, maxHeight, callback) {
+        var img = new Image();
+        img.onload = function() {
+          var width = img.width;
+          var height = img.height;
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round(height * (maxWidth / width));
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round(width * (maxHeight / height));
+              height = maxHeight;
+            }
+          }
+          var canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          var resized = canvas.toDataURL('image/jpeg', 0.75);
+          callback(resized);
+        };
+        img.onerror = function() {
+          callback(base64Str);
+        };
+        img.src = base64Str;
+      }
+
+      function scanWallpapers(callback) {
+        var defaultWallpapers = ['pixel_art_landscape.png', 'pixel_art_landscape_dark.png'];
+        if (!navigator.onLine) {
+          callback(defaultWallpapers);
+          return;
+        }
+        fetch('./wallpapers/', {
+          headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) {
+          if (!res.ok) throw new Error("Fetch listing failed");
+          var contentType = res.headers.get('content-type') || '';
+          if (contentType.indexOf('application/json') !== -1) {
+            return res.json();
+          } else {
+            return res.text();
+          }
+        })
+        .then(function(data) {
+          var files = [];
+          if (typeof data === 'object' && Array.isArray(data)) {
+            files = data.filter(function(item) {
+              return item.type === 'file' && /\.(png|jpe?g|webp|gif)$/i.test(item.name);
+            }).map(function(item) {
+              return item.name;
+            });
+          } else if (typeof data === 'string') {
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(data, 'text/html');
+            var links = doc.querySelectorAll('a');
+            var matched = {};
+            for (var i = 0; i < links.length; i++) {
+              var href = links[i].getAttribute('href') || '';
+              href = href.split('?')[0].split('#')[0];
+              var decoded = decodeURIComponent(href);
+              var basename = decoded.substring(decoded.lastIndexOf('/') + 1);
+              if (basename && /\.(png|jpe?g|webp|gif)$/i.test(basename)) {
+                matched[basename] = true;
+              }
+            }
+            files = Object.keys(matched);
+          }
+          defaultWallpapers.forEach(function(w) {
+            if (files.indexOf(w) === -1) files.push(w);
+          });
+          callback(files);
+        })
+        .catch(function(err) {
+          console.warn("Scanning failed, using default list", err);
+          callback(defaultWallpapers);
+        });
+      }
+
+      function isDarkVersion(filename, allFiles) {
+        var parts = filename.split('.');
+        if (parts.length < 2) return false;
+        var ext = parts.pop();
+        var base = parts.join('.');
+        if (base.endsWith('_dark')) {
+          var lightBase = base.substring(0, base.length - 5);
+          var lightName = lightBase + '.' + ext;
+          return allFiles.indexOf(lightName) !== -1;
+        }
+        return false;
+      }
+
+      function renderGrid(files) {
+        if (!wpGridContainer) return;
+        wpGridContainer.innerHTML = '';
+
+        // Filter out _dark versions if their light partner exists to keep UI tidy
+        var displayFiles = files.filter(function(f) {
+          return !isDarkVersion(f, files);
+        });
+
+        // Add custom upload thumbnail if base64 exists
+        if (modalCustomBase64) {
+          displayFiles.unshift('custom');
+        }
+
+        displayFiles.forEach(function(file) {
+          var item = document.createElement('div');
+          item.className = 'wallpaper-item' + (modalSelectedWallpaper === file ? ' selected' : '');
+          item.setAttribute('data-wallpaper', file);
+          
+          var badge = document.createElement('div');
+          badge.className = 'wallpaper-item-selected-badge';
+          badge.innerHTML = '✓';
+          item.appendChild(badge);
+
+          var img = document.createElement('img');
+          var name = '';
+          if (file === 'custom') {
+            img.src = modalCustomBase64;
+            name = 'CUSTOM PHOTO';
+          } else {
+            img.src = 'wallpapers/' + file;
+            img.onerror = function() { img.src = 'wallpapers/pixel_art_landscape.png'; };
+            name = file.replace('.png', '').replace('.jpg', '').replace('.jpeg', '').replace('_', ' ');
+          }
+          item.appendChild(img);
+
+          var label = document.createElement('div');
+          label.className = 'wallpaper-item-label';
+          label.textContent = name;
+          item.appendChild(label);
+
+          item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            modalSelectedWallpaper = file;
+            var items = wpGridContainer.querySelectorAll('.wallpaper-item');
+            items.forEach(function(it) {
+              it.classList.remove('selected');
+            });
+            item.classList.add('selected');
+          });
+
+          wpGridContainer.appendChild(item);
+        });
+      }
+
+      if (wpChangeBtn && wpModal) {
+        wpChangeBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          wpModal.classList.add('active');
+          modalSelectedWallpaper = self.editedSettings.wallpaper || 'pixel_art_landscape.png';
+          modalCustomBase64 = self.editedSettings.customWallpaperBase64 || null;
+          
+          if (wpGridContainer) {
+            wpGridContainer.innerHTML = '<div style="grid-column: span 3; text-align: center; font-family: var(--font-mono); font-size: 11px; padding: 20px; opacity: 0.7;">Loading gallery...</div>';
+          }
+
+          scanWallpapers(function(files) {
+            self.scannedWallpaperList = files; // Cache list in settings plugin
+            renderGrid(files);
+          });
+        });
+      }
+
+      function closeModal() {
+        if (wpModal) wpModal.classList.remove('active');
+      }
+
+      if (wpCloseBtn) {
+        wpCloseBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          closeModal();
+        });
+      }
+
+      if (wpCancelBtn) {
+        wpCancelBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          closeModal();
+        });
+      }
+
+      if (wpUploadSection && wpFileInput) {
+        wpUploadSection.addEventListener('click', function(e) {
+          e.stopPropagation();
+          wpFileInput.click();
+        });
+
+        wpFileInput.addEventListener('change', function(e) {
+          e.stopPropagation();
+          var file = wpFileInput.files[0];
+          if (file) {
+            var reader = new FileReader();
+            reader.onload = function(evt) {
+              resizeImage(evt.target.result, 1024, 768, function(resizedBase64) {
+                modalCustomBase64 = resizedBase64;
+                modalSelectedWallpaper = 'custom';
+                
+                // Re-scan/re-render grid to show new custom upload
+                scanWallpapers(function(files) {
+                  self.scannedWallpaperList = files;
+                  renderGrid(files);
+                });
+              });
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      if (wpApplyBtn) {
+        wpApplyBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          self.editedSettings.wallpaper = modalSelectedWallpaper;
+          if (modalSelectedWallpaper === 'custom') {
+            self.editedSettings.customWallpaperBase64 = modalCustomBase64;
+            self.editedSettings.wallpaperDark = null;
+          } else {
+            // Find if a dark counterpart exists for the selected wallpaper
+            var lightName = modalSelectedWallpaper;
+            var parts = lightName.split('.');
+            var ext = parts.pop();
+            var base = parts.join('.');
+            var darkName = base + '_dark.' + ext;
+            
+            var hasDark = false;
+            var files = self.scannedWallpaperList || [];
+            if (files.indexOf(darkName) !== -1) {
+              hasDark = true;
+            }
+            
+            // Hardcoded fallback logic for default wallpapers if offline
+            if (!hasDark && (lightName === 'pixel_art_landscape.png' || lightName === 'pixel_art_landscape_dark.png')) {
+              hasDark = true;
+              darkName = 'pixel_art_landscape_dark.png';
+            }
+            
+            self.editedSettings.wallpaperDark = hasDark ? darkName : null;
+          }
+          closeModal();
+          // Re-render settings panel to show the selected wallpaper in the preview block
           self.renderPanel();
         });
       }

@@ -112,7 +112,7 @@
       
       // Main Card Content (Full-bleed card, padding 0)
       html += '  <div class="trmnl-card" style="flex:1; display:flex; flex-direction:column; padding: 0; margin-bottom: 16px; min-height: 480px; overflow: hidden; position: relative;">';
-      html += '    <img src="' + photoData.url + '" alt="NASA APOD" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.35) brightness(0.9); image-rendering: auto;">';
+      html += '    <img src="' + photoData.url + '" alt="NASA APOD" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.35) brightness(0.9); image-rendering: auto;" decoding="async">';
       html += '    <div class="trmnl-dither" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.35; pointer-events: none; mix-blend-mode: multiply;"></div>';
       html += '  </div>';
 

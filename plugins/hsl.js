@@ -26,13 +26,19 @@
 
     render: function(element) {
       this.container = element;
-      this.fetchDepartures();
+      var cfg = this.getActiveConfig();
+      var neighbourhood = (cfg.hslNeighbourhood || this.config.hslNeighbourhood || 'Kallio').trim();
+      var hasRendered = this.loadFromDeparturesCache(neighbourhood);
+      this.fetchDepartures(hasRendered);
     },
 
     update: function() {
       var activeConfig = window.Dashboard ? window.Dashboard.getActiveConfig() : this.config;
       this.config = Object.assign({}, this.config, activeConfig);
-      this.fetchDepartures();
+      var cfg = this.getActiveConfig();
+      var neighbourhood = (cfg.hslNeighbourhood || this.config.hslNeighbourhood || 'Kallio').trim();
+      var hasRendered = this.loadFromDeparturesCache(neighbourhood);
+      this.fetchDepartures(hasRendered);
     },
 
     // ── Helpers ────────────────────────────────────────────────────────────────
@@ -84,21 +90,58 @@
         '  </div>';
     },
 
+    loadFromDeparturesCache: function(neighbourhood) {
+      var cachedStr = localStorage.getItem('trmnl_hsl_departures_cache');
+      if (cachedStr) {
+        try {
+          var cached = JSON.parse(cachedStr);
+          if (cached && cached.neighbourhood === neighbourhood && cached.departures) {
+            this.drawDepartures(cached.departures, neighbourhood, Math.floor(Date.now() / 1000), true);
+            return true;
+          }
+        } catch (e) {
+          console.warn("Failed to load departures from cache:", e);
+        }
+      }
+      return false;
+    },
+
     // ── Entry point ────────────────────────────────────────────────────────────
-    fetchDepartures: function() {
+    fetchDepartures: function(silent) {
       if (!this.container) return;
-      if (!navigator.onLine) { this.drawOffline(); return; }
+      if (!navigator.onLine) {
+        if (!silent) {
+          this.drawOffline();
+        }
+        return;
+      }
 
       var self = this;
       var cfg = this.getActiveConfig();
       var neighbourhood = (cfg.hslNeighbourhood || this.config.hslNeighbourhood || 'Kallio').trim();
+      var radius = parseInt(cfg.hslRadius || this.config.hslRadius || 700, 10);
       var apiKey = this.getApiKey();
 
-      this.drawLoading(neighbourhood);
+      if (!silent) {
+        this.drawLoading(neighbourhood);
+      }
 
       if (!apiKey) {
         this.drawNoKey(neighbourhood);
         return;
+      }
+
+      var stopCacheStr = localStorage.getItem('trmnl_hsl_stop_cache');
+      if (stopCacheStr) {
+        try {
+          var stopCache = JSON.parse(stopCacheStr);
+          if (stopCache && stopCache.neighbourhood === neighbourhood && stopCache.radius === radius && stopCache.stopIds && stopCache.stopIds.length > 0) {
+            self.fetchStopDepartures(stopCache.stopIds, neighbourhood);
+            return;
+          }
+        } catch (e) {
+          console.warn("Failed parsing HSL stop cache:", e);
+        }
       }
 
       // Step 1: Geocode via Nominatim (free, no key needed)
@@ -125,19 +168,20 @@
         var lat = parseFloat(results[0].lat);
         var lon = parseFloat(results[0].lon);
         var displayName = results[0].display_name || neighbourhood;
-        return self.fetchNearbyStops(lat, lon, neighbourhood, displayName);
+        return self.fetchNearbyStops(lat, lon, neighbourhood, displayName, radius);
       })
       .catch(function(err) {
         console.error('HSL geocoding error:', err);
+        if (self.loadFromDeparturesCache(neighbourhood)) {
+          return;
+        }
         self.drawError(err.message);
       });
     },
 
     // Step 2: Find stops within custom radius via GraphQL stopsByRadius
-    fetchNearbyStops: function(lat, lon, neighbourhood, displayName) {
+    fetchNearbyStops: function(lat, lon, neighbourhood, displayName, radius) {
       var self = this;
-      var cfg = this.getActiveConfig();
-      var radius = parseInt(cfg.hslRadius || this.config.hslRadius || 700, 10);
       var query = '{ stopsByRadius(lat: ' + lat + ', lon: ' + lon + ', radius: ' + radius + ', first: 8) {' +
         '  edges { node { stop { gtfsId name code } distance } }' +
         '} }';
@@ -159,10 +203,25 @@
           throw new Error('No HSL stops found within ' + radius + 'm of "' + neighbourhood + '".');
         }
         var stopIds = edges.slice(0, 8).map(function(e) { return e.node.stop.gtfsId; });
+
+        var stopCache = {
+          neighbourhood: neighbourhood,
+          radius: radius,
+          stopIds: stopIds
+        };
+        try {
+          localStorage.setItem('trmnl_hsl_stop_cache', JSON.stringify(stopCache));
+        } catch (e) {
+          console.warn("Failed to save stopCache:", e);
+        }
+
         return self.fetchStopDepartures(stopIds, neighbourhood);
       })
       .catch(function(err) {
         console.error('HSL stops error:', err);
+        if (self.loadFromDeparturesCache(neighbourhood)) {
+          return;
+        }
         self.drawError(err.message);
       });
     },
@@ -220,10 +279,24 @@
           .filter(function(d) { return d.realtime >= now - 60; })
           .sort(function(a, b) { return a.realtime - b.realtime; });
 
-        self.drawDepartures(all, neighbourhood, now);
+        var depCache = {
+          neighbourhood: neighbourhood,
+          departures: all,
+          timestamp: Date.now()
+        };
+        try {
+          localStorage.setItem('trmnl_hsl_departures_cache', JSON.stringify(depCache));
+        } catch (e) {
+          console.warn("Failed to cache departures:", e);
+        }
+
+        self.drawDepartures(all, neighbourhood, now, false);
       })
       .catch(function(err) {
         console.error('HSL departures error:', err);
+        if (self.loadFromDeparturesCache(neighbourhood)) {
+          return;
+        }
         self.drawError(err.message);
       });
     },
@@ -257,7 +330,7 @@
         '</div>';
     },
 
-    drawDepartures: function(departures, neighbourhood, now) {
+    drawDepartures: function(departures, neighbourhood, now, isCached) {
       var self = this;
       var shown = departures.slice(0, 10);
 
@@ -265,6 +338,9 @@
       var timeStr = nowDate.getHours().toString().padStart(2, '0') + ':' +
                     nowDate.getMinutes().toString().padStart(2, '0') + ':' +
                     nowDate.getSeconds().toString().padStart(2, '0');
+      if (isCached) {
+        timeStr += ' (Cached)';
+      }
 
       var html = '<div style="display:flex;flex-direction:column;height:100%;justify-content:space-between;padding:10px 0;">';
       html += '  <div class="trmnl-card" style="flex:1;overflow:hidden;padding:0;margin-bottom:16px;">';

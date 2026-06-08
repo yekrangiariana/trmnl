@@ -18,11 +18,46 @@
 
     render: function(element) {
       this.container = element;
+      var cachedStr = localStorage.getItem('trmnl_history_cache');
+      if (cachedStr) {
+        try {
+          var cached = JSON.parse(cachedStr);
+          var todayStr = new Date().toDateString();
+          if (cached && cached.date === todayStr && cached.data) {
+            this.renderHistory(cached.data);
+            return;
+          }
+        } catch (e) {
+          console.warn("Failed to parse history cache in render:", e);
+        }
+      }
       this.container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;font-family:var(--font-mono);font-size:16px;">RETRIEVING HISTORY FROM WIKIPEDIA...</div>';
     },
 
     update: function() {
       var self = this;
+      var todayStr = new Date().toDateString();
+      var cachedStr = localStorage.getItem('trmnl_history_cache');
+      var needsFetch = true;
+
+      if (cachedStr) {
+        try {
+          var cached = JSON.parse(cachedStr);
+          if (cached && cached.date === todayStr && cached.data) {
+            needsFetch = false;
+            if (self.container) {
+              self.renderHistory(cached.data);
+            }
+          }
+        } catch (e) {
+          console.warn("Failed to check history cache in update:", e);
+        }
+      }
+
+      if (!needsFetch) {
+        return;
+      }
+
       var now = new Date();
       var month = now.getMonth() + 1;
       var day = now.getDate();
@@ -39,10 +74,28 @@
           return response.json();
         })
         .then(function(data) {
+          var cacheObj = {
+            date: todayStr,
+            data: data
+          };
+          try {
+            localStorage.setItem('trmnl_history_cache', JSON.stringify(cacheObj));
+          } catch (e) {
+            console.warn("Failed to save history cache:", e);
+          }
           self.renderHistory(data);
         })
         .catch(function(err) {
           console.error("Wikipedia history fetch failed:", err);
+          if (cachedStr) {
+            try {
+              var cached = JSON.parse(cachedStr);
+              if (cached && cached.data) {
+                self.renderHistory(cached.data);
+                return;
+              }
+            } catch (e) {}
+          }
           self.renderError();
         });
     },

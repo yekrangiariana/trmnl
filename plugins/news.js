@@ -18,11 +18,55 @@
 
     render: function(element) {
       this.container = element;
+      var cachedStr = localStorage.getItem('trmnl_news_cache');
+      if (cachedStr) {
+        try {
+          var cached = JSON.parse(cachedStr);
+          if (cached && cached.headlines && cached.timestamp) {
+            this.lastUpdated = cached.lastUpdated ? new Date(cached.lastUpdated) : new Date(cached.timestamp);
+            this.renderHeadlines(cached.headlines);
+            return;
+          }
+        } catch (e) {
+          console.warn("Error parsing news cache in render:", e);
+        }
+      }
       this.container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;font-family:var(--font-mono);font-size:16px;">RETRIEVING BBC HEADLINES...</div>';
     },
 
-    update: function() {
+    update: function(force) {
       var self = this;
+      var cachedStr = localStorage.getItem('trmnl_news_cache');
+      var needsFetch = true;
+
+      if (!force && cachedStr) {
+        try {
+          var cached = JSON.parse(cachedStr);
+          if (cached && cached.headlines && cached.timestamp) {
+            var age = Date.now() - cached.timestamp;
+            if (age < 30 * 60 * 1000) {
+              needsFetch = false;
+              self.lastUpdated = cached.lastUpdated ? new Date(cached.lastUpdated) : new Date(cached.timestamp);
+              if (self.container) {
+                self.renderHeadlines(cached.headlines);
+              }
+            } else {
+              // Cache is old, but render it first to avoid loading flash
+              self.lastUpdated = cached.lastUpdated ? new Date(cached.lastUpdated) : new Date(cached.timestamp);
+              if (self.container) {
+                self.renderHeadlines(cached.headlines);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("Error checking news cache in update:", e);
+        }
+      }
+
+      if (!needsFetch) {
+        return;
+      }
+
       var cacheBuster = Math.floor(Date.now() / (3 * 60 * 60 * 1000));
       var feedUrl = "https://feeds.bbci.co.uk/news/world/rss.xml?_t=" + cacheBuster;
       var url = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl);
@@ -44,6 +88,16 @@
             });
 
             self.lastUpdated = new Date();
+            var cacheObj = {
+              timestamp: Date.now(),
+              headlines: items,
+              lastUpdated: self.lastUpdated.getTime()
+            };
+            try {
+              localStorage.setItem('trmnl_news_cache', JSON.stringify(cacheObj));
+            } catch (e) {
+              console.warn("Failed to set news cache:", e);
+            }
             self.renderHeadlines(items);
           } else {
             throw new Error("RSS load error");
@@ -51,6 +105,16 @@
         })
         .catch(function(err) {
           console.error("BBC news fetch failed:", err);
+          if (cachedStr) {
+            try {
+              var cached = JSON.parse(cachedStr);
+              if (cached && cached.headlines) {
+                self.lastUpdated = cached.lastUpdated ? new Date(cached.lastUpdated) : new Date(cached.timestamp);
+                self.renderHeadlines(cached.headlines);
+                return;
+              }
+            } catch (e) {}
+          }
           self.renderError();
         });
     },
@@ -157,7 +221,7 @@
           }
           refreshBtn.textContent = "Updating...";
           refreshBtn.disabled = true;
-          self.update();
+          self.update(true);
         });
       }
     },

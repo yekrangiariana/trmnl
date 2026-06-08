@@ -340,10 +340,10 @@
       html += '        <div class="trmnl-card-header" style="margin-bottom: 6px; font-size: 14px;">COSMIC STATS</div>';
       html += '        <div style="display: flex; flex: 1; align-items: center; min-height: 130px;">';
       html += '          <div style="flex: 1.4; display: flex; flex-direction: column; font-family: var(--font-sans); font-size: 13px; font-weight: 700; line-height: 1.4; padding: 4px 0;">';
-      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;"><i class="fa-solid fa-bed" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Spent <b>' + sleepYears + ' years</b> sleeping (' + this.config.sleepHoursPerDay + 'h/day)</span></div>';
-      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;"><i class="fa-solid fa-sun" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Travelled <b>' + (sunKm / 1000000000).toFixed(1) + 'B km</b> around the Sun</span></div>';
+      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;">' + window.getIcon('bed', 'margin-right:8px;', '16px') + '<span>Spent <b>' + sleepYears + ' years</b> sleeping (' + this.config.sleepHoursPerDay + 'h/day)</span></div>';
+      html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;">' + window.getIcon('sun', 'margin-right:8px;', '16px') + '<span>Travelled <b>' + (sunKm / 1000000000).toFixed(1) + 'B km</b> around the Sun</span></div>';
       html += '            <div style="display: flex; align-items: center; margin-bottom: 10px; padding-right: 4px;">' + galaxyLogo + '<span>Cruised <b>' + (milkyWayKm / 1000000000).toFixed(1) + 'B km</b> around the Milky Way</span></div>';
-      html += '            <div style="display: flex; align-items: center; padding-right: 4px;"><i class="fa-solid fa-moon" style="font-size:15px; width:20px; margin-right:8px; flex-shrink: 0;"></i><span>Moon circled Earth <b>' + self.formatNumber(moonOrbits) + ' times</b></span></div>';
+      html += '            <div style="display: flex; align-items: center; padding-right: 4px;">' + window.getIcon('moon', 'margin-right:8px;', '16px') + '<span>Moon circled Earth <b>' + self.formatNumber(moonOrbits) + ' times</b></span></div>';
       html += '          </div>';
       html += '          <div style="flex: 0.8; display: flex; align-items: center; justify-content: center; height: 130px;">';
       html += '            <canvas id="canvas-cosmic" style="width: 150px; height: 130px; display: block;"></canvas>';

@@ -1,6 +1,4 @@
-/* Google Fonts Import */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,500;0,600;1,500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@700&display=swap');
+/* Google Fonts loaded via index.html <link> to prevent rendering block */
 
 /* Color Variables and Themes */
 :root {
@@ -59,7 +57,7 @@ html, body {
   touch-action: none;
 }
 
-/* Base Grainy E-Paper Weathering Overlay */
+/* Base Grainy E-Paper Weathering Overlay - Optimized static tile pattern for hardware acceleration */
 body::after {
   content: "";
   position: absolute;
@@ -69,8 +67,8 @@ body::after {
   height: 100%;
   z-index: 9990;
   pointer-events: none;
-  opacity: 0.09;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='1.2' height='1.2' fill='%23000' x='10' y='15'/%3E%3Crect width='1' height='1' fill='%23000' x='35' y='5'/%3E%3Crect width='1.5' height='1.5' fill='%23000' x='70' y='22'/%3E%3Crect width='1' height='1' fill='%23000' x='22' y='48'/%3E%3Crect width='1.2' height='1.2' fill='%23000' x='55' y='37'/%3E%3Crect width='1' height='1' fill='%23000' x='85' y='60'/%3E%3Crect width='1.5' height='1.5' fill='%23000' x='15' y='75'/%3E%3Crect width='1.2' height='1.2' fill='%23000' x='45' y='88'/%3E%3Crect width='1' height='1' fill='%23000' x='78' y='82'/%3E%3Crect width='1.2' height='1.2' fill='%23fff' x='25' y='25'/%3E%3Crect width='1.5' height='1.5' fill='%23fff' x='60' y='12'/%3E%3Crect width='1' height='1' fill='%23fff' x='92' y='32'/%3E%3Crect width='1.2' height='1.2' fill='%23fff' x='8' y='58'/%3E%3Crect width='1' height='1' fill='%23fff' x='40' y='65'/%3E%3Crect width='1.5' height='1.5' fill='%23fff' x='68' y='78'/%3E%3Crect width='1' height='1' fill='%23fff' x='30' y='92'/%3E%3C/svg%3E");
 }
 
 /* Fixed Viewport Container for iPad Mini 2 */
@@ -226,6 +224,8 @@ body::after {
   display: none;
   flex-direction: column;
   animation: fade-in 0.25s ease-out;
+  contain: layout style paint; /* Scopes rendering to this container */
+  will-change: opacity;
 }
 
 .plugin-view.active {
@@ -235,6 +235,15 @@ body::after {
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Spinner Rotation for SVG Loaders */
+.fa-spin {
+  animation: svg-spin 1.2s infinite linear;
+}
+@keyframes svg-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Grid helper rows & cols */
@@ -1109,7 +1118,7 @@ body.theme-coal .time-pixel-landscape.dark-only {
   margin-bottom: 6px;
 }
 
-.settings-tab-btn i {
+.settings-tab-btn i, .settings-tab-btn svg {
   font-size: 13px;
   width: 16px;
   text-align: center;
@@ -1361,5 +1370,280 @@ input[type="checkbox"].trmnl-checkbox:checked::after {
   font-weight: 900;
   font-size: 14px;
 }
+
+/* Wallpaper Settings & Modal Styles */
+.wallpaper-preview-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.wallpaper-current-preview {
+  width: 120px;
+  height: 90px;
+  border: var(--border-width-thin) solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--highlight-bg);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.wallpaper-current-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.wallpaper-current-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wallpaper-current-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-color);
+}
+
+.wallpaper-change-btn {
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  border: var(--border-width-thin) solid var(--border-color);
+  border-radius: 12px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.wallpaper-change-btn:active {
+  background-color: var(--text-color);
+  color: var(--bg-color);
+}
+
+/* Modal Overlay (nested inside app-viewport so it scales with iPad viewport) */
+.wallpaper-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wallpaper-modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.wallpaper-modal {
+  width: 700px;
+  max-height: 520px;
+  background-color: var(--card-bg);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 20px;
+  box-sizing: border-box;
+  transform: scale(0.95);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.wallpaper-modal-overlay.active .wallpaper-modal {
+  transform: scale(1);
+}
+
+.wallpaper-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: var(--border-width-thin) solid var(--border-color);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.wallpaper-modal-title {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--text-color);
+}
+
+.wallpaper-modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--text-color);
+  cursor: pointer;
+  opacity: 0.7;
+  outline: none;
+}
+
+.wallpaper-modal-close:hover {
+  opacity: 1;
+}
+
+.wallpaper-modal-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+
+.wallpaper-upload-section {
+  border: var(--border-width-thin) dashed var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-align: center;
+  margin-bottom: 16px;
+  background-color: var(--card-bg);
+  transition: background-color 0.15s ease, border-style 0.15s ease;
+  flex-shrink: 0;
+}
+
+.wallpaper-upload-section:hover {
+  background-color: var(--highlight-bg);
+}
+
+.wallpaper-upload-section i, .wallpaper-upload-section svg {
+  font-size: 22px;
+  margin-bottom: 6px;
+  color: var(--text-color);
+}
+
+.wallpaper-upload-section span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-color);
+}
+
+.wallpaper-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding-bottom: 8px;
+}
+
+.wallpaper-item {
+  position: relative;
+  border: var(--border-width-thin) solid var(--border-color);
+  border-radius: 12px;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  background-color: var(--highlight-bg);
+}
+
+.wallpaper-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--text-color);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.wallpaper-item.selected {
+  border-color: var(--text-color);
+  border-width: var(--border-width);
+  box-shadow: 0 0 0 2px var(--text-color);
+}
+
+.wallpaper-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.wallpaper-item-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--text-color);
+  color: var(--bg-color);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 4px 8px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-top: var(--border-width-thin) solid var(--border-color);
+  opacity: 0.9;
+}
+
+.wallpaper-item-selected-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--text-color);
+  color: var(--bg-color);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  border: var(--border-width-thin) solid var(--border-color);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  z-index: 2;
+}
+
+.wallpaper-item.selected .wallpaper-item-selected-badge {
+  display: flex;
+}
+
+.wallpaper-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: var(--border-width-thin) solid var(--border-color);
+  padding-top: 12px;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.wallpaper-modal-footer button {
+  min-width: 110px;
+}
+
 
 

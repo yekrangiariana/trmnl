@@ -233,10 +233,10 @@
       if (hasPrev || hasNext) {
         html += '    <div style="margin-top: 24px; display:flex; gap:12px; align-items:center;">';
         if (hasPrev) {
-          html += '      <button id="finnish-prev-btn" class="trmnl-btn secondary" style="font-size: 13px; padding: 8px 16px;"><i class="fa-solid fa-arrow-left" style="margin-right: 6px;"></i>Prev</button>';
+          html += '      <button id="finnish-prev-btn" class="trmnl-btn secondary" style="font-size: 13px; padding: 8px 16px;">' + window.getIcon('arrow-left', 'margin-right: 6px;') + 'Prev</button>';
         }
         if (hasNext) {
-          html += '      <button id="finnish-next-btn" class="trmnl-btn secondary" style="font-size: 13px; padding: 8px 16px;">Next<i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i></button>';
+          html += '      <button id="finnish-next-btn" class="trmnl-btn secondary" style="font-size: 13px; padding: 8px 16px;">Next' + window.getIcon('arrow-right', 'margin-left: 6px;') + '</button>';
           html += '      <button id="finnish-today-btn" class="trmnl-btn" style="font-size: 13px; padding: 8px 16px; margin-left:auto;">Today</button>';
         }
         html += '    </div>';

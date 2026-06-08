@@ -182,10 +182,9 @@
         extract = extract.substring(0, 410) + "...";
       }
 
-      var imageHtml = '';
       if (data.thumbnail && data.thumbnail.source) {
         imageHtml = '    <div style="flex: 0.9; display: flex; align-items: center; justify-content: center; overflow: hidden; height: 350px; background-color: var(--card-bg); position: relative;">' +
-                    '      <img src="' + data.thumbnail.source + '" alt="Article image" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.4) brightness(0.9); image-rendering: pixelated;">' +
+                    '      <img src="' + data.thumbnail.source + '" alt="Article image" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.4) brightness(0.9); image-rendering: pixelated;" decoding="async">' +
                     '      <div class="trmnl-dither" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.45; pointer-events: none; mix-blend-mode: multiply;"></div>' +
                     '    </div>';
       }
@@ -213,8 +212,8 @@
       var buttonText = isLast ? 'New Random' : 'Next';
 
       html += '      <div style="margin-top: 28px; display: flex;">';
-      html += '        <button id="wiki-random-prev-btn" class="trmnl-btn secondary" style="font-size: 13px; padding: 8px 16px; margin-right: 12px;' + (isFirst ? ' opacity: 0.35; cursor: not-allowed;' : '') + '"' + (isFirst ? ' disabled' : '') + '><i class="fa-solid fa-arrow-left" style="margin-right: 6px;"></i>Prev</button>';
-      html += '        <button id="wiki-random-next-btn" class="trmnl-btn" style="font-size: 13px; padding: 8px 20px;">' + buttonText + '<i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i></button>';
+      html += '        <button id="wiki-random-prev-btn" class="trmnl-btn secondary" style="font-size: 13px; padding: 8px 16px; margin-right: 12px;' + (isFirst ? ' opacity: 0.35; cursor: not-allowed;' : '') + '"' + (isFirst ? ' disabled' : '') + '>' + window.getIcon('arrow-left', 'margin-right: 6px;') + 'Prev</button>';
+      html += '        <button id="wiki-random-next-btn" class="trmnl-btn" style="font-size: 13px; padding: 8px 20px;">' + buttonText + window.getIcon('arrow-right', 'margin-left: 6px;') + '</button>';
       html += '      </div>';
       
       html += '    </div>';
@@ -258,7 +257,7 @@
         nextBtn.addEventListener('click', function(e) {
           e.stopPropagation();
           e.preventDefault();
-          nextBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i>Loading...';
+          nextBtn.innerHTML = window.getIcon('spinner', 'margin-right: 6px;') + 'Loading...';
           nextBtn.disabled = true;
           self.loadNextArticle();
         });

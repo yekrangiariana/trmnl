@@ -20,12 +20,29 @@
 
     render: function(element) {
       this.container = element;
+      var cachedTasks = localStorage.getItem('trmnl_todoist_tasks_cache');
+      var cachedTime = localStorage.getItem('trmnl_todoist_timestamp');
+      if (cachedTasks && cachedTime) {
+        try {
+          var activeTasks = JSON.parse(cachedTasks);
+          var cachedCompleted = localStorage.getItem('trmnl_todoist_completed_cache');
+          var completedTasks = cachedCompleted ? JSON.parse(cachedCompleted) : [];
+          var activeConfig = window.Dashboard ? window.Dashboard.getActiveConfig() : {};
+          var maxTasks = activeConfig.todoistMaxTasks !== undefined ? activeConfig.todoistMaxTasks : (this.config.todoistMaxTasks || 6);
+          this.lastUpdated = new Date(parseInt(cachedTime, 10));
+          this.renderTasks(activeTasks, completedTasks, maxTasks, true);
+          return;
+        } catch (e) {
+          console.warn("Failed to render cached Todoist tasks:", e);
+        }
+      }
       this.container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;font-family:var(--font-mono);font-size:16px;">RETRIEVING TODOIST TASKS...</div>';
     },
 
-    update: function() {
+    update: function(force) {
       var self = this;
       var activeConfig = window.Dashboard ? window.Dashboard.getActiveConfig() : {};
+      self.config = Object.assign({}, self.config, activeConfig);
 
       var apiKey = activeConfig.todoistApiKey || this.config.todoistApiKey || '';
       var filter = activeConfig.todoistFilter !== undefined ? activeConfig.todoistFilter : (this.config.todoistFilter || 'today | overdue');
@@ -33,6 +50,29 @@
 
       if (!apiKey) {
         self.renderConfigureMessage();
+        return;
+      }
+
+      var cachedTasks = localStorage.getItem('trmnl_todoist_tasks_cache');
+      var cachedTime = localStorage.getItem('trmnl_todoist_timestamp');
+      var needsFetch = true;
+
+      if (!force && cachedTasks && cachedTime) {
+        try {
+          var age = Date.now() - parseInt(cachedTime, 10);
+          if (age < 15 * 60 * 1000) {
+            needsFetch = false;
+            self.loadFromCache(false);
+          } else {
+            // Render cached data immediately while fetching in background
+            self.loadFromCache(false);
+          }
+        } catch (e) {
+          console.warn("Error checking Todoist cache:", e);
+        }
+      }
+
+      if (!needsFetch) {
         return;
       }
 
@@ -529,7 +569,7 @@
         if (res.ok) {
           // Wait 1 second for the Todoist servers to sync, then update
           setTimeout(function() {
-            self.update();
+            self.update(true);
           }, 1000);
         } else {
           throw new Error("HTTP Status " + res.status);

@@ -33,10 +33,16 @@
 
     // Merge configurations (safe ES5/ES6 style merge)
     state.config = Object.assign({}, defaultConfig);
+    if (state.config.wallpaper === undefined) {
+      state.config.wallpaper = 'pixel_art_landscape.png';
+    }
+    if (state.config.wallpaperDark === undefined) {
+      state.config.wallpaperDark = 'pixel_art_landscape_dark.png';
+    }
     state.config.plugins = Object.assign({}, defaultConfig.plugins || {});
 
     // Deep merge local overrides
-    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode'];
+    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode', 'wallpaper', 'customWallpaperBase64', 'wallpaperDark'];
     rootKeys.forEach(function(key) {
       if (localOverrides[key] !== undefined) {
         state.config[key] = localOverrides[key];

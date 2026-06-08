@@ -12,6 +12,7 @@
     name: 'Time',
     config: {},
     container: null,
+    localTimer: null,
 
     init: function(pluginConfig) {
       this.config = pluginConfig || {};
@@ -20,10 +21,26 @@
     render: function(element) {
       this.container = element;
       this.renderTime();
+      this.startLocalTimer();
     },
 
     update: function() {
       this.renderTime();
+      this.startLocalTimer();
+    },
+
+    startLocalTimer: function() {
+      var self = this;
+      if (self.localTimer) return;
+
+      self.localTimer = setInterval(function() {
+        if (self.container && self.container.classList.contains('active')) {
+          self.renderTime();
+        } else {
+          clearInterval(self.localTimer);
+          self.localTimer = null;
+        }
+      }, 1000 * 30);
     },
 
     getWeatherDesc: function(code) {
@@ -133,10 +150,35 @@
                       '</div>';
       }
 
+      var activeConfig = window.Dashboard ? window.Dashboard.getActiveConfig() : {};
+      var wallpaper = activeConfig.wallpaper || 'pixel_art_landscape.png';
+      var wallpaperDark = activeConfig.wallpaperDark;
+      var customBase64 = activeConfig.customWallpaperBase64;
+
+      var bgHtml = '';
+      if (wallpaper === 'custom' && customBase64) {
+        bgHtml = '  <img src="' + customBase64 + '" class="time-pixel-landscape custom-photo" style="mix-blend-mode: normal;" alt="Custom background" decoding="async" fetchpriority="high">';
+      } else {
+        var lightSrc = wallpaper;
+        if (!lightSrc.startsWith('wallpapers/')) {
+          lightSrc = 'wallpapers/' + lightSrc;
+        }
+        
+        if (wallpaperDark) {
+          var darkSrc = wallpaperDark;
+          if (!darkSrc.startsWith('wallpapers/')) {
+            darkSrc = 'wallpapers/' + darkSrc;
+          }
+          bgHtml = '  <img src="' + lightSrc + '" class="time-pixel-landscape light-only" alt="Background light" decoding="async" fetchpriority="high">';
+          bgHtml += '  <img src="' + darkSrc + '" class="time-pixel-landscape dark-only" alt="Background dark" decoding="async" fetchpriority="high">';
+        } else {
+          bgHtml = '  <img src="' + lightSrc + '" class="time-pixel-landscape" style="mix-blend-mode: normal;" alt="Background" decoding="async" fetchpriority="high">';
+        }
+      }
+
       // Assemble Main HTML in pixel art landscape layout with floating widget
       var html = '<div class="trmnl-card time-pixel-card">';
-      html += '  <img src="pixel_art_landscape.png" class="time-pixel-landscape light-only" alt="Pixel art mountain landscape">';
-      html += '  <img src="pixel_art_landscape_dark.png" class="time-pixel-landscape dark-only" alt="Pixel art forest at night">';
+      html += bgHtml;
       html += '  <div class="time-pixel-widget">';
       html += '    <div class="time-pixel-widget-header-minimal">' + dayName.toUpperCase() + ' &bull; ' + monthName.toUpperCase() + ' ' + dateNum + ', ' + year + '</div>';
       html += '    <div class="time-pixel-widget-clock-minimal">' + timeStr + '</div>';
