@@ -6,7 +6,7 @@
  * iOS 12 Safari Compatible.
  */
 
-var CACHE_NAME = "trmnl-dashboard-cache-v47";
+var CACHE_NAME = "trmnl-dashboard-cache-v49";
 var STATIC_ASSETS = [
   "/",
   "./",
@@ -27,6 +27,8 @@ var STATIC_ASSETS = [
   "plugins/weather.js",
   "plugins/sun.js",
   "plugins/word.js",
+  "plugins/finnish.js",
+  "idioms.json",
   "plugins/wifi.js",
   "plugins/news.js",
   "plugins/todoist.js",

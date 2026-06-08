@@ -191,19 +191,49 @@
       var d = now.getDate();
       var localTodayStr = y + '-' + (m < 10 ? '0' + m : m) + '-' + (d < 10 ? '0' + d : d);
 
-      // Strict "due now" check: task due date exists and is today or older in local time
+      // 1. Group 1: Due Now (due today or overdue in local time)
       var dueNowTasks = activeTasks.filter(function(task) {
         if (!task.due || !task.due.date) return false;
         var taskDueDateOnly = task.due.date.substring(0, 10);
         return taskDueDateOnly <= localTodayStr;
       });
 
-      // Sort active by priority descending
-      var sortedActive = dueNowTasks.slice().sort(function(a, b) {
+      var sortedDueNow = dueNowTasks.slice().sort(function(a, b) {
         return b.priority - a.priority;
       });
 
-      var displayActive = sortedActive.slice(0, maxTasks);
+      // Split column limits: cap shared left column sections to prevent vertical overflow
+      var sectionLimit = Math.max(3, Math.ceil(maxTasks / 2));
+      var displayActive = sortedDueNow.slice(0, sectionLimit);
+
+      // 2. Group 2: Inbox (no deadline / no due date)
+      var inboxTasks = activeTasks.filter(function(task) {
+        return !task.due || !task.due.date;
+      });
+
+      var sortedInbox = inboxTasks.slice().sort(function(a, b) {
+        return b.priority - a.priority;
+      });
+
+      var displayInbox = sortedInbox.slice(0, sectionLimit);
+
+      // 3. Group 3: Upcoming (due in the future)
+      var upcomingTasks = activeTasks.filter(function(task) {
+        if (!task.due || !task.due.date) return false;
+        var taskDueDateOnly = task.due.date.substring(0, 10);
+        return taskDueDateOnly > localTodayStr;
+      });
+
+      var sortedUpcoming = upcomingTasks.slice().sort(function(a, b) {
+        var dateA = a.due.date.substring(0, 10);
+        var dateB = b.due.date.substring(0, 10);
+        if (dateA !== dateB) {
+          return dateA < dateB ? -1 : 1;
+        }
+        return b.priority - a.priority;
+      });
+
+      var displayUpcoming = sortedUpcoming.slice(0, maxTasks);
 
       // Filter completed tasks to strictly only show those completed today in local time
       var localTodayYear = now.getFullYear();
@@ -229,36 +259,108 @@
 
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; padding: 4px 0 0 0;">';
       
-      // 2-Column Layout Grid Row
+      // 3-Column Layout Grid Row
       html += '  <div class="grid-row" style="flex:1; display:flex; width:100%; min-height:0; margin-bottom: 16px;">';
 
-      // Left Column: Due Now
+      // Left Column: Due Now & Inbox (No Deadline)
       html += '    <div class="grid-col" style="flex:1; display:flex; flex-direction:column; min-width:0; padding-right: 20px; border-right: 1px dashed var(--border-color);">';
-      html += '      <div style="font-family: var(--font-mono); font-size: 14px; font-weight:700; text-transform: uppercase; border-bottom: 2px solid var(--border-color); padding-bottom: 6px; margin-bottom: 20px; color: var(--text-color); letter-spacing: 0.05em;">Due Now</div>';
-      html += '      <div style="flex:1; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-start;">';
+      
+      // Section 1: Due Now
+      html += '      <div style="flex:1; min-height:0; display:flex; flex-direction:column; margin-bottom: 16px;">';
+      html += '        <div style="font-family: var(--font-mono); font-size: 14px; font-weight:700; text-transform: uppercase; border-bottom: 2px solid var(--border-color); padding-bottom: 6px; margin-bottom: 12px; color: var(--text-color); letter-spacing: 0.05em;">Due Now</div>';
+      html += '        <div style="flex:1; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-start;">';
 
       if (displayActive.length === 0) {
-        html += '        <div style="font-family: var(--font-sans); font-size: 15px; opacity:0.6; padding: 12px 0;">No active tasks due now.</div>';
+        html += '          <div style="font-family: var(--font-sans); font-size: 15px; opacity:0.6; padding: 6px 0;">No active tasks due now.</div>';
       } else {
         displayActive.forEach(function(task, idx) {
           var content = task.content || '';
           var dueText = self.formatDueDate(task.due);
 
-          html += '        <div class="todoist-item" data-task-id="' + task.id + '" data-index="' + idx + '" style="display:flex; align-items:center; margin-bottom: 20px; padding-bottom: 2px; cursor: pointer; user-select: none;">';
+          html += '          <div class="todoist-item" data-task-id="' + task.id + '" data-index="' + idx + '" style="display:flex; align-items:center; margin-bottom: 12px; padding-bottom: 2px; cursor: pointer; user-select: none;">';
           
           // Custom E-Ink Left Bullet + Number Indicator
-          html += '          <div class="todoist-indicator-col" style="display:flex; flex-direction:column; align-items:center; justify-content:center; width: 18px; margin-right: 18px; flex-shrink: 0; height: 38px;">';
-          html += '            <div class="dither-bullet" style="height: 12px; width: 5px; margin: 0; display: block; vertical-align: top; background-repeat: repeat;"></div>';
-          html += '            <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; line-height: 1.2; margin: 1px 0; color: var(--text-color); text-align: center;">' + (idx + 1) + ':</div>';
-          html += '            <div class="dither-bullet" style="height: 12px; width: 5px; margin: 0; display: block; vertical-align: top; background-repeat: repeat;"></div>';
-          html += '          </div>';
+          html += '            <div class="todoist-indicator-col" style="display:flex; flex-direction:column; align-items:center; justify-content:center; width: 18px; margin-right: 14px; flex-shrink: 0; height: 38px;">';
+          html += '              <div class="dither-bullet" style="height: 12px; width: 5px; margin: 0; display: block; vertical-align: top; background-repeat: repeat;"></div>';
+          html += '              <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; line-height: 1.2; margin: 1px 0; color: var(--text-color); text-align: center;">' + (idx + 1) + ':</div>';
+          html += '              <div class="dither-bullet" style="height: 12px; width: 5px; margin: 0; display: block; vertical-align: top; background-repeat: repeat;"></div>';
+          html += '            </div>';
 
           // Content
           html += '          <div style="flex:1; display:flex; flex-direction:column; min-width:0;">';
-          html += '            <div class="todoist-content" style="font-family: var(--font-sans); font-size: 19px; font-weight: 700; line-height: 1.25; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s ease;">' + content + '</div>';
+          html += '            <div class="todoist-content" style="font-family: var(--font-sans); font-size: 17px; font-weight: 700; line-height: 1.25; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s ease;">' + content + '</div>';
           if (dueText) {
             html += '            <div style="margin-top: 3px; display: flex;">';
-            html += '              <span class="todoist-due" style="font-family: var(--font-sans); font-size: 14px; color: var(--text-color); font-weight: 500; opacity: 0.8; border-bottom: 1px dotted var(--border-color); padding-bottom: 1px; line-height: 1.15; transition: all 0.2s ease;">' + dueText + '</span>';
+            html += '              <span class="todoist-due" style="font-family: var(--font-sans); font-size: 13px; color: var(--text-color); font-weight: 500; opacity: 0.8; border-bottom: 1px dotted var(--border-color); padding-bottom: 1px; line-height: 1.15; transition: all 0.2s ease;">' + dueText + '</span>';
+            html += '            </div>';
+          }
+          html += '          </div>';
+          html += '        </div>';
+        });
+      }
+
+      html += '        </div>';
+      html += '      </div>'; // End Due Now Section
+
+      // Section 2: Inbox (No deadline)
+      html += '      <div style="flex:1; min-height:0; display:flex; flex-direction:column;">';
+      html += '        <div style="font-family: var(--font-mono); font-size: 14px; font-weight:700; text-transform: uppercase; border-bottom: 2px solid var(--border-color); padding-bottom: 6px; margin-bottom: 12px; color: var(--text-color); letter-spacing: 0.05em;">Inbox (No Date)</div>';
+      html += '        <div style="flex:1; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-start;">';
+
+      if (displayInbox.length === 0) {
+        html += '          <div style="font-family: var(--font-sans); font-size: 15px; opacity:0.6; padding: 6px 0;">No tasks in Inbox.</div>';
+      } else {
+        displayInbox.forEach(function(task, idx) {
+          var content = task.content || '';
+
+          html += '          <div class="todoist-item" data-task-id="' + task.id + '" data-index="' + idx + '" style="display:flex; align-items:center; margin-bottom: 12px; padding-bottom: 2px; cursor: pointer; user-select: none;">';
+          
+          // Custom E-Ink Left Bullet + Number Indicator
+          html += '            <div class="todoist-indicator-col" style="display:flex; flex-direction:column; align-items:center; justify-content:center; width: 18px; margin-right: 14px; flex-shrink: 0; height: 38px;">';
+          html += '              <div class="dither-bullet" style="height: 12px; width: 5px; margin: 0; display: block; vertical-align: top; background-repeat: repeat;"></div>';
+          html += '              <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; line-height: 1.2; margin: 1px 0; color: var(--text-color); text-align: center;">' + (idx + 1) + ':</div>';
+          html += '              <div class="dither-bullet" style="height: 12px; width: 5px; margin: 0; display: block; vertical-align: top; background-repeat: repeat;"></div>';
+          html += '            </div>';
+
+          // Content
+          html += '            <div style="flex:1; display:flex; flex-direction:column; min-width:0;">';
+          html += '              <div class="todoist-content" style="font-family: var(--font-sans); font-size: 17px; font-weight: 700; line-height: 1.25; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s ease;">' + content + '</div>';
+          html += '            </div>';
+          html += '          </div>';
+        });
+      }
+
+      html += '        </div>';
+      html += '      </div>'; // End Inbox Section
+      html += '    </div>'; // End Left Column
+
+      // Middle Column: Upcoming
+      html += '    <div class="grid-col" style="flex:1; display:flex; flex-direction:column; min-width:0; padding-left: 20px; padding-right: 20px; border-right: 1px dashed var(--border-color);">';
+      html += '      <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid var(--border-color); padding-bottom: 6px; margin-bottom: 12px; color: var(--text-color); letter-spacing: 0.05em;">Upcoming</div>';
+      html += '      <div style="flex:1; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-start;">';
+
+      if (displayUpcoming.length === 0) {
+        html += '        <div style="font-family: var(--font-sans); font-size: 15px; opacity:0.6; padding: 12px 0;">No upcoming tasks.</div>';
+      } else {
+        displayUpcoming.forEach(function(task, idx) {
+          var content = task.content || '';
+          var dueText = self.formatDueDate(task.due);
+
+          html += '          <div class="todoist-item" data-task-id="' + task.id + '" data-index="' + idx + '" style="display:flex; align-items:center; margin-bottom: 12px; padding-bottom: 2px; cursor: pointer; user-select: none;">';
+          
+          // Custom E-Ink Left Bullet + Number Indicator
+          html += '            <div class="todoist-indicator-col" style="display:flex; flex-direction:column; align-items:center; justify-content:center; width: 18px; margin-right: 14px; flex-shrink: 0; height: 38px;">';
+          html += '              <div class="dither-bullet" style="height: 12px; width: 5px; margin: 0; display: block; vertical-align: top; background-repeat: repeat;"></div>';
+          html += '              <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; line-height: 1.2; margin: 1px 0; color: var(--text-color); text-align: center;">' + (idx + 1) + ':</div>';
+          html += '              <div class="dither-bullet" style="height: 12px; width: 5px; margin: 0; display: block; vertical-align: top; background-repeat: repeat;"></div>';
+          html += '            </div>';
+
+          // Content
+          html += '          <div style="flex:1; display:flex; flex-direction:column; min-width:0;">';
+          html += '            <div class="todoist-content" style="font-family: var(--font-sans); font-size: 17px; font-weight: 700; line-height: 1.25; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s ease;">' + content + '</div>';
+          if (dueText) {
+            html += '            <div style="margin-top: 3px; display: flex;">';
+            html += '              <span class="todoist-due" style="font-family: var(--font-sans); font-size: 13px; color: var(--text-color); font-weight: 500; opacity: 0.8; border-bottom: 1px dotted var(--border-color); padding-bottom: 1px; line-height: 1.15; transition: all 0.2s ease;">' + dueText + '</span>';
             html += '            </div>';
           }
           html += '          </div>';
@@ -267,11 +369,11 @@
       }
 
       html += '      </div>';
-      html += '    </div>'; // End Left Column
+      html += '    </div>'; // End Middle Column
 
       // Right Column: Completed Today
       html += '    <div class="grid-col" style="flex:1; display:flex; flex-direction:column; min-width:0; padding-left: 20px;">';
-      html += '      <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid var(--border-color); padding-bottom: 6px; margin-bottom: 20px; color: var(--text-color); letter-spacing: 0.05em;">Completed Today</div>';
+      html += '      <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid var(--border-color); padding-bottom: 6px; margin-bottom: 12px; color: var(--text-color); letter-spacing: 0.05em;">Completed Today</div>';
       html += '      <div style="flex:1; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-start;">';
 
       if (displayCompleted.length === 0) {
@@ -281,22 +383,22 @@
           var content = task.content || '';
           var completionText = self.formatCompletionTime(task.completed_at);
 
-          html += '        <div class="todoist-item completed-item" style="display:flex; align-items:center; margin-bottom: 20px; padding-bottom: 2px; opacity: 0.65; user-select: none;">';
+          html += '        <div class="todoist-item completed-item" style="display:flex; align-items:center; margin-bottom: 12px; padding-bottom: 2px; opacity: 0.65; user-select: none;">';
           
           // Left Bullet + Checkmark
-          html += '          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; width: 18px; margin-right: 18px; flex-shrink: 0; height: 38px;">';
+          html += '          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; width: 18px; margin-right: 14px; flex-shrink: 0; height: 38px;">';
           html += '            <div class="dither-bullet" style="height: 12px; width: 5px; margin: 0; display: block; vertical-align: top; background-repeat: repeat;"></div>';
           html += '            <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; line-height: 1.2; margin: 1px 0; color: var(--text-color); text-align: center; display: flex; align-items: center; justify-content: center; height: 16px;">';
           html += '              <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: none; stroke: var(--text-color); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
           html += '            </div>';
           html += '            <div class="dither-bullet" style="height: 12px; width: 5px; margin: 0; display: block; vertical-align: top; background-repeat: repeat;"></div>';
           html += '          </div>';
-
+          
           // Content
           html += '          <div style="flex:1; display:flex; flex-direction:column; min-width:0;">';
-          html += '            <div style="font-family: var(--font-sans); font-size: 19px; font-weight: 700; line-height: 1.25; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-decoration: line-through;">' + content + '</div>';
+          html += '            <div style="font-family: var(--font-sans); font-size: 17px; font-weight: 700; line-height: 1.25; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-decoration: line-through;">' + content + '</div>';
           html += '            <div style="margin-top: 3px; display: flex;">';
-          html += '              <span style="font-family: var(--font-sans); font-size: 14px; color: var(--text-color); font-weight: 500; opacity: 0.8; border-bottom: 1px dotted var(--border-color); padding-bottom: 1px; line-height: 1.15;">' + completionText + '</span>';
+          html += '              <span style="font-family: var(--font-sans); font-size: 13px; color: var(--text-color); font-weight: 500; opacity: 0.8; border-bottom: 1px dotted var(--border-color); padding-bottom: 1px; line-height: 1.15;">' + completionText + '</span>';
           html += '            </div>';
           html += '          </div>';
           html += '        </div>';

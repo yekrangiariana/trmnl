@@ -79,6 +79,16 @@
         historyEventMode: activeConfig.historyEventMode || 'mix'
       }, savedDashboard);
 
+      // Deep merge plugins config so we don't lose existing settings keys
+      var activePluginsConfig = activeConfig.plugins || {};
+      var mergedPlugins = Object.assign({}, activePluginsConfig);
+      if (savedDashboard.plugins) {
+        Object.keys(savedDashboard.plugins).forEach(function(pluginId) {
+          mergedPlugins[pluginId] = Object.assign({}, activePluginsConfig[pluginId] || {}, savedDashboard.plugins[pluginId]);
+        });
+      }
+      this.editedSettings.plugins = mergedPlugins;
+
       this.wifiQrBase64 = this.editedSettings.wifiQrBase64;
 
       // Load current stats config
@@ -189,6 +199,34 @@
         
         if (birthsDeathsSelect) this.editedSettings.historyShowBirthsDeaths = birthsDeathsSelect.value === 'true';
         if (eventModeSelect) this.editedSettings.historyEventMode = eventModeSelect.value;
+      }
+      else if (this.activeTab === 'plugins') {
+        var registry = window.Plugins || {};
+        var order = ['time', 'history', 'life', 'stats', 'weather', 'sun', 'todoist', 'word', 'finnish', 'wifi', 'news', 'wikirandom', 'wikiphoto', 'laundry', 'hsl'];
+        
+        if (!this.editedSettings.plugins) {
+          this.editedSettings.plugins = {};
+        }
+
+        var self = this;
+        order.forEach(function(pluginId) {
+          var plugin = registry[pluginId];
+          if (!plugin) return;
+
+          var chkCarousel = self.container.querySelector('#chk-carousel-' + pluginId);
+          var chkQuick = self.container.querySelector('#chk-quick-' + pluginId);
+
+          if (!self.editedSettings.plugins[pluginId]) {
+            self.editedSettings.plugins[pluginId] = {};
+          }
+
+          if (chkCarousel) {
+            self.editedSettings.plugins[pluginId].showInCarousel = chkCarousel.checked;
+          }
+          if (chkQuick) {
+            self.editedSettings.plugins[pluginId].showInQuickMenu = chkQuick.checked;
+          }
+        });
       }
     },
 
@@ -443,6 +481,9 @@
       html += '      <button class="settings-tab-btn' + (activeTab === 'history' ? ' active' : '') + '" data-tab="history">';
       html += '        <i class="fa-solid fa-clock-rotate-left"></i><span>HISTORY</span>';
       html += '      </button>';
+      html += '      <button class="settings-tab-btn' + (activeTab === 'plugins' ? ' active' : '') + '" data-tab="plugins">';
+      html += '        <i class="fa-solid fa-puzzle-piece"></i><span>PLUGINS</span>';
+      html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'backup' ? ' active' : '') + '" data-tab="backup">';
       html += '        <i class="fa-solid fa-database"></i><span>BACKUP &amp; RESET</span>';
       html += '      </button>';
@@ -667,6 +708,57 @@
       html += '          </select>';
       html += '          <div class="field-desc">Choose how events are sampled and sorted. Mixed mode shows a curated selection across history.</div>';
       html += '        </div>';
+      html += '      </div>';
+
+      // TAB: PLUGINS PANE
+      html += '      <div class="settings-pane' + (activeTab === 'plugins' ? ' active' : '') + '" id="pane-plugins">';
+      html += '        <div class="settings-section-title">Plugin Visibility Settings</div>';
+      html += '        <div class="field-desc" style="margin-bottom: 12px; font-size: 11px;">Configure which plugins are cycled automatically in the carousel and which appear in the footer\'s quick switcher menu.</div>';
+      
+      html += '        <table class="plugins-visibility-table">';
+      html += '          <thead>';
+      html += '            <tr>';
+      html += '              <th>PLUGIN NAME</th>';
+      html += '              <th style="text-align: center;">CAROUSEL</th>';
+      html += '              <th style="text-align: center;">QUICK MENU</th>';
+      html += '              <th style="text-align: center;">STATUS</th>';
+      html += '            </tr>';
+      html += '          </thead>';
+      html += '          <tbody>';
+
+      var registry = window.Plugins || {};
+      var order = ['time', 'history', 'life', 'stats', 'weather', 'sun', 'todoist', 'word', 'finnish', 'wifi', 'news', 'wikirandom', 'wikiphoto', 'laundry', 'hsl'];
+      
+      var self = this;
+      order.forEach(function(pluginId) {
+        var plugin = registry[pluginId];
+        if (!plugin) return;
+
+        var cleanName = plugin.name || pluginId;
+        if (cleanName === 'This Day in History (Wikipedia)') cleanName = 'This Day in History';
+        
+        var pluginConf = self.editedSettings.plugins && self.editedSettings.plugins[pluginId] ? self.editedSettings.plugins[pluginId] : {};
+        
+        var showCarousel = pluginConf.showInCarousel !== false;
+        var showQuick = pluginConf.showInQuickMenu !== false;
+        var isEnabled = pluginConf.enabled !== false;
+        
+        html += '            <tr>';
+        html += '              <td class="plugin-table-name">' + cleanName.toUpperCase() + '</td>';
+        html += '              <td style="text-align: center;">';
+        html += '                <input type="checkbox" class="trmnl-checkbox" id="chk-carousel-' + pluginId + '"' + (showCarousel ? ' checked' : '') + (isEnabled ? '' : ' disabled') + '>';
+        html += '              </td>';
+        html += '              <td style="text-align: center;">';
+        html += '                <input type="checkbox" class="trmnl-checkbox" id="chk-quick-' + pluginId + '"' + (showQuick ? ' checked' : '') + (isEnabled ? '' : ' disabled') + '>';
+        html += '              </td>';
+        html += '              <td style="text-align: center;">';
+        html += '                <span class="plugin-status-badge ' + (isEnabled ? 'status-enabled' : 'status-disabled') + '">' + (isEnabled ? 'ACTIVE' : 'OFF') + '</span>';
+        html += '              </td>';
+        html += '            </tr>';
+      });
+
+      html += '          </tbody>';
+      html += '        </table>';
       html += '      </div>';
 
       // TAB 5: BACKUP & RESTORE PANE

@@ -38,4 +38,11 @@ window.DASHBOARD_CONFIG = {
   // Wikipedia History Settings
   historyShowBirthsDeaths: false,     // Toggle to show/hide births and deaths
   historyEventMode: 'mix',       // Event selection mode: 'default' (newest first), 'oldest' (oldest first), 'mix' (mix of oldest, middle, recent)
+
+  // Plugin Settings
+  plugins: {
+    finnish: {
+      enabled: true
+    }
+  }
 };

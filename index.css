@@ -1271,4 +1271,95 @@ body.theme-coal .time-pixel-landscape.dark-only {
   color: var(--bg-color);
 }
 
+/* Plugins Visibility Table Styling */
+.plugins-visibility-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.plugins-visibility-table th {
+  text-align: left;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  border-bottom: var(--border-width) solid var(--border-color);
+  padding: 8px 4px;
+  opacity: 0.85;
+}
+
+.plugins-visibility-table td {
+  padding: 10px 4px;
+  border-bottom: var(--border-width-thin) dashed var(--border-color);
+  vertical-align: middle;
+}
+
+.plugins-visibility-table tr:last-child td {
+  border-bottom: none;
+}
+
+.plugin-table-name {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.plugin-status-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 4px;
+  border: var(--border-width-thin) solid var(--border-color);
+}
+
+.plugin-status-badge.status-enabled {
+  background-color: var(--highlight-bg);
+  color: var(--text-color);
+}
+
+.plugin-status-badge.status-disabled {
+  opacity: 0.5;
+  border-style: dotted;
+}
+
+/* Custom E-Paper Checkbox */
+input[type="checkbox"].trmnl-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--card-bg);
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  vertical-align: middle;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+input[type="checkbox"].trmnl-checkbox:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+input[type="checkbox"].trmnl-checkbox:checked {
+  background-color: var(--text-color);
+}
+
+input[type="checkbox"].trmnl-checkbox:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -52%);
+  color: var(--bg-color);
+  font-family: var(--font-sans);
+  font-weight: 900;
+  font-size: 14px;
+}
+
 

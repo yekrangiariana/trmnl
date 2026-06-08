@@ -112,7 +112,7 @@
 
     // Check all registered plugins on window.Plugins
     var registry = window.Plugins || {};
-    var order = ['time', 'history', 'life', 'stats', 'weather', 'sun', 'todoist', 'word', 'wifi', 'news', 'wikirandom', 'wikiphoto', 'laundry', 'hsl'];
+    var order = ['time', 'history', 'life', 'stats', 'weather', 'sun', 'todoist', 'word', 'finnish', 'wifi', 'news', 'wikirandom', 'wikiphoto', 'laundry', 'hsl'];
 
     order.forEach(function(pluginId) {
       var plugin = registry[pluginId];
@@ -171,14 +171,34 @@
     if (!dotsContainer) return;
 
     dotsContainer.innerHTML = '';
-    state.activePlugins.forEach(function(_, idx) {
+    state.activePlugins.forEach(function(item, idx) {
+      var pluginSettings = state.config.plugins[item.id] || {};
+      if (pluginSettings.showInCarousel === false) return;
+
       var dot = document.createElement('div');
       dot.className = 'page-dot' + (idx === state.activeIndex ? ' active' : '');
+      dot.dataset.pluginIndex = idx;
       dot.addEventListener('click', function() {
         showPage(idx);
       });
       dotsContainer.appendChild(dot);
     });
+  }
+
+  function getNextCarouselIndex(direction) {
+    var len = state.activePlugins.length;
+    if (len === 0) return 0;
+    
+    var idx = state.activeIndex;
+    for (var i = 0; i < len; i++) {
+      idx = (idx + direction + len) % len;
+      var pluginId = state.activePlugins[idx].id;
+      var pluginSettings = state.config.plugins[pluginId] || {};
+      if (pluginSettings.showInCarousel !== false) {
+        return idx;
+      }
+    }
+    return state.activeIndex;
   }
 
   // 6. Navigation Controls
@@ -241,8 +261,9 @@
 
     // Update Dots
     var dots = document.querySelectorAll('.page-dot');
-    dots.forEach(function(dot, idx) {
-      if (idx === index) {
+    dots.forEach(function(dot) {
+      var pluginIndex = parseInt(dot.dataset.pluginIndex, 10);
+      if (pluginIndex === index) {
         dot.classList.add('active');
       } else {
         dot.classList.remove('active');
@@ -277,7 +298,7 @@
     var interval = state.config.refreshInterval !== undefined ? state.config.refreshInterval : 60; // default 60s
     if (interval > 0) {
       state.cycleTimer = setInterval(function() {
-        showPage(state.activeIndex + 1);
+        showPage(getNextCarouselIndex(1));
       }, interval * 1000);
     }
   }
@@ -370,7 +391,7 @@
         e.stopPropagation();
         var settingsView = document.getElementById('view-settings');
         if (settingsView && settingsView.classList.contains('active')) return; // disable during settings editing
-        showPage(state.activeIndex - 1);
+        showPage(getNextCarouselIndex(-1));
       });
     }
 
@@ -379,7 +400,7 @@
         e.stopPropagation();
         var settingsView = document.getElementById('view-settings');
         if (settingsView && settingsView.classList.contains('active')) return; // disable during settings editing
-        showPage(state.activeIndex + 1);
+        showPage(getNextCarouselIndex(1));
       });
     }
 
@@ -389,9 +410,9 @@
       if (settingsView && settingsView.classList.contains('active')) return; // disable during settings editing
 
       if (e.key === 'ArrowLeft') {
-        showPage(state.activeIndex - 1);
+        showPage(getNextCarouselIndex(-1));
       } else if (e.key === 'ArrowRight') {
-        showPage(state.activeIndex + 1);
+        showPage(getNextCarouselIndex(1));
       }
     });
 
@@ -421,10 +442,10 @@
       if (Math.abs(diff) > swipeThreshold) {
         if (diff > 0) {
           // Swipe Right -> Show Previous
-          showPage(state.activeIndex - 1);
+          showPage(getNextCarouselIndex(-1));
         } else {
           // Swipe Left -> Show Next
-          showPage(state.activeIndex + 1);
+          showPage(getNextCarouselIndex(1));
         }
       }
     }
@@ -436,7 +457,17 @@
       initConfig();
       applyTheme();
       initPlugins();
-      showPage(0);
+      
+      var firstIndex = 0;
+      for (var i = 0; i < state.activePlugins.length; i++) {
+        var pluginId = state.activePlugins[i].id;
+        var pluginSettings = state.config.plugins[pluginId] || {};
+        if (pluginSettings.showInCarousel !== false) {
+          firstIndex = i;
+          break;
+        }
+      }
+      showPage(firstIndex);
     },
     getActiveConfig: function() {
       return state.config;
@@ -553,6 +584,7 @@
       sun: '<path d="M17 18a5 5 0 00-10 0M12 2v7M4.22 10.22l4.95-4.95M19.78 10.22l-4.95-4.95"></path>',
       todoist: '<path d="M6 6l4 4 8-8M6 12l4 4 8-8M6 18l4 4 8-8"></path>',
       word: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>',
+      finnish: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>',
       wifi: '<path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"></path>',
       news: '<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2M18 14h-8M18 18h-8M16 6H10v4h6V6z"></path>',
       wikirandom: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="11" y2="17"></line>',
@@ -571,6 +603,9 @@
 
     container.innerHTML = '';
     state.activePlugins.forEach(function(item, idx) {
+      var pluginSettings = state.config.plugins[item.id] || {};
+      if (pluginSettings.showInQuickMenu === false) return;
+
       var btn = document.createElement('button');
       btn.className = 'quick-switcher-btn' + (idx === state.activeIndex ? ' active' : '');
       
@@ -583,6 +618,7 @@
       if (name === 'Wikipedia article') name = 'Wiki Article';
       if (name === 'Personal Stats') name = 'Stats';
       if (name === 'Laundry Cost') name = 'Laundry';
+      if (name === 'Finnish Idioms') name = 'Finnish Idiom';
       
       btn.innerHTML = getPluginIcon(item.id) + '<span>' + name.toUpperCase() + '</span>';
       btn.addEventListener('click', function(e) {
@@ -607,7 +643,16 @@
     initQuickSwitcher();
     
     // Initial page load
-    showPage(0);
+    var firstIndex = 0;
+    for (var i = 0; i < state.activePlugins.length; i++) {
+      var pluginId = state.activePlugins[i].id;
+      var pluginSettings = state.config.plugins[pluginId] || {};
+      if (pluginSettings.showInCarousel !== false) {
+        firstIndex = i;
+        break;
+      }
+    }
+    showPage(firstIndex);
 
     // Event listeners
     window.addEventListener('online', updateNetworkStatus);
