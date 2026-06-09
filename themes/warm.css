@@ -1,0 +1,25 @@
+body.theme-warm {
+  --bg-color: #fff1e5;
+  --text-color: #2b2b2b;
+  --border-color: #3b2e2a;
+  --card-bg: var(--bg-color);
+  --highlight-bg: #f3e2d3;
+}
+
+/* Dither and bullet styling */
+body.theme-warm .trmnl-dither {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='2' height='2' fill='%23d8c4b2'/%3E%3Crect x='2' y='2' width='2' height='2' fill='%23d8c4b2'/%3E%3C/svg%3E");
+}
+
+body.theme-warm .dither-bullet {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='2' height='2' fill='%233b2e2a'/%3E%3Crect x='2' y='2' width='2' height='2' fill='%233b2e2a'/%3E%3C/svg%3E");
+}
+
+/* Landscape styling for light theme */
+body.theme-warm .time-pixel-landscape.light-only {
+  display: block;
+}
+
+body.theme-warm .time-pixel-landscape.dark-only {
+  display: none;
+}

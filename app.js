@@ -83,10 +83,13 @@
     if (state.config.wallpaperDark === undefined) {
       state.config.wallpaperDark = 'pixel_art_landscape_dark.png';
     }
+    if (state.config.wallpaperEInk === undefined) {
+      state.config.wallpaperEInk = false;
+    }
     state.config.plugins = Object.assign({}, defaultConfig.plugins || {});
 
     // Deep merge local overrides
-    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode', 'wallpaper', 'customWallpaperBase64', 'wallpaperDark'];
+    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode', 'wallpaper', 'customWallpaperBase64', 'wallpaperDark', 'wallpaperEInk'];
     rootKeys.forEach(function(key) {
       if (localOverrides[key] !== undefined) {
         state.config[key] = localOverrides[key];
@@ -132,7 +135,7 @@
     var body = document.body;
     body.className = ''; // Reset themes
     
-    var theme = state.config.theme || 'paper';
+    var theme = state.config.theme || 'auto';
     var activeTheme = theme;
     
     if (theme === 'auto') {
@@ -140,15 +143,29 @@
       var now = new Date();
       var hour = now.getHours();
       var isNightTime = (hour >= 18 || hour < 8);
-      activeTheme = isNightTime ? 'coal' : 'paper';
+      activeTheme = isNightTime ? 'eink-dark' : 'eink-white';
     }
     
-    if (activeTheme === 'coal') {
-      body.classList.add('theme-coal');
-    } else if (activeTheme === 'stark') {
-      body.classList.add('theme-stark');
+    // Normalize legacy themes
+    if (activeTheme === 'stark' || activeTheme === 'paper') {
+      activeTheme = 'eink-white';
+    } else if (activeTheme === 'coal') {
+      activeTheme = 'eink-dark';
     } else if (activeTheme === 'ft') {
-      body.classList.add('theme-ft');
+      activeTheme = 'warm';
+    }
+    
+    // Apply selected theme class
+    if (activeTheme === 'eink-white') {
+      body.classList.add('theme-eink-white');
+    } else if (activeTheme === 'eink-dark') {
+      body.classList.add('theme-eink-dark');
+    } else if (activeTheme === 'warm') {
+      body.classList.add('theme-warm');
+    } else if (activeTheme === 'navy') {
+      body.classList.add('theme-navy');
+    } else if (activeTheme === 'programmer') {
+      body.classList.add('theme-programmer');
     }
   }
 

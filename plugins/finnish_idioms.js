@@ -16,11 +16,13 @@
     idioms: [],
     seenList: [],          // Array of { index: number, date: string }
     currentViewIndex: 0,   // Index within seenList being viewed
+    isFetching: false,
 
     init: function(pluginConfig) {
       this.config = pluginConfig || {};
       this.seenList = [];
       this.currentViewIndex = 0;
+      this.isFetching = false;
     },
 
     render: function(element) {
@@ -58,6 +60,9 @@
         console.warn("Error reading idioms cache:", e);
       }
 
+      if (this.isFetching) return;
+      this.isFetching = true;
+
       this.drawLoading();
       
       fetch('idioms.json')
@@ -66,6 +71,7 @@
           return res.json();
         })
         .then(function(data) {
+          self.isFetching = false;
           if (data && data.length > 0) {
             self.idioms = data;
             // Cache data locally
@@ -80,6 +86,7 @@
           }
         })
         .catch(function(err) {
+          self.isFetching = false;
           console.error("Finnish idioms fetch failed:", err);
           self.drawError();
         });

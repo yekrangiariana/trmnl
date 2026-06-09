@@ -6,7 +6,7 @@
  * iOS 12 Safari Compatible.
  */
 
-var CACHE_NAME = "trmnl-dashboard-cache-v50";
+var CACHE_NAME = "trmnl-dashboard-cache-v51";
 var STATIC_ASSETS = [
   "/",
   "./",
@@ -22,21 +22,21 @@ var STATIC_ASSETS = [
   "wallpapers/pixel_art_landscape_dark.png",
   "plugins/icons.js",
   "plugins/time.js",
-  "plugins/history.js",
-  "plugins/life.js",
-  "plugins/stats.js",
+  "plugins/today_in_history.js",
+  "plugins/life_in_weeks.js",
+  "plugins/personal_stats.js",
   "plugins/weather.js",
-  "plugins/sun.js",
-  "plugins/word.js",
-  "plugins/finnish.js",
+  "plugins/sunrise_sunset.js",
+  "plugins/word_of_the_day.js",
+  "plugins/finnish_idioms.js",
   "idioms.json",
-  "plugins/wifi.js",
-  "plugins/news.js",
+  "plugins/guest_wifi.js",
+  "plugins/news_headlines.js",
   "plugins/todoist.js",
-  "plugins/wikirandom.js",
-  "plugins/wikiphoto.js",
-  "plugins/laundry.js",
-  "plugins/hsl.js",
+  "plugins/random_wikipedia.js",
+  "plugins/nasa_space_photo.js",
+  "plugins/laundry_cost.js",
+  "plugins/hsl_departures.js",
   "plugins/settings.js",
 ];
 

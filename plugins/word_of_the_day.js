@@ -13,6 +13,7 @@
     name: 'Word of the Day',
     config: {},
     container: null,
+    isFetching: false,
 
     // Curated British English Dictionary Database (Fallback for offline-first run)
     britishDictionary: [
@@ -63,20 +64,36 @@
 
       var self = this;
       var todayDateStr = new Date().toDateString();
+      var cachedObj = null;
 
-      // Check if we have cached today's word
+      // Check if we have cached word (any date)
       try {
         var cached = localStorage.getItem('trmnl_word_of_day_cache');
         if (cached) {
-          var parsed = JSON.parse(cached);
-          if (parsed && parsed.cacheDate === todayDateStr && parsed.source === "Wiktionary") {
-            self.drawWord(parsed);
-            return;
-          }
+          cachedObj = JSON.parse(cached);
         }
       } catch (e) {
         console.warn("Error reading word cache:", e);
       }
+
+      // If we have a cached word matching today's date, render it and we are done.
+      // (Accept either Wiktionary or Local Curated List source as long as it's today's date)
+      if (cachedObj && cachedObj.cacheDate === todayDateStr) {
+        self.drawWord(cachedObj);
+        return;
+      }
+
+      // If we have any cached word (e.g. from yesterday), draw it immediately as a placeholder
+      if (cachedObj) {
+        self.drawWord(cachedObj);
+      }
+
+      // Prevent concurrent fetch requests
+      if (self.isFetching) {
+        return;
+      }
+
+      self.isFetching = true;
 
       // If online, attempt to fetch live word
       if (navigator.onLine) {
@@ -218,6 +235,7 @@
                   console.warn("Failed to write word cache:", err);
                 }
 
+                self.isFetching = false;
                 self.drawWord(newWordObj);
               }
             } else {
@@ -258,6 +276,7 @@
         console.warn("Failed to write word cache:", err);
       }
 
+      this.isFetching = false;
       this.drawWord(fallbackObj);
     },
 

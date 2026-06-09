@@ -177,7 +177,8 @@
       }
 
       // Assemble Main HTML in pixel art landscape layout with floating widget
-      var html = '<div class="trmnl-card time-pixel-card">';
+      var cardClass = 'trmnl-card time-pixel-card' + (activeConfig.wallpaperEInk ? ' e-ink-active' : '');
+      var html = '<div class="' + cardClass + '">';
       html += bgHtml;
       html += '  <div class="time-pixel-widget">';
       html += '    <div class="time-pixel-widget-header-minimal">' + dayName.toUpperCase() + ' &bull; ' + monthName.toUpperCase() + ' ' + dateNum + ', ' + year + '</div>';

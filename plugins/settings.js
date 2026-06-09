@@ -18,6 +18,8 @@
     editedSettings: {},
     editedStats: {},
     wifiQrBase64: null,
+    editedFinnishSeenList: null,
+    editedLaundryPrice: null,
 
     init: function(pluginConfig) {
       this.config = pluginConfig || {};
@@ -62,7 +64,7 @@
       this.editedSettings = Object.assign({
         refreshInterval: activeConfig.refreshInterval !== undefined ? activeConfig.refreshInterval : 60,
         flashRefresh: activeConfig.flashRefresh !== undefined ? activeConfig.flashRefresh : true,
-        theme: activeConfig.theme || 'paper',
+        theme: activeConfig.theme || 'auto',
         birthdate: activeConfig.birthdate || '1995-04-12',
         latitude: activeConfig.latitude !== undefined ? activeConfig.latitude : 60.1699,
         longitude: activeConfig.longitude !== undefined ? activeConfig.longitude : 24.9384,
@@ -79,7 +81,8 @@
         historyEventMode: activeConfig.historyEventMode || 'mix',
         wallpaper: activeConfig.wallpaper || 'pixel_art_landscape.png',
         customWallpaperBase64: activeConfig.customWallpaperBase64 || null,
-        wallpaperDark: activeConfig.wallpaperDark || null
+        wallpaperDark: activeConfig.wallpaperDark || null,
+        wallpaperEInk: activeConfig.wallpaperEInk || false
       }, savedDashboard);
 
       // Deep merge plugins config so we don't lose existing settings keys
@@ -124,6 +127,9 @@
 
       this.editedStats = Object.assign({}, defaultStats, savedStats);
       this.editedStats.birthdate = this.editedSettings.birthdate; // Keep birthdates in sync
+
+      this.editedFinnishSeenList = null;
+      this.editedLaundryPrice = null;
     },
 
     captureTabInputs: function() {
@@ -138,6 +144,9 @@
         if (intervalSelect) this.editedSettings.refreshInterval = parseInt(intervalSelect.value, 10);
         if (flashSelect) this.editedSettings.flashRefresh = flashSelect.value === 'true';
         this.editedSettings.wifiQrBase64 = this.wifiQrBase64;
+        
+        var einkCheck = this.container.querySelector('#cfg-wallpaper-eink');
+        if (einkCheck) this.editedSettings.wallpaperEInk = einkCheck.checked;
       } 
       else if (this.activeTab === 'transit') {
         var nameInput = this.container.querySelector('#cfg-name');
@@ -258,6 +267,13 @@
           localStorage.setItem('trmnl_dashboard_settings', JSON.stringify(self.editedSettings));
           localStorage.setItem('trmnl_personal_stats_config', JSON.stringify(self.editedStats));
           
+          if (self.editedFinnishSeenList) {
+            localStorage.setItem('trmnl_finnish_seen_list', JSON.stringify(self.editedFinnishSeenList));
+          }
+          if (self.editedLaundryPrice !== null && self.editedLaundryPrice !== undefined) {
+            localStorage.setItem('trmnl_laundry_price', self.editedLaundryPrice.toString());
+          }
+          
           alert("All changes saved successfully! Reloading dashboard...");
           
           self.isEditing = false;
@@ -340,6 +356,8 @@
       this.wifiQrBase64 = null;
       this.editedSettings = {};
       this.editedStats = {};
+      this.editedFinnishSeenList = null;
+      this.editedLaundryPrice = null;
       
       // Hide settings view
       var settingsView = document.getElementById('view-settings');
@@ -356,7 +374,11 @@
       try {
         localStorage.removeItem('trmnl_dashboard_settings');
         localStorage.removeItem('trmnl_personal_stats_config');
+        localStorage.removeItem('trmnl_laundry_price');
+        localStorage.removeItem('trmnl_finnish_seen_list');
         this.wifiQrBase64 = null;
+        this.editedFinnishSeenList = null;
+        this.editedLaundryPrice = null;
         this.isEditing = false;
         alert("Local settings overrides cleared! Reverted to config.js defaults...");
         
@@ -371,12 +393,49 @@
     exportSettings: function() {
       this.captureTabInputs();
       
+      // Deep clone editedSettings and strip wallpaper keys to respect "wallpaper is not necessary obviously"
+      var settingsToExport = Object.assign({}, this.editedSettings);
+      delete settingsToExport.wallpaper;
+      delete settingsToExport.customWallpaperBase64;
+      delete settingsToExport.wallpaperDark;
+      delete settingsToExport.wallpaperEInk;
+
       var exportData = {
         version: "1.0",
         timestamp: new Date().toISOString(),
-        trmnl_dashboard_settings: this.editedSettings,
+        trmnl_dashboard_settings: settingsToExport,
         trmnl_personal_stats_config: this.editedStats
       };
+
+      var finnishSeen = this.editedFinnishSeenList;
+      if (!finnishSeen) {
+        try {
+          var saved = localStorage.getItem('trmnl_finnish_seen_list');
+          if (saved) {
+            finnishSeen = JSON.parse(saved);
+          }
+        } catch (e) {
+          console.warn("Failed to read finnish seen list for export:", e);
+        }
+      }
+      if (finnishSeen) {
+        exportData.trmnl_finnish_seen_list = finnishSeen;
+      }
+
+      var laundryPrice = this.editedLaundryPrice;
+      if (laundryPrice === null || laundryPrice === undefined) {
+        try {
+          var saved = localStorage.getItem('trmnl_laundry_price');
+          if (saved) {
+            laundryPrice = parseFloat(saved);
+          }
+        } catch (e) {
+          console.warn("Failed to read laundry price for export:", e);
+        }
+      }
+      if (laundryPrice !== null && laundryPrice !== undefined) {
+        exportData.trmnl_laundry_price = laundryPrice;
+      }
 
       try {
         var blob = new Blob([JSON.stringify(exportData, null, 2)], {type: "application/json"});
@@ -407,11 +466,25 @@
             throw new Error("Invalid backup file structure. Missing configurations.");
           }
 
+          // Strip wallpaper settings from the imported configurations to respect "wallpaper is not necessary"
+          var importedSettings = Object.assign({}, importData.trmnl_dashboard_settings);
+          delete importedSettings.wallpaper;
+          delete importedSettings.customWallpaperBase64;
+          delete importedSettings.wallpaperDark;
+          delete importedSettings.wallpaperEInk;
+
           // Update in-memory configurations
-          self.editedSettings = Object.assign({}, self.editedSettings, importData.trmnl_dashboard_settings);
+          self.editedSettings = Object.assign({}, self.editedSettings, importedSettings);
           self.editedStats = Object.assign({}, self.editedStats, importData.trmnl_personal_stats_config);
           self.wifiQrBase64 = self.editedSettings.wifiQrBase64;
           
+          if (importData.trmnl_finnish_seen_list) {
+            self.editedFinnishSeenList = importData.trmnl_finnish_seen_list;
+          }
+          if (importData.trmnl_laundry_price !== undefined) {
+            self.editedLaundryPrice = importData.trmnl_laundry_price;
+          }
+
           alert("Settings imported in-memory! Click 'SAVE ALL CHANGES' to apply them.");
           self.renderPanel();
         } catch (err) {
@@ -513,11 +586,12 @@
       html += '        <div class="form-group">';
       html += '          <label for="cfg-theme">Theme Profile</label>';
       html += '          <select id="cfg-theme">';
-      html += '            <option value="auto"' + (this.editedSettings.theme === 'auto' ? ' selected' : '') + '>Auto (Coal Dark mode after 6:00 PM)</option>';
-      html += '            <option value="paper"' + (this.editedSettings.theme === 'paper' ? ' selected' : '') + '>Paper (Warm E-Paper White)</option>';
-      html += '            <option value="coal"' + (this.editedSettings.theme === 'coal' ? ' selected' : '') + '>Coal (Minimal Dark Theme)</option>';
-      html += '            <option value="stark"' + (this.editedSettings.theme === 'stark' ? ' selected' : '') + '>Stark (High-Contrast Black &amp; White)</option>';
-      html += '            <option value="ft"' + (this.editedSettings.theme === 'ft' ? ' selected' : '') + '>FT (Salmon/Peach Editorial Cream)</option>';
+      html += '            <option value="auto"' + (this.editedSettings.theme === 'auto' ? ' selected' : '') + '>Auto (Time-based: E-Ink Dark at Night)</option>';
+      html += '            <option value="eink-white"' + (this.editedSettings.theme === 'eink-white' ? ' selected' : '') + '>E-Ink White</option>';
+      html += '            <option value="eink-dark"' + (this.editedSettings.theme === 'eink-dark' ? ' selected' : '') + '>E-Ink Dark</option>';
+      html += '            <option value="warm"' + (this.editedSettings.theme === 'warm' ? ' selected' : '') + '>Warm (Peach)</option>';
+      html += '            <option value="navy"' + (this.editedSettings.theme === 'navy' ? ' selected' : '') + '>Navy Blue</option>';
+      html += '            <option value="programmer"' + (this.editedSettings.theme === 'programmer' ? ' selected' : '') + '>Programmer (Terminal)</option>';
       html += '          </select>';
       html += '        </div>';
 
@@ -560,7 +634,7 @@
       html += '        <div class="form-group">';
       html += '          <label>Wallpaper Background</label>';
       html += '          <div class="wallpaper-preview-container">';
-      html += '            <div class="wallpaper-current-preview">';
+      html += '            <div class="wallpaper-current-preview' + (this.editedSettings.wallpaperEInk ? ' e-ink-active' : '') + '" id="cfg-wallpaper-current-preview">';
       if (this.editedSettings.wallpaper === 'custom' && this.editedSettings.customWallpaperBase64) {
         html += '              <img src="' + this.editedSettings.customWallpaperBase64 + '" alt="Custom Wallpaper">';
       } else {
@@ -576,6 +650,18 @@
       html += '              <button class="wallpaper-change-btn" id="cfg-wallpaper-change-btn" type="button">Change Wallpaper</button>';
       html += '            </div>';
       html += '          </div>';
+      html += '        </div>';
+
+      html += '        <div class="form-group" style="margin-top: 10px;">';
+      html += '          <label>AUTHENTIC E-INK EFFECT</label>';
+      html += '          <div style="display: flex; align-items: center; margin-top: 8px;">';
+      html += '            <input type="checkbox" id="cfg-wallpaper-eink" style="display: none;"' + (this.editedSettings.wallpaperEInk ? ' checked' : '') + '>';
+      html += '            <button class="wallpaper-eink-toggle-btn' + (this.editedSettings.wallpaperEInk ? ' active' : '') + '" id="cfg-wallpaper-eink-btn" type="button">';
+      html += '              <span class="eink-indicator-dot"></span>';
+      html += '              <span class="eink-status-text">AUTHENTIC E-INK: ' + (this.editedSettings.wallpaperEInk ? 'ON' : 'OFF') + '</span>';
+      html += '            </button>';
+      html += '          </div>';
+      html += '          <div class="field-desc" style="margin-top: 4px;">Grayscales and dithers the wallpaper to look like a physical e-paper display.</div>';
       html += '        </div>';
 
       html += '        <div id="cfg-update-indicator-wrapper" style="display:none; margin-top:10px;">';
@@ -1090,7 +1176,7 @@
 
         displayFiles.forEach(function(file) {
           var item = document.createElement('div');
-          item.className = 'wallpaper-item' + (modalSelectedWallpaper === file ? ' selected' : '');
+          item.className = 'wallpaper-item' + (modalSelectedWallpaper === file ? ' selected' : '') + (self.editedSettings.wallpaperEInk ? ' e-ink-active' : '');
           item.setAttribute('data-wallpaper', file);
           
           var badge = document.createElement('div');
@@ -1236,19 +1322,74 @@
           var body = document.body;
           body.className = '';
           
-          if (selectedTheme === 'coal') {
-            body.classList.add('theme-coal');
-          } else if (selectedTheme === 'stark') {
-            body.classList.add('theme-stark');
-          } else if (selectedTheme === 'ft') {
-            body.classList.add('theme-ft');
-          } else if (selectedTheme === 'auto') {
+          var activeTheme = selectedTheme;
+          if (selectedTheme === 'auto') {
             var now = new Date();
             var hour = now.getHours();
             var isNightTime = (hour >= 18 || hour < 8);
-            if (isNightTime) {
-              body.classList.add('theme-coal');
-            }
+            activeTheme = isNightTime ? 'eink-dark' : 'eink-white';
+          }
+          
+          // Normalize legacy themes
+          if (activeTheme === 'stark' || activeTheme === 'paper') {
+            activeTheme = 'eink-white';
+          } else if (activeTheme === 'coal') {
+            activeTheme = 'eink-dark';
+          } else if (activeTheme === 'ft') {
+            activeTheme = 'warm';
+          }
+          
+          if (activeTheme === 'eink-white') {
+            body.classList.add('theme-eink-white');
+          } else if (activeTheme === 'eink-dark') {
+            body.classList.add('theme-eink-dark');
+          } else if (activeTheme === 'warm') {
+            body.classList.add('theme-warm');
+          } else if (activeTheme === 'navy') {
+            body.classList.add('theme-navy');
+          } else if (activeTheme === 'programmer') {
+            body.classList.add('theme-programmer');
+          }
+        });
+      }
+
+      // Live E-Ink Preview / Toggle Button Binding
+      var einkBtn = this.container.querySelector('#cfg-wallpaper-eink-btn');
+      var einkCheckbox = this.container.querySelector('#cfg-wallpaper-eink');
+      var wpPreview = this.container.querySelector('#cfg-wallpaper-current-preview');
+      
+      if (einkBtn && einkCheckbox) {
+        einkBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          einkCheckbox.checked = !einkCheckbox.checked;
+          self.editedSettings.wallpaperEInk = einkCheckbox.checked;
+          
+          // Update button styling
+          if (einkCheckbox.checked) {
+            einkBtn.classList.add('active');
+            var statusText = einkBtn.querySelector('.eink-status-text');
+            if (statusText) statusText.textContent = 'AUTHENTIC E-INK: ON';
+            if (wpPreview) wpPreview.classList.add('e-ink-active');
+          } else {
+            einkBtn.classList.remove('active');
+            var statusText = einkBtn.querySelector('.eink-status-text');
+            if (statusText) statusText.textContent = 'AUTHENTIC E-INK: OFF';
+            if (wpPreview) wpPreview.classList.remove('e-ink-active');
+          }
+          
+          // Dynamically update wallpaper items inside modal grid if generated
+          var wpGridContainer = self.container.querySelector('#wallpaper-grid');
+          if (wpGridContainer) {
+            var items = wpGridContainer.querySelectorAll('.wallpaper-item');
+            items.forEach(function(item) {
+              if (einkCheckbox.checked) {
+                item.classList.add('e-ink-active');
+              } else {
+                item.classList.remove('e-ink-active');
+              }
+            });
           }
         });
       }
