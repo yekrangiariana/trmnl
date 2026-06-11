@@ -8,6 +8,8 @@ window.DASHBOARD_CONFIG = {
   refreshInterval: 60,       // Time in seconds before cycling to the next plugin page (0 to disable auto-cycle)
   flashRefresh: true,        // Toggle the signature black e-paper refresh flash during page changes
   theme: 'auto',             // 'eink-white', 'eink-dark', 'warm', 'navy', 'programmer', 'auto' (adopts dark mode at night)
+  clockPlacement: 'middle-center', // 'top-left', 'top-center', 'top-right', 'middle-left', 'middle-center', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right'
+  clockComposition: 'comp-default', // 'comp-default', 'comp-split', 'comp-retro', 'comp-clean-left'
 
   // Personal Settings
   birthdate: '1995-04-12',   // Used to calculate "Your Life in Weeks" (YYYY-MM-DD)
@@ -54,6 +56,11 @@ window.DASHBOARD_CONFIG = {
 
   // Plugin Settings
   plugins: {
+    time: {
+      enabled: true,
+      showInCarousel: true,
+      showInQuickMenu: true
+    },
     finnish_idioms: {
       enabled: true
     }

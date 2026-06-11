@@ -108,6 +108,8 @@
     },
 
     drawPhoto: function(photoData) {
+      this.currentPhoto = photoData;
+
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; padding: 10px 0;">';
       
       // Main Card Content (Full-bleed card, padding 0)
@@ -128,12 +130,163 @@
       html += '      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:var(--text-color);stroke-width:2.5;vertical-align:middle;flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
       html += '      <span>NASA Space Photo</span>';
       html += '    </div>';
-      html += '    <div class="trmnl-footer-meta">' + caption + '</div>';
+      html += '    <div class="trmnl-footer-meta" style="display:flex; align-items:center; gap:8px;">';
+      html += '      <span>' + caption + '</span>';
+      html += '      <span id="nasa-set-wp-btn" style="cursor:pointer; text-decoration:underline; font-size:10px; opacity:0.8; font-weight:700; font-family:var(--font-mono); letter-spacing:0.05em; display:inline-block; padding: 2px 4px;">[SET AS WALLPAPER]</span>';
+      html += '    </div>';
       html += '  </div>';
 
       html += '</div>';
 
       this.container.innerHTML = html;
+      this.bindEvents();
+    },
+
+    bindEvents: function() {
+      if (!this.container) return;
+      var self = this;
+      var btn = this.container.querySelector('#nasa-set-wp-btn');
+      if (btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          self.saveAsWallpaper();
+        });
+        btn.addEventListener('touchstart', function(e) {
+          e.stopPropagation();
+        });
+      }
+    },
+
+    saveAsWallpaper: function() {
+      var photo = this.currentPhoto;
+      if (!photo || !photo.url) return;
+
+      var self = this;
+      var btn = this.container.querySelector('#nasa-set-wp-btn');
+      if (btn) {
+        btn.textContent = '[SAVING...]';
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.5';
+      }
+
+      // Format clean date ID
+      var dateId = new Date().toISOString().split('T')[0]; // e.g. "2026-06-11"
+      var wallpaperId = 'nasa-' + dateId;
+
+      function urlToBase64(url, callback) {
+        var img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = function() {
+          var maxWidth = 1024;
+          var maxHeight = 768;
+          var width = img.width;
+          var height = img.height;
+          
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round(height * (maxWidth / width));
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round(width * (maxHeight / height));
+              height = maxHeight;
+            }
+          }
+          
+          var canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          try {
+            var dataURL = canvas.toDataURL('image/jpeg', 0.75);
+            callback(null, dataURL);
+          } catch (e) {
+            callback(e, null);
+          }
+        };
+        img.onerror = function(err) {
+          callback(err, null);
+        };
+        img.src = url;
+      }
+
+      urlToBase64(photo.url, function(err, base64Data) {
+        if (err) {
+          console.warn("Could not convert NASA APOD image to Base64 (CORS/network):", err);
+        }
+
+        var savedList = [];
+        try {
+          var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+          if (cachedSaved) savedList = JSON.parse(cachedSaved);
+        } catch (e) {}
+
+        if (!Array.isArray(savedList)) {
+          savedList = [];
+        }
+
+        // Filter out any existing duplicate ID
+        savedList = savedList.filter(function(item) {
+          return item && item.id !== wallpaperId;
+        });
+
+        var name = 'NASA ' + dateId + ' - ' + photo.title;
+        if (name.length > 42) {
+          name = 'NASA ' + dateId;
+        }
+
+        var newEntry = {
+          id: wallpaperId,
+          name: name,
+          url: photo.url,
+          base64: base64Data || null,
+          date: dateId
+        };
+
+        savedList.unshift(newEntry);
+
+        // Save back to localStorage
+        try {
+          localStorage.setItem('trmnl_nasa_saved_wallpapers', JSON.stringify(savedList));
+        } catch(e) {
+          console.warn("Failed to save NASA wallpaper list:", e);
+        }
+
+        // Update active configuration
+        var settings = {};
+        try {
+          var cachedSettings = localStorage.getItem('trmnl_dashboard_settings');
+          if (cachedSettings) settings = JSON.parse(cachedSettings);
+        } catch(e) {}
+
+        settings.wallpaper = wallpaperId;
+        settings.wallpaperDark = null;
+
+        try {
+          localStorage.setItem('trmnl_dashboard_settings', JSON.stringify(settings));
+        } catch(e) {
+          console.warn("Failed to persist dashboard settings:", e);
+        }
+
+        // Restore button state with success feedback
+        if (btn) {
+          btn.textContent = '[SET!]';
+          btn.style.color = '#00aa00';
+          btn.style.pointerEvents = 'auto';
+          btn.style.opacity = '1';
+          setTimeout(function() {
+            btn.textContent = '[SET AS WALLPAPER]';
+            btn.style.color = '';
+          }, 2000);
+        }
+
+        // Trigger settings reload to apply changes immediately
+        if (window.Dashboard && typeof window.Dashboard.reloadSettings === 'function') {
+          window.Dashboard.reloadSettings();
+        }
+      });
     },
 
     drawLoading: function() {

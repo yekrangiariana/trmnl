@@ -110,10 +110,28 @@
     if (state.config.wallpaperZoom === undefined) {
       state.config.wallpaperZoom = 1.0;
     }
+     if (state.config.clockPlacement === undefined) {
+      state.config.clockPlacement = 'middle-center';
+    }
+    if (state.config.clockComposition === undefined) {
+      state.config.clockComposition = 'comp-default';
+    }
     state.config.plugins = Object.assign({}, defaultConfig.plugins || {});
+    if (state.config.plugins.time === undefined) {
+      state.config.plugins.time = {};
+    }
+    if (state.config.plugins.time.enabled === undefined) {
+      state.config.plugins.time.enabled = true;
+    }
+    if (state.config.plugins.time.showInCarousel === undefined) {
+      state.config.plugins.time.showInCarousel = true;
+    }
+    if (state.config.plugins.time.showInQuickMenu === undefined) {
+      state.config.plugins.time.showInQuickMenu = true;
+    }
 
     // Deep merge local overrides
-    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode', 'wallpaper', 'customWallpaperBase64', 'wallpaperDark', 'wallpaperEInk', 'cycleWallpapers', 'availableWallpapers', 'wallpaperPosition', 'wallpaperZoom'];
+    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode', 'wallpaper', 'customWallpaperBase64', 'wallpaperDark', 'wallpaperEInk', 'cycleWallpapers', 'availableWallpapers', 'wallpaperPosition', 'wallpaperZoom', 'clockPlacement', 'clockComposition'];
     rootKeys.forEach(function(key) {
       if (localOverrides[key] !== undefined) {
         state.config[key] = localOverrides[key];
@@ -132,6 +150,14 @@
         );
       });
     }
+
+    // Force Time/Clock plugin to be always enabled, in carousel, and in quick menu
+    if (!state.config.plugins.time) {
+      state.config.plugins.time = {};
+    }
+    state.config.plugins.time.enabled = true;
+    state.config.plugins.time.showInCarousel = true;
+    state.config.plugins.time.showInQuickMenu = true;
 
     // Scan wallpapers in the background
     scanWallpapersOnBoot();
@@ -199,6 +225,23 @@
       defaultList.forEach(function(w) {
         if (files.indexOf(w) === -1) files.push(w);
       });
+
+      // Register saved NASA wallpapers in available lists for cycling support
+      try {
+        var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+        if (cachedSaved) {
+          var savedList = JSON.parse(cachedSaved);
+          if (Array.isArray(savedList)) {
+            savedList.forEach(function(item) {
+              if (item && item.id && files.indexOf(item.id) === -1) {
+                files.push(item.id);
+              }
+            });
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to merge saved NASA wallpapers on boot:", e);
+      }
 
       state.availableWallpapers = files;
       state.rawScannedWallpapers = files;

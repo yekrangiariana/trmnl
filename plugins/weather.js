@@ -49,8 +49,8 @@
       } else if (code >= 51 && code <= 67) {
         // Rain / Drizzle
         return '<svg viewBox="0 0 24 24" style="' + style + '"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path><line x1="8" y1="22" x2="8" y2="24"></line><line x1="12" y1="22" x2="12" y2="24"></line><line x1="16" y1="22" x2="16" y2="24"></line></svg>';
-      } else if (code >= 71 && code <= 77) {
-        // Snow
+      } else if ((code >= 71 && code <= 77) || code === 85 || code === 86) {
+        // Snow / Snow Showers
         return '<svg viewBox="0 0 24 24" style="' + style + '"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line><line x1="4.93" y1="19.07" x2="19.07" y2="4.93"></line></svg>';
       } else if (code >= 80 && code <= 82) {
         // Rain Showers
@@ -66,10 +66,14 @@
     getWeatherDesc: function(code) {
       var desc = {
         0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
-        45: "Foggy", 48: "Depositing fog", 51: "Light drizzle", 53: "Drizzle",
-        55: "Dense drizzle", 61: "Light rain", 63: "Moderate rain", 65: "Heavy rain",
+        45: "Foggy", 48: "Depositing fog",
+        51: "Light drizzle", 53: "Drizzle", 55: "Dense drizzle",
+        56: "Light freezing drizzle", 57: "Dense freezing drizzle",
+        61: "Light rain", 63: "Moderate rain", 65: "Heavy rain",
+        66: "Light freezing rain", 67: "Heavy freezing rain",
         71: "Light snow", 73: "Moderate snow", 75: "Heavy snow", 77: "Snow grains",
         80: "Slight showers", 81: "Rain showers", 82: "Heavy showers",
+        85: "Light snow showers", 86: "Heavy snow showers",
         95: "Thunderstorm", 96: "Storm w/ hail", 99: "Heavy storm"
       };
       return desc[code] || "Overcast";

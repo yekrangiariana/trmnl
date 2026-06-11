@@ -81,8 +81,9 @@
         historyEventMode: activeConfig.historyEventMode || 'mix',
         wallpaperEInk: activeConfig.wallpaperEInk || false,
         cycleWallpapers: activeConfig.cycleWallpapers || false,
-        wallpaperPosition: activeConfig.wallpaperPosition || 'center bottom',
-        wallpaperZoom: activeConfig.wallpaperZoom !== undefined ? activeConfig.wallpaperZoom : 1.0
+        wallpaperZoom: activeConfig.wallpaperZoom !== undefined ? activeConfig.wallpaperZoom : 1.0,
+        clockPlacement: activeConfig.clockPlacement || 'middle-center',
+        clockComposition: activeConfig.clockComposition || 'comp-default'
       }, savedDashboard);
 
       // Deep merge plugins config so we don't lose existing settings keys
@@ -94,6 +95,13 @@
         });
       }
       this.editedSettings.plugins = mergedPlugins;
+
+      if (!this.editedSettings.plugins.time) {
+        this.editedSettings.plugins.time = {};
+      }
+      this.editedSettings.plugins.time.enabled = true;
+      this.editedSettings.plugins.time.showInCarousel = true;
+      this.editedSettings.plugins.time.showInQuickMenu = true;
 
       this.wifiQrBase64 = this.editedSettings.wifiQrBase64;
 
@@ -149,7 +157,13 @@
         if (einkCheck) this.editedSettings.wallpaperEInk = einkCheck.checked;
         var cycleCheck = this.container.querySelector('#cfg-wallpaper-cycle');
         if (cycleCheck) this.editedSettings.cycleWallpapers = cycleCheck.checked;
-      } 
+      }
+      else if (this.activeTab === 'clock') {
+        var clockPlacementSelect = this.container.querySelector('#cfg-clock-placement');
+        if (clockPlacementSelect) this.editedSettings.clockPlacement = clockPlacementSelect.value;
+        var clockCompositionSelect = this.container.querySelector('#cfg-clock-composition');
+        if (clockCompositionSelect) this.editedSettings.clockComposition = clockCompositionSelect.value;
+      }
       else if (this.activeTab === 'transit') {
         var nameInput = this.container.querySelector('#cfg-name');
         var unitSelect = this.container.querySelector('#cfg-unit');
@@ -558,6 +572,9 @@
       html += '      <button class="settings-tab-btn' + (activeTab === 'general' ? ' active' : '') + '" data-tab="general">';
       html += '        ' + window.getIcon('sliders') + '<span>GENERAL</span>';
       html += '      </button>';
+      html += '      <button class="settings-tab-btn' + (activeTab === 'clock' ? ' active' : '') + '" data-tab="clock">';
+      html += '        ' + window.getIcon('clock-rotate-left') + '<span>CLOCK LAYOUT</span>';
+      html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'transit' ? ' active' : '') + '" data-tab="transit">';
       html += '        ' + window.getIcon('bus') + '<span>LOCATION &amp; TRANSIT</span>';
       html += '      </button>';
@@ -642,16 +659,50 @@
       var transformStyle = 'transform: scale(' + currentZoom + '); transform-origin: center center;';
       if (this.editedSettings.wallpaper === 'custom' && this.editedSettings.customWallpaperBase64) {
         html += '              <img src="' + this.editedSettings.customWallpaperBase64 + '" alt="Custom Wallpaper" style="object-position: ' + currentPos + '; ' + transformStyle + '">';
+      } else if (this.editedSettings.wallpaper && this.editedSettings.wallpaper.indexOf('nasa-') === 0) {
+        var savedList = [];
+        try {
+          var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+          if (cachedSaved) savedList = JSON.parse(cachedSaved);
+        } catch (e) {}
+        var savedObj = null;
+        if (Array.isArray(savedList)) {
+          for (var i = 0; i < savedList.length; i++) {
+            if (savedList[i] && savedList[i].id === this.editedSettings.wallpaper) {
+              savedObj = savedList[i];
+              break;
+            }
+          }
+        }
+        var imgSrc = savedObj ? (savedObj.base64 || savedObj.url) : 'wallpapers/scene-1.jpg';
+        html += '              <img src="' + imgSrc + '" alt="Saved NASA Wallpaper" style="object-position: ' + currentPos + '; ' + transformStyle + '">';
       } else {
         html += '              <img src="wallpapers/' + (this.editedSettings.wallpaper || 'scene-1.jpg') + '" alt="Current Wallpaper" onerror="this.src=\'wallpapers/scene-1.jpg\'" style="object-position: ' + currentPos + '; ' + transformStyle + '">';
       }
       html += '            </div>';
       html += '            <div class="wallpaper-current-info">';
       var wallName = this.editedSettings.wallpaper || 'scene-1.jpg';
-      if (wallName === 'custom') {
-        wallName = 'Custom (Uploaded)';
+      var displayName = wallName;
+      if (displayName === 'custom') {
+        displayName = 'Custom (Uploaded)';
+      } else if (displayName.indexOf('nasa-') === 0) {
+        var savedList = [];
+        try {
+          var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+          if (cachedSaved) savedList = JSON.parse(cachedSaved);
+        } catch (e) {}
+        var savedObj = null;
+        if (Array.isArray(savedList)) {
+          for (var i = 0; i < savedList.length; i++) {
+            if (savedList[i] && savedList[i].id === displayName) {
+              savedObj = savedList[i];
+              break;
+            }
+          }
+        }
+        displayName = savedObj ? (savedObj.name || ('NASA ' + savedObj.date)) : 'NASA Space Photo';
       }
-      html += '              <div class="wallpaper-current-name" id="cfg-wallpaper-current-name">' + wallName.replace('.png', '').replace('.jpg', '').replace('.jpeg', '') + '</div>';
+      html += '              <div class="wallpaper-current-name" id="cfg-wallpaper-current-name">' + displayName.replace('.png', '').replace('.jpg', '').replace('.jpeg', '').replace(/_/g, ' ') + '</div>';
       html += '              <button class="wallpaper-change-btn" id="cfg-wallpaper-change-btn" type="button">Change Wallpaper</button>';
       html += '            </div>';
       html += '          </div>';
@@ -680,9 +731,52 @@
       html += '          </div>';
       html += '          <div class="field-desc" style="margin-top: 4px;">Automatically rotates to the next wallpaper after every full carousel cycle.</div>';
       html += '        </div>';
-
       html += '        <div id="cfg-update-indicator-wrapper" style="display:none; margin-top:10px;">';
       html += '          <button class="trmnl-btn" id="cfg-update-indicator-btn" style="width: 100%; font-size: 11px; background-color: var(--text-color); color: var(--bg-color);">NEW UPDATE DETECTED — CLICK TO APPLY SOFTWARE UPDATE</button>';
+      html += '        </div>';
+      html += '      </div>';
+
+      // TAB: CLOCK LAYOUT PANE
+      html += '      <div class="settings-pane' + (activeTab === 'clock' ? ' active' : '') + '" id="pane-clock">';
+      html += '        <div class="settings-section-title">Clock Widget Layout &amp; Position</div>';
+      html += '        <div class="form-row">';
+      html += '          <div class="form-group">';
+      html += '            <label for="cfg-clock-placement">Position Selection</label>';
+      html += '            <select id="cfg-clock-placement">';
+      html += '              <option value="top-left"' + (this.editedSettings.clockPlacement === 'top-left' ? ' selected' : '') + '>Top Left</option>';
+      html += '              <option value="top-center"' + (this.editedSettings.clockPlacement === 'top-center' ? ' selected' : '') + '>Top Center</option>';
+      html += '              <option value="top-right"' + (this.editedSettings.clockPlacement === 'top-right' ? ' selected' : '') + '>Top Right</option>';
+      html += '              <option value="middle-left"' + (this.editedSettings.clockPlacement === 'middle-left' ? ' selected' : '') + '>Middle Left</option>';
+      html += '              <option value="middle-center"' + (this.editedSettings.clockPlacement === 'middle-center' ? ' selected' : '') + '>Middle Center (Default)</option>';
+      html += '              <option value="middle-right"' + (this.editedSettings.clockPlacement === 'middle-right' ? ' selected' : '') + '>Middle Right</option>';
+      html += '              <option value="bottom-left"' + (this.editedSettings.clockPlacement === 'bottom-left' ? ' selected' : '') + '>Bottom Left</option>';
+      html += '              <option value="bottom-center"' + (this.editedSettings.clockPlacement === 'bottom-center' ? ' selected' : '') + '>Bottom Center</option>';
+      html += '              <option value="bottom-right"' + (this.editedSettings.clockPlacement === 'bottom-right' ? ' selected' : '') + '>Bottom Right</option>';
+      html += '            </select>';
+      html += '          </div>';
+      html += '          <div class="form-group">';
+      html += '            <label for="cfg-clock-composition">Layout Composition</label>';
+      html += '            <select id="cfg-clock-composition">';
+      html += '              <option value="comp-default"' + (this.editedSettings.clockComposition === 'comp-default' ? ' selected' : '') + '>Standard Minimal</option>';
+      html += '              <option value="comp-split"' + (this.editedSettings.clockComposition === 'comp-split' ? ' selected' : '') + '>Split Columns</option>';
+      html += '              <option value="comp-retro"' + (this.editedSettings.clockComposition === 'comp-retro' ? ' selected' : '') + '>Retro E-Ink Card</option>';
+      html += '              <option value="comp-clean-left"' + (this.editedSettings.clockComposition === 'comp-clean-left' ? ' selected' : '') + '>Modern Left-Aligned</option>';
+      html += '              <option value="comp-brutalist"' + (this.editedSettings.clockComposition === 'comp-brutalist' ? ' selected' : '') + '>Neo-Brutalist Badge</option>';
+      html += '              <option value="comp-terminal"' + (this.editedSettings.clockComposition === 'comp-terminal' ? ' selected' : '') + '>Terminal Console</option>';
+      html += '              <option value="comp-timeline"' + (this.editedSettings.clockComposition === 'comp-timeline' ? ' selected' : '') + '>Vertical Timeline Stack</option>';
+      html += '            </select>';
+      html += '          </div>';
+      html += '        </div>';
+      html += '        <div class="settings-section-title">Layout Preview</div>';
+      html += '        <div class="clock-layout-preview-screen" style="position: relative; width: 100%; max-width: 440px; height: 260px; border: var(--border-width) solid var(--border-color); background: var(--bg-color); border-radius: 8px; margin: 12px auto; overflow: hidden; display: flex; justify-content: center; align-items: center;">';
+      html += '          <div style="position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0.15; background-image: url(\'wallpapers/scene-1.jpg\'); background-size: cover; background-position: center bottom;"></div>';
+      html += '          <div id="clock-mini-preview" class="clock-mini-preview-widget ' + (this.editedSettings.clockComposition || 'comp-default') + '" style="position: absolute; z-index: 5; transition: all 0.25s ease-out;">';
+      html += '            <div class="time-pixel-widget-header-minimal" style="font-size: 8px; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase;">THURSDAY &bull; JUN 11</div>';
+      html += '            <div class="time-pixel-widget-clock-minimal" style="font-size: 16px; font-weight: 800; font-family: var(--font-sans); line-height: 1;">11:15 AM</div>';
+      html += '            <div class="time-pixel-widget-weather" style="font-size: 7px; font-family: var(--font-sans); margin-top: 2px;">16° &bull; OVERCAST</div>';
+      html += '          </div>';
+      html += '          <div style="position: absolute; top: 8px; right: 8px; width: 10px; height: 10px; border-radius: 50%; border: var(--border-width-thin) solid var(--border-color); opacity: 0.3;"></div>';
+      html += '          <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 18px; border-top: var(--border-width-thin) solid var(--border-color); opacity: 0.2; background: var(--bg-color);"></div>';
       html += '        </div>';
       html += '      </div>';
 
@@ -876,17 +970,18 @@
         
         var pluginConf = self.editedSettings.plugins && self.editedSettings.plugins[pluginId] ? self.editedSettings.plugins[pluginId] : {};
         
-        var showCarousel = pluginConf.showInCarousel !== false;
-        var showQuick = pluginConf.showInQuickMenu !== false;
-        var isEnabled = pluginConf.enabled !== false;
+        var isTime = pluginId === 'time';
+        var showCarousel = isTime ? true : (pluginConf.showInCarousel !== false);
+        var showQuick = isTime ? true : (pluginConf.showInQuickMenu !== false);
+        var isEnabled = isTime ? true : (pluginConf.enabled !== false);
         
         html += '            <tr>';
         html += '              <td class="plugin-table-name">' + cleanName.toUpperCase() + '</td>';
         html += '              <td style="text-align: center;">';
-        html += '                <input type="checkbox" class="trmnl-checkbox" id="chk-carousel-' + pluginId + '"' + (showCarousel ? ' checked' : '') + (isEnabled ? '' : ' disabled') + '>';
+        html += '                <input type="checkbox" class="trmnl-checkbox" id="chk-carousel-' + pluginId + '"' + (showCarousel ? ' checked' : '') + ((isEnabled && !isTime) ? '' : ' disabled') + '>';
         html += '              </td>';
         html += '              <td style="text-align: center;">';
-        html += '                <input type="checkbox" class="trmnl-checkbox" id="chk-quick-' + pluginId + '"' + (showQuick ? ' checked' : '') + (isEnabled ? '' : ' disabled') + '>';
+        html += '                <input type="checkbox" class="trmnl-checkbox" id="chk-quick-' + pluginId + '"' + (showQuick ? ' checked' : '') + ((isEnabled && !isTime) ? '' : ' disabled') + '>';
         html += '              </td>';
         html += '              <td style="text-align: center;">';
         html += '                <span class="plugin-status-badge ' + (isEnabled ? 'status-enabled' : 'status-disabled') + '">' + (isEnabled ? 'ACTIVE' : 'OFF') + '</span>';
@@ -1059,6 +1154,84 @@
         });
       });
 
+      // Bind Clock Placement & Composition Live Preview
+      var clockPlacementSelect = this.container.querySelector('#cfg-clock-placement');
+      var clockCompositionSelect = this.container.querySelector('#cfg-clock-composition');
+      var clockPreview = this.container.querySelector('#clock-mini-preview');
+      
+      function updatePreviewPosition(val) {
+        if (!clockPreview) return;
+        clockPreview.style.top = '';
+        clockPreview.style.bottom = '';
+        clockPreview.style.left = '';
+        clockPreview.style.right = '';
+        clockPreview.style.transform = '';
+        
+        switch (val) {
+          case 'top-left':
+            clockPreview.style.top = '15px';
+            clockPreview.style.left = '15px';
+            break;
+          case 'top-center':
+            clockPreview.style.top = '15px';
+            clockPreview.style.left = '50%';
+            clockPreview.style.transform = 'translateX(-50%)';
+            break;
+          case 'top-right':
+            clockPreview.style.top = '15px';
+            clockPreview.style.right = '15px';
+            break;
+          case 'middle-left':
+            clockPreview.style.top = '36%';
+            clockPreview.style.left = '15px';
+            clockPreview.style.transform = 'translateY(-50%)';
+            break;
+          case 'middle-center':
+            clockPreview.style.top = '36%';
+            clockPreview.style.left = '50%';
+            clockPreview.style.transform = 'translate(-50%, -50%)';
+            break;
+          case 'middle-right':
+            clockPreview.style.top = '36%';
+            clockPreview.style.right = '15px';
+            clockPreview.style.transform = 'translateY(-50%)';
+            break;
+          case 'bottom-left':
+            clockPreview.style.bottom = '25px';
+            clockPreview.style.left = '15px';
+            break;
+          case 'bottom-center':
+            clockPreview.style.bottom = '25px';
+            clockPreview.style.left = '50%';
+            clockPreview.style.transform = 'translateX(-50%)';
+            break;
+          case 'bottom-right':
+            clockPreview.style.bottom = '25px';
+            clockPreview.style.right = '15px';
+            break;
+        }
+      }
+
+      function updatePreviewComposition(val) {
+        if (!clockPreview) return;
+        clockPreview.classList.remove('comp-default', 'comp-split', 'comp-retro', 'comp-clean-left', 'comp-brutalist', 'comp-terminal', 'comp-timeline');
+        clockPreview.classList.add(val);
+      }
+
+      if (clockPlacementSelect) {
+        updatePreviewPosition(clockPlacementSelect.value);
+        clockPlacementSelect.addEventListener('change', function() {
+          updatePreviewPosition(clockPlacementSelect.value);
+        });
+      }
+
+      if (clockCompositionSelect) {
+        updatePreviewComposition(clockCompositionSelect.value);
+        clockCompositionSelect.addEventListener('change', function() {
+          updatePreviewComposition(clockCompositionSelect.value);
+        });
+      }
+
       // File Reader Bindings (Wifi QR Image)
       var wifiFileInput = this.container.querySelector('#cfg-wifi-qr-img');
       var wifiFileClearBtn = this.container.querySelector('#cfg-wifi-qr-clear');
@@ -1224,6 +1397,23 @@
 
         var displayFiles = files.slice();
 
+        // Add saved NASA wallpapers if they exist
+        var savedList = [];
+        try {
+          var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+          if (cachedSaved) savedList = JSON.parse(cachedSaved);
+        } catch (e) {}
+        
+        if (Array.isArray(savedList)) {
+          // Prepend NASA wallpapers in reverse order so the latest one ends up first
+          for (var idx = savedList.length - 1; idx >= 0; idx--) {
+            var savedObj = savedList[idx];
+            if (savedObj && savedObj.id) {
+              displayFiles.unshift(savedObj.id);
+            }
+          }
+        }
+
         // Add custom upload thumbnail if base64 exists
         if (modalCustomBase64) {
           displayFiles.unshift('custom');
@@ -1244,10 +1434,22 @@
           if (file === 'custom') {
             img.src = modalCustomBase64;
             name = 'CUSTOM PHOTO';
+          } else if (file.indexOf('nasa-') === 0) {
+            var savedObj = null;
+            if (Array.isArray(savedList)) {
+              for (var i = 0; i < savedList.length; i++) {
+                if (savedList[i] && savedList[i].id === file) {
+                  savedObj = savedList[i];
+                  break;
+                }
+              }
+            }
+            img.src = savedObj ? (savedObj.base64 || savedObj.url) : 'wallpapers/scene-1.jpg';
+            name = savedObj ? (savedObj.name || ('NASA ' + savedObj.date)) : 'NASA Space Photo';
           } else {
             img.src = 'wallpapers/' + file;
             img.onerror = function() { img.src = 'wallpapers/scene-1.jpg'; };
-            name = file.replace('.png', '').replace('.jpg', '').replace('.jpeg', '').replace('_', ' ');
+            name = file.replace('.png', '').replace('.jpg', '').replace('.jpeg', '').replace(/_/g, ' ');
           }
           item.appendChild(img);
 
@@ -1385,6 +1587,22 @@
         
         if (currentWp === 'custom' && customBase64) {
           wpDragImg.src = customBase64;
+        } else if (currentWp && currentWp.indexOf('nasa-') === 0) {
+          var savedList = [];
+          try {
+            var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+            if (cachedSaved) savedList = JSON.parse(cachedSaved);
+          } catch (e) {}
+          var savedObj = null;
+          if (Array.isArray(savedList)) {
+            for (var i = 0; i < savedList.length; i++) {
+              if (savedList[i] && savedList[i].id === currentWp) {
+                savedObj = savedList[i];
+                break;
+              }
+            }
+          }
+          wpDragImg.src = savedObj ? (savedObj.base64 || savedObj.url) : 'wallpapers/scene-1.jpg';
         } else {
           wpDragImg.src = 'wallpapers/' + currentWp;
         }

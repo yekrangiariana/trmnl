@@ -916,6 +916,511 @@ button.trmnl-btn.secondary:active {
   text-align: center;
 }
 
+/* Clock Placement Custom Positions */
+.time-pixel-widget.top-left {
+  top: 40px;
+  left: 40px;
+  transform: none;
+}
+.time-pixel-widget.top-center {
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.time-pixel-widget.top-right {
+  top: 40px;
+  right: 40px;
+  left: auto;
+  transform: none;
+}
+.time-pixel-widget.middle-left {
+  top: 36%;
+  left: 40px;
+  transform: translateY(-50%);
+}
+.time-pixel-widget.middle-center {
+  top: 36%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.time-pixel-widget.middle-right {
+  top: 36%;
+  right: 40px;
+  left: auto;
+  transform: translateY(-50%);
+}
+.time-pixel-widget.bottom-left {
+  bottom: 80px;
+  top: auto;
+  left: 40px;
+  transform: none;
+}
+.time-pixel-widget.bottom-center {
+  bottom: 80px;
+  top: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.time-pixel-widget.bottom-right {
+  bottom: 80px;
+  top: auto;
+  right: 40px;
+  left: auto;
+  transform: none;
+}
+
+/* Clock Layout Composition Styles */
+
+/* 1. Split Columns Composition */
+.time-pixel-widget.comp-split {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 
+    "clock header"
+    "clock weather";
+  column-gap: 24px;
+  align-items: center;
+  text-align: left;
+}
+.time-pixel-widget.comp-split .time-pixel-widget-clock-minimal {
+  grid-area: clock;
+  font-size: 72px;
+  border-right: var(--border-width-thin) dashed var(--border-color);
+  padding-right: 24px;
+  margin-bottom: 0;
+}
+.time-pixel-widget.comp-split .time-pixel-widget-header-minimal {
+  grid-area: header;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 4px;
+  text-align: left;
+}
+.time-pixel-widget.comp-split .time-pixel-widget-weather {
+  grid-area: weather;
+  border-top: none;
+  padding-top: 0;
+  margin-top: 4px;
+  text-align: left;
+}
+
+/* 2. Retro E-Ink Card Composition */
+.time-pixel-widget.comp-retro {
+  padding: 22px 32px;
+}
+.time-pixel-widget.comp-retro .time-pixel-widget-header-minimal {
+  width: calc(100% + 64px);
+  margin-top: -22px;
+  margin-bottom: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='2' height='2' fill='%239e9e9e'/%3E%3Crect x='2' y='2' width='2' height='2' fill='%239e9e9e'/%3E%3C/svg%3E");
+  border-bottom: var(--border-width-thin) solid var(--border-color);
+  padding: 8px 16px;
+  box-sizing: border-box;
+  border-radius: 10px 10px 0 0;
+}
+.time-pixel-widget.comp-retro .time-pixel-widget-weather {
+  width: calc(100% + 64px);
+  margin-bottom: -22px;
+  margin-top: 12px;
+  border-top: var(--border-width-thin) solid var(--border-color);
+  padding: 8px 16px;
+  box-sizing: border-box;
+  border-radius: 0 0 10px 10px;
+  background-color: var(--highlight-bg);
+}
+
+/* 3. Modern Left-Aligned Composition */
+.time-pixel-widget.comp-clean-left {
+  align-items: flex-start;
+  text-align: left;
+}
+.time-pixel-widget.comp-clean-left .time-pixel-widget-header-minimal {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 4px;
+  text-align: left;
+}
+.time-pixel-widget.comp-clean-left .time-pixel-widget-clock-minimal {
+  font-size: 80px;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.time-pixel-widget.comp-clean-left .time-pixel-widget-weather {
+  text-align: left;
+}
+
+
+/* Layout Preview Scaling for Settings Tab */
+.clock-mini-preview-widget {
+  width: 155px;
+  padding: 8px 12px;
+  border: var(--border-width-thin) solid var(--border-color);
+  background: var(--card-bg);
+  border-radius: 6px;
+  box-sizing: border-box;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.clock-mini-preview-widget.comp-split {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 
+    "clock header"
+    "clock weather";
+  column-gap: 8px;
+  align-items: center;
+  text-align: left;
+  width: 175px;
+}
+.clock-mini-preview-widget.comp-split .time-pixel-widget-clock-minimal {
+  grid-area: clock;
+  font-size: 15px !important;
+  border-right: var(--border-width-thin) dashed var(--border-color);
+  padding-right: 8px;
+  margin-bottom: 0;
+}
+.clock-mini-preview-widget.comp-split .time-pixel-widget-header-minimal {
+  grid-area: header;
+  text-align: left !important;
+  border-bottom: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.clock-mini-preview-widget.comp-split .time-pixel-widget-weather {
+  grid-area: weather;
+  text-align: left !important;
+  border-top: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.clock-mini-preview-widget.comp-retro {
+  padding: 8px 12px;
+}
+.clock-mini-preview-widget.comp-retro .time-pixel-widget-header-minimal {
+  width: calc(100% + 24px);
+  margin-top: -8px;
+  margin-bottom: 4px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='2' height='2' fill='%239e9e9e'/%3E%3Crect x='2' y='2' width='2' height='2' fill='%239e9e9e'/%3E%3C/svg%3E");
+  border-bottom: var(--border-width-thin) solid var(--border-color);
+  padding: 2px 4px;
+  box-sizing: border-box;
+  border-radius: 4px 4px 0 0;
+}
+.clock-mini-preview-widget.comp-retro .time-pixel-widget-weather {
+  width: calc(100% + 24px);
+  margin-bottom: -8px;
+  margin-top: 4px;
+  border-top: var(--border-width-thin) solid var(--border-color);
+  padding: 2px 4px;
+  box-sizing: border-box;
+  border-radius: 0 0 4px 4px;
+  background-color: var(--highlight-bg);
+}
+.clock-mini-preview-widget.comp-clean-left {
+  align-items: flex-start;
+  text-align: left;
+}
+.clock-mini-preview-widget.comp-clean-left .time-pixel-widget-header-minimal,
+.clock-mini-preview-widget.comp-clean-left .time-pixel-widget-clock-minimal,
+.clock-mini-preview-widget.comp-clean-left .time-pixel-widget-weather {
+  text-align: left !important;
+  border-bottom: none !important;
+  border-top: none !important;
+}
+
+/* 4. Neo-Brutalist Badge Composition */
+.time-pixel-widget.comp-brutalist {
+  border: 3px solid var(--border-color);
+  background: var(--card-bg);
+  box-shadow: 8px 8px 0 var(--border-color);
+  padding: 24px 32px;
+  border-radius: 4px;
+  align-items: center;
+  text-align: center;
+}
+.time-pixel-widget.comp-brutalist .time-pixel-widget-header-minimal {
+  font-family: var(--font-mono) !important;
+  text-transform: uppercase;
+  font-weight: 800;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+}
+.time-pixel-widget.comp-brutalist .time-pixel-widget-clock-minimal {
+  font-size: 64px;
+  font-weight: 900;
+  font-family: var(--font-mono) !important;
+  background: var(--border-color);
+  color: var(--card-bg);
+  padding: 4px 16px;
+  border-radius: 2px;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+.time-pixel-widget.comp-brutalist .time-pixel-widget-weather {
+  font-family: var(--font-mono) !important;
+  font-weight: 700;
+  font-size: 14px;
+  border-top: 2px solid var(--border-color);
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+/* 5. Terminal Console Composition */
+.time-pixel-widget.comp-terminal {
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 4px;
+  font-family: var(--font-mono) !important;
+  text-align: left;
+  align-items: flex-start;
+}
+.time-pixel-widget.comp-terminal::before {
+  content: "root@trmnl:~$ ./show_time.sh";
+  font-family: var(--font-mono) !important;
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 12px;
+  display: block;
+  width: 100%;
+  border-bottom: 1px dashed var(--border-color);
+  padding-bottom: 6px;
+}
+.time-pixel-widget.comp-terminal .time-pixel-widget-header-minimal {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 6px;
+  font-family: var(--font-mono) !important;
+  font-size: 16px;
+}
+.time-pixel-widget.comp-terminal .time-pixel-widget-header-minimal::before {
+  content: "[SYS_DATE] ";
+  font-weight: bold;
+}
+.time-pixel-widget.comp-terminal .time-pixel-widget-clock-minimal {
+  font-family: var(--font-mono) !important;
+  font-size: 44px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  letter-spacing: -1px;
+}
+.time-pixel-widget.comp-terminal .time-pixel-widget-clock-minimal::before {
+  content: "[SYS_TIME] ";
+  font-size: 18px;
+  letter-spacing: normal;
+  vertical-align: middle;
+}
+.time-pixel-widget.comp-terminal .time-pixel-widget-weather {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+  font-family: var(--font-mono) !important;
+  font-size: 15px;
+}
+.time-pixel-widget.comp-terminal .time-pixel-widget-weather::before {
+  content: "[SYS_WEAT] ";
+  font-weight: bold;
+}
+
+/* 6. Vertical Timeline Stack Composition */
+.time-pixel-widget.comp-timeline {
+  border-left: 3px solid var(--border-color);
+  padding-left: 28px;
+  align-items: flex-start;
+  text-align: left;
+  position: relative;
+  margin-left: 15px;
+}
+.time-pixel-widget.comp-timeline .time-pixel-widget-header-minimal,
+.time-pixel-widget.comp-timeline .time-pixel-widget-clock-minimal,
+.time-pixel-widget.comp-timeline .time-pixel-widget-weather {
+  position: relative;
+  border: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+  text-align: left;
+}
+.time-pixel-widget.comp-timeline .time-pixel-widget-weather {
+  margin-bottom: 0;
+}
+.time-pixel-widget.comp-timeline .time-pixel-widget-header-minimal::before,
+.time-pixel-widget.comp-timeline .time-pixel-widget-clock-minimal::before,
+.time-pixel-widget.comp-timeline .time-pixel-widget-weather::before {
+  content: "";
+  position: absolute;
+  left: -35.5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  border: 3px solid var(--border-color);
+  box-sizing: border-box;
+}
+.time-pixel-widget.comp-timeline .time-pixel-widget-clock-minimal {
+  font-size: 56px;
+  font-weight: 800;
+}
+.time-pixel-widget.comp-timeline .time-pixel-widget-header-minimal {
+  font-size: 14px;
+  font-family: var(--font-mono) !important;
+  font-weight: 700;
+}
+.time-pixel-widget.comp-timeline .time-pixel-widget-weather {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+
+/* Layout Preview Scaling for Compositions */
+
+/* 4. Neo-Brutalist Badge Preview */
+.clock-mini-preview-widget.comp-brutalist {
+  border: 2px solid var(--border-color) !important;
+  box-shadow: 4px 4px 0 var(--border-color) !important;
+  padding: 6px 10px !important;
+  border-radius: 3px;
+  align-items: center;
+  text-align: center;
+}
+.clock-mini-preview-widget.comp-brutalist .time-pixel-widget-header-minimal {
+  font-family: var(--font-mono) !important;
+  font-size: 6px !important;
+  font-weight: 800;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding-bottom: 2px !important;
+  margin-bottom: 4px !important;
+}
+.clock-mini-preview-widget.comp-brutalist .time-pixel-widget-clock-minimal {
+  font-size: 11px !important;
+  font-weight: 900;
+  font-family: var(--font-mono) !important;
+  background: var(--border-color);
+  color: var(--card-bg);
+  padding: 1px 4px !important;
+  border-radius: 1px;
+  margin-bottom: 4px !important;
+}
+.clock-mini-preview-widget.comp-brutalist .time-pixel-widget-weather {
+  font-family: var(--font-mono) !important;
+  font-size: 5px !important;
+  border-top: 1px solid var(--border-color) !important;
+  padding-top: 2px !important;
+  margin-top: 2px !important;
+}
+
+/* 5. Terminal Console Preview */
+.clock-mini-preview-widget.comp-terminal {
+  border: 1px solid var(--border-color) !important;
+  padding: 6px !important;
+  border-radius: 3px;
+  font-family: var(--font-mono) !important;
+  text-align: left;
+  align-items: flex-start;
+}
+.clock-mini-preview-widget.comp-terminal::before {
+  content: "trmnl:~$ ./show";
+  font-family: var(--font-mono) !important;
+  font-size: 4.5px;
+  opacity: 0.6;
+  margin-bottom: 4px;
+  display: block;
+  width: 100%;
+  border-bottom: 1px dashed var(--border-color);
+  padding-bottom: 2px;
+}
+.clock-mini-preview-widget.comp-terminal .time-pixel-widget-header-minimal {
+  border-bottom: none !important;
+  margin-bottom: 2px !important;
+  padding: 0 !important;
+  font-family: var(--font-mono) !important;
+  font-size: 5px !important;
+}
+.clock-mini-preview-widget.comp-terminal .time-pixel-widget-header-minimal::before {
+  content: "[DATE] ";
+  font-weight: bold;
+}
+.clock-mini-preview-widget.comp-terminal .time-pixel-widget-clock-minimal {
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+  font-weight: bold;
+  margin-bottom: 2px !important;
+}
+.clock-mini-preview-widget.comp-terminal .time-pixel-widget-clock-minimal::before {
+  content: "[TIME] ";
+  font-size: 5px !important;
+}
+.clock-mini-preview-widget.comp-terminal .time-pixel-widget-weather {
+  border-top: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: var(--font-mono) !important;
+  font-size: 5px !important;
+}
+.clock-mini-preview-widget.comp-terminal .time-pixel-widget-weather::before {
+  content: "[WEAT] ";
+  font-weight: bold;
+}
+
+/* 6. Vertical Timeline Stack Preview */
+.clock-mini-preview-widget.comp-timeline {
+  border: none !important;
+  border-left: 2px solid var(--border-color) !important;
+  padding: 4px 0 4px 12px !important;
+  align-items: flex-start;
+  text-align: left;
+  position: relative;
+  margin-left: 10px;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+.clock-mini-preview-widget.comp-timeline .time-pixel-widget-header-minimal,
+.clock-mini-preview-widget.comp-timeline .time-pixel-widget-clock-minimal,
+.clock-mini-preview-widget.comp-timeline .time-pixel-widget-weather {
+  position: relative;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 0 6px 0 !important;
+  text-align: left !important;
+}
+.clock-mini-preview-widget.comp-timeline .time-pixel-widget-weather {
+  margin-bottom: 0 !important;
+}
+.clock-mini-preview-widget.comp-timeline .time-pixel-widget-header-minimal::before,
+.clock-mini-preview-widget.comp-timeline .time-pixel-widget-clock-minimal::before,
+.clock-mini-preview-widget.comp-timeline .time-pixel-widget-weather::before {
+  content: "";
+  position: absolute;
+  left: -16.5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  box-sizing: border-box;
+}
+.clock-mini-preview-widget.comp-timeline .time-pixel-widget-clock-minimal {
+  font-size: 11px !important;
+  font-weight: 800;
+}
+.clock-mini-preview-widget.comp-timeline .time-pixel-widget-header-minimal {
+  font-size: 5px !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 700;
+}
+.clock-mini-preview-widget.comp-timeline .time-pixel-widget-weather {
+  font-size: 5px !important;
+}
+
 .time-pixel-widget-header {
   display: flex;
   justify-content: space-between;

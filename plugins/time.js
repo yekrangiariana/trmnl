@@ -46,10 +46,14 @@
     getWeatherDesc: function(code) {
       var desc = {
         0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
-        45: "Foggy", 48: "Depositing fog", 51: "Light drizzle", 53: "Drizzle",
-        55: "Dense drizzle", 61: "Light rain", 63: "Moderate rain", 65: "Heavy rain",
+        45: "Foggy", 48: "Depositing fog",
+        51: "Light drizzle", 53: "Drizzle", 55: "Dense drizzle",
+        56: "Light freezing drizzle", 57: "Dense freezing drizzle",
+        61: "Light rain", 63: "Moderate rain", 65: "Heavy rain",
+        66: "Light freezing rain", 67: "Heavy freezing rain",
         71: "Light snow", 73: "Moderate snow", 75: "Heavy snow", 77: "Snow grains",
         80: "Slight showers", 81: "Rain showers", 82: "Heavy showers",
+        85: "Light snow showers", 86: "Heavy snow showers",
         95: "Thunderstorm", 96: "Storm w/ hail", 99: "Heavy storm"
       };
       return desc[code] || "Overcast";
@@ -157,6 +161,8 @@
       var wallpaperPosition = activeConfig.wallpaperPosition || 'center bottom';
       var wallpaperZoom = activeConfig.wallpaperZoom !== undefined ? parseFloat(activeConfig.wallpaperZoom) : 1.0;
       var hasWeather = !!weather;
+      var clockPlacement = activeConfig.clockPlacement || 'middle-center';
+      var clockComposition = activeConfig.clockComposition || 'comp-default';
  
       // Check if wallpaper configuration is identical to last render
       var stateChanged = !this.lastState ||
@@ -165,7 +171,9 @@
                          this.lastState.eink !== eink ||
                          this.lastState.wallpaperPosition !== wallpaperPosition ||
                          this.lastState.wallpaperZoom !== wallpaperZoom ||
-                         this.lastState.hasWeather !== hasWeather;
+                         this.lastState.hasWeather !== hasWeather ||
+                         this.lastState.clockPlacement !== clockPlacement ||
+                         this.lastState.clockComposition !== clockComposition;
  
       var widget = this.container.querySelector('.time-pixel-widget');
  
@@ -208,26 +216,45 @@
         eink: eink,
         wallpaperPosition: wallpaperPosition,
         wallpaperZoom: wallpaperZoom,
-        hasWeather: hasWeather
+        hasWeather: hasWeather,
+        clockPlacement: clockPlacement,
+        clockComposition: clockComposition
       };
  
       var transformStyle = 'transform: scale(' + wallpaperZoom + '); transform-origin: center center;';
       var bgHtml = '';
       if (wallpaper === 'custom' && customBase64) {
         bgHtml = '  <img src="' + customBase64 + '" class="time-pixel-landscape custom-photo" style="mix-blend-mode: normal; object-position: ' + wallpaperPosition + '; ' + transformStyle + '" alt="Custom background" decoding="async" fetchpriority="high">';
+      } else if (wallpaper && wallpaper.indexOf('nasa-') === 0) {
+        var savedList = [];
+        try {
+          var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+          if (cachedSaved) savedList = JSON.parse(cachedSaved);
+        } catch (e) {}
+        var savedObj = null;
+        if (Array.isArray(savedList)) {
+          for (var i = 0; i < savedList.length; i++) {
+            if (savedList[i] && savedList[i].id === wallpaper) {
+              savedObj = savedList[i];
+              break;
+            }
+          }
+        }
+        var imgSrc = savedObj ? (savedObj.base64 || savedObj.url) : 'wallpapers/scene-1.jpg';
+        bgHtml = '  <img src="' + imgSrc + '" class="time-pixel-landscape" style="mix-blend-mode: normal; object-position: ' + wallpaperPosition + '; ' + transformStyle + '" alt="NASA background" decoding="async" fetchpriority="high">';
       } else {
         var lightSrc = wallpaper;
-        if (!lightSrc.startsWith('wallpapers/')) {
+        if (!lightSrc.startsWith('wallpapers/') && !lightSrc.startsWith('data:') && !lightSrc.startsWith('http://') && !lightSrc.startsWith('https://')) {
           lightSrc = 'wallpapers/' + lightSrc;
         }
         bgHtml = '  <img src="' + lightSrc + '" class="time-pixel-landscape" style="mix-blend-mode: normal; object-position: ' + wallpaperPosition + '; ' + transformStyle + '" alt="Background" decoding="async" fetchpriority="high">';
       }
-
+ 
       // Assemble Main HTML in pixel art landscape layout with floating widget
       var cardClass = 'trmnl-card time-pixel-card' + (activeConfig.wallpaperEInk ? ' e-ink-active' : '');
       var html = '<div class="' + cardClass + '">';
       html += bgHtml;
-      html += '  <div class="time-pixel-widget">';
+      html += '  <div class="time-pixel-widget ' + clockPlacement + ' ' + clockComposition + '">';
       html += '    <div class="time-pixel-widget-header-minimal">' + dayName.toUpperCase() + ' &bull; ' + monthName.toUpperCase() + ' ' + dateNum + ', ' + year + '</div>';
       html += '    <div class="time-pixel-widget-clock-minimal">' + timeStr + '</div>';
       if (weatherHtml) {
