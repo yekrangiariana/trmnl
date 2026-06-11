@@ -151,22 +151,24 @@
       }
 
       var activeConfig = window.Dashboard ? window.Dashboard.getActiveConfig() : {};
-      var wallpaper = activeConfig.wallpaper || 'pixel_art_landscape.png';
-      var wallpaperDark = activeConfig.wallpaperDark;
+      var wallpaper = activeConfig.wallpaper || 'scene-1.jpg';
       var customBase64 = activeConfig.customWallpaperBase64;
       var eink = !!activeConfig.wallpaperEInk;
+      var wallpaperPosition = activeConfig.wallpaperPosition || 'center bottom';
+      var wallpaperZoom = activeConfig.wallpaperZoom !== undefined ? parseFloat(activeConfig.wallpaperZoom) : 1.0;
       var hasWeather = !!weather;
-
+ 
       // Check if wallpaper configuration is identical to last render
       var stateChanged = !this.lastState ||
                          this.lastState.wallpaper !== wallpaper ||
                          this.lastState.customBase64 !== customBase64 ||
-                         this.lastState.wallpaperDark !== wallpaperDark ||
                          this.lastState.eink !== eink ||
+                         this.lastState.wallpaperPosition !== wallpaperPosition ||
+                         this.lastState.wallpaperZoom !== wallpaperZoom ||
                          this.lastState.hasWeather !== hasWeather;
-
+ 
       var widget = this.container.querySelector('.time-pixel-widget');
-
+ 
       if (!stateChanged && widget) {
         // FAST PATH: Only update text nodes in place to avoid image reload/re-decode jank
         var header = widget.querySelector('.time-pixel-widget-header-minimal');
@@ -198,35 +200,27 @@
         }
         return;
       }
-
+ 
       // SLOW PATH: Full render (first run or when wallpaper config changes)
       this.lastState = {
         wallpaper: wallpaper,
         customBase64: customBase64,
-        wallpaperDark: wallpaperDark,
         eink: eink,
+        wallpaperPosition: wallpaperPosition,
+        wallpaperZoom: wallpaperZoom,
         hasWeather: hasWeather
       };
-
+ 
+      var transformStyle = 'transform: scale(' + wallpaperZoom + '); transform-origin: center center;';
       var bgHtml = '';
       if (wallpaper === 'custom' && customBase64) {
-        bgHtml = '  <img src="' + customBase64 + '" class="time-pixel-landscape custom-photo" style="mix-blend-mode: normal;" alt="Custom background" decoding="async" fetchpriority="high">';
+        bgHtml = '  <img src="' + customBase64 + '" class="time-pixel-landscape custom-photo" style="mix-blend-mode: normal; object-position: ' + wallpaperPosition + '; ' + transformStyle + '" alt="Custom background" decoding="async" fetchpriority="high">';
       } else {
         var lightSrc = wallpaper;
         if (!lightSrc.startsWith('wallpapers/')) {
           lightSrc = 'wallpapers/' + lightSrc;
         }
-        
-        if (wallpaperDark) {
-          var darkSrc = wallpaperDark;
-          if (!darkSrc.startsWith('wallpapers/')) {
-            darkSrc = 'wallpapers/' + darkSrc;
-          }
-          bgHtml = '  <img src="' + lightSrc + '" class="time-pixel-landscape light-only" alt="Background light" decoding="async" fetchpriority="high">';
-          bgHtml += '  <img src="' + darkSrc + '" class="time-pixel-landscape dark-only" alt="Background dark" decoding="async" fetchpriority="high">';
-        } else {
-          bgHtml = '  <img src="' + lightSrc + '" class="time-pixel-landscape" style="mix-blend-mode: normal;" alt="Background" decoding="async" fetchpriority="high">';
-        }
+        bgHtml = '  <img src="' + lightSrc + '" class="time-pixel-landscape" style="mix-blend-mode: normal; object-position: ' + wallpaperPosition + '; ' + transformStyle + '" alt="Background" decoding="async" fetchpriority="high">';
       }
 
       // Assemble Main HTML in pixel art landscape layout with floating widget

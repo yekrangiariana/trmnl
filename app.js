@@ -33,6 +33,18 @@
     hsl: 'hsl_departures'
   };
 
+  // Packaged Default Wallpapers
+  var DEFAULT_WALLPAPERS = [
+    'scene-1.jpg',
+    'scene-2.jpg',
+    'scene-3.jpg',
+    'scene-4.jpg',
+    'scene-5.jpg',
+    'scene-6.jpg',
+    'scene-7.jpg',
+    'scene-8.jpg'
+  ];
+
   // 1. Initialize Configuration
   function initConfig() {
     var defaultConfig = window.DASHBOARD_CONFIG || {};
@@ -78,10 +90,10 @@
     // Merge configurations (safe ES5/ES6 style merge)
     state.config = Object.assign({}, defaultConfig);
     if (state.config.wallpaper === undefined) {
-      state.config.wallpaper = 'pixel_art_landscape.png';
+      state.config.wallpaper = 'scene-1.jpg';
     }
     if (state.config.wallpaperDark === undefined) {
-      state.config.wallpaperDark = 'pixel_art_landscape_dark.png';
+      state.config.wallpaperDark = null;
     }
     if (state.config.wallpaperEInk === undefined) {
       state.config.wallpaperEInk = false;
@@ -89,10 +101,19 @@
     if (state.config.cycleWallpapers === undefined) {
       state.config.cycleWallpapers = false;
     }
+    if (state.config.availableWallpapers === undefined) {
+      state.config.availableWallpapers = DEFAULT_WALLPAPERS.slice();
+    }
+    if (state.config.wallpaperPosition === undefined) {
+      state.config.wallpaperPosition = 'center bottom';
+    }
+    if (state.config.wallpaperZoom === undefined) {
+      state.config.wallpaperZoom = 1.0;
+    }
     state.config.plugins = Object.assign({}, defaultConfig.plugins || {});
 
     // Deep merge local overrides
-    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode', 'wallpaper', 'customWallpaperBase64', 'wallpaperDark', 'wallpaperEInk', 'cycleWallpapers'];
+    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode', 'wallpaper', 'customWallpaperBase64', 'wallpaperDark', 'wallpaperEInk', 'cycleWallpapers', 'availableWallpapers', 'wallpaperPosition', 'wallpaperZoom'];
     rootKeys.forEach(function(key) {
       if (localOverrides[key] !== undefined) {
         state.config[key] = localOverrides[key];
@@ -117,8 +138,8 @@
   }
 
   // Background Wallpaper Scanner & Cycler
-  state.availableWallpapers = ['pixel_art_landscape.png'];
-  state.rawScannedWallpapers = ['pixel_art_landscape.png', 'pixel_art_landscape_dark.png'];
+  state.availableWallpapers = DEFAULT_WALLPAPERS.slice();
+  state.rawScannedWallpapers = DEFAULT_WALLPAPERS.slice();
 
   function scanWallpapersOnBoot() {
     try {
@@ -126,15 +147,17 @@
       var cachedRaw = localStorage.getItem('trmnl_raw_scanned_wallpapers');
       if (cachedAvailable) {
         state.availableWallpapers = JSON.parse(cachedAvailable);
+      } else if (state.config.availableWallpapers) {
+        state.availableWallpapers = state.config.availableWallpapers.slice();
       }
       if (cachedRaw) {
         state.rawScannedWallpapers = JSON.parse(cachedRaw);
+      } else if (state.config.availableWallpapers) {
+        state.rawScannedWallpapers = state.config.availableWallpapers.slice();
       }
     } catch (e) {}
 
-    if (!navigator.onLine) return;
-
-    fetch('./wallpapers/', {
+    fetch('./wallpapers.json?_t=' + Date.now(), {
       headers: { 'Accept': 'application/json' }
     })
     .then(function(res) {
@@ -148,25 +171,25 @@
     })
     .then(function(data) {
       var files = [];
-      var defaultList = ['pixel_art_landscape.png', 'pixel_art_landscape_dark.png'];
+      var defaultList = state.config.availableWallpapers || DEFAULT_WALLPAPERS;
       
-      if (typeof data === 'object' && Array.isArray(data)) {
+      if (Array.isArray(data)) {
         files = data.filter(function(item) {
-          return item.type === 'file' && /\.(png|jpe?g|webp|gif)$/i.test(item.name);
+          if (typeof item === 'string') return /\.(png|jpe?g|webp|gif)$/i.test(item);
+          return item && item.type === 'file' && /\.(png|jpe?g|webp|gif)$/i.test(item.name);
         }).map(function(item) {
+          if (typeof item === 'string') return item;
           return item.name;
         });
       } else if (typeof data === 'string') {
-        var parser = new DOMParser();
-        var doc = parser.parseFromString(data, 'text/html');
-        var links = doc.querySelectorAll('a');
+        var regex = /href=["']?([^"'\s>]+?\.(?:png|jpe?g|webp|gif))["']?/gi;
+        var match;
         var matched = {};
-        for (var i = 0; i < links.length; i++) {
-          var href = links[i].getAttribute('href') || '';
-          href = href.split('?')[0].split('#')[0];
+        while ((match = regex.exec(data)) !== null) {
+          var href = match[1];
           var decoded = decodeURIComponent(href);
           var basename = decoded.substring(decoded.lastIndexOf('/') + 1);
-          if (basename && /\.(png|jpe?g|webp|gif)$/i.test(basename)) {
+          if (basename) {
             matched[basename] = true;
           }
         }
@@ -177,76 +200,37 @@
         if (files.indexOf(w) === -1) files.push(w);
       });
 
-      var filtered = files.filter(function(file) {
-        // Check if this is a dark version (isDarkVersion check inlined)
-        var parts = file.split('.');
-        if (parts.length < 2) return false;
-        var ext = parts.pop();
-        var base = parts.join('.');
-        if (base.endsWith('_dark')) {
-          var lightName = base.substring(0, base.length - 5) + '.' + ext;
-          return files.indexOf(lightName) !== -1;
-        }
-        return false;
-      });
-
-      // Filter displayFiles (only light files that are NOT dark counterparts)
-      var displayFiles = files.filter(function(f) {
-        var parts = f.split('.');
-        if (parts.length < 2) return true;
-        var ext = parts.pop();
-        var base = parts.join('.');
-        if (base.endsWith('_dark')) {
-          var lightName = base.substring(0, base.length - 5) + '.' + ext;
-          return files.indexOf(lightName) === -1; // Keep only if it has NO light counterpart
-        }
-        return true;
-      });
-
-      state.availableWallpapers = displayFiles;
+      state.availableWallpapers = files;
       state.rawScannedWallpapers = files;
       
-      localStorage.setItem('trmnl_available_wallpapers', JSON.stringify(displayFiles));
-      localStorage.setItem('trmnl_raw_scanned_wallpapers', JSON.stringify(files));
+      if (files.length > defaultList.length) {
+        localStorage.setItem('trmnl_available_wallpapers', JSON.stringify(files));
+        localStorage.setItem('trmnl_raw_scanned_wallpapers', JSON.stringify(files));
+      }
     })
     .catch(function(err) {
       console.warn("Background wallpaper scan failed:", err);
+      if (!localStorage.getItem('trmnl_available_wallpapers')) {
+        state.availableWallpapers = state.config.availableWallpapers || DEFAULT_WALLPAPERS.slice();
+      }
     });
   }
 
   function cycleToNextWallpaper() {
-    var list = state.availableWallpapers || ['pixel_art_landscape.png'];
+    var list = state.availableWallpapers || ['scene-1.jpg'];
     if (state.config.customWallpaperBase64 && list.indexOf('custom') === -1) {
       list.unshift('custom');
     }
+    if (!list || list.length === 0) return;
 
-    if (list.length <= 1) return;
-
-    var current = state.config.wallpaper || 'pixel_art_landscape.png';
+    var current = state.config.wallpaper || 'scene-1.jpg';
     var curIdx = list.indexOf(current);
     var nextIdx = (curIdx + 1) % list.length;
     var nextWallpaper = list[nextIdx];
 
     state.config.wallpaper = nextWallpaper;
 
-    if (nextWallpaper === 'custom') {
-      state.config.wallpaperDark = null;
-    } else {
-      var parts = nextWallpaper.split('.');
-      var ext = parts.pop();
-      var base = parts.join('.');
-      var darkName = base + '_dark.' + ext;
-      
-      var rawList = state.rawScannedWallpapers || ['pixel_art_landscape.png', 'pixel_art_landscape_dark.png'];
-      var hasDark = rawList.indexOf(darkName) !== -1;
-      
-      if (!hasDark && (nextWallpaper === 'pixel_art_landscape.png' || nextWallpaper === 'pixel_art_landscape_dark.png')) {
-        hasDark = true;
-        darkName = 'pixel_art_landscape_dark.png';
-      }
-      
-      state.config.wallpaperDark = hasDark ? darkName : null;
-    }
+    state.config.wallpaperDark = null;
 
     try {
       var saved = localStorage.getItem('trmnl_dashboard_settings');

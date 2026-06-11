@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Browser-based e-paper dashboard for iPad Mini 2, mimicking the TRMNL device UI.",
   "scripts": {
-    "dev": "npx -y http-server -p 8080"
+    "predev": "node scripts/generate-wallpapers-json.js",
+    "dev": "npx -y http-server -p 8080",
+    "index-wallpapers": "node scripts/generate-wallpapers-json.js"
   },
   "keywords": [
     "trmnl",

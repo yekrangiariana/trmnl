@@ -39,6 +39,19 @@ window.DASHBOARD_CONFIG = {
   historyShowBirthsDeaths: false,     // Toggle to show/hide births and deaths
   historyEventMode: 'mix',       // Event selection mode: 'default' (newest first), 'oldest' (oldest first), 'mix' (mix of oldest, middle, recent)
 
+  // Wallpaper Settings
+  // If your static host does not support directory listings, list your wallpaper filenames here:
+  availableWallpapers: [
+    'scene-1.jpg',
+    'scene-2.jpg',
+    'scene-3.jpg',
+    'scene-4.jpg',
+    'scene-5.jpg',
+    'scene-6.jpg',
+    'scene-7.jpg',
+    'scene-8.jpg'
+  ],
+
   // Plugin Settings
   plugins: {
     finnish_idioms: {

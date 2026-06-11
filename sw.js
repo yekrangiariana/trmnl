@@ -6,7 +6,7 @@
  * iOS 12 Safari Compatible.
  */
 
-var CACHE_NAME = "trmnl-dashboard-cache-v51";
+var CACHE_NAME = "trmnl-dashboard-cache-v54";
 var STATIC_ASSETS = [
   "/",
   "./",
@@ -18,8 +18,14 @@ var STATIC_ASSETS = [
   "icon-192.png",
   "icon-512.png",
   "apple-touch-icon.png",
-  "wallpapers/pixel_art_landscape.png",
-  "wallpapers/pixel_art_landscape_dark.png",
+  "wallpapers/scene-1.jpg",
+  "wallpapers/scene-2.jpg",
+  "wallpapers/scene-3.jpg",
+  "wallpapers/scene-4.jpg",
+  "wallpapers/scene-5.jpg",
+  "wallpapers/scene-6.jpg",
+  "wallpapers/scene-7.jpg",
+  "wallpapers/scene-8.jpg",
   "plugins/icons.js",
   "plugins/time.js",
   "plugins/today_in_history.js",
@@ -82,6 +88,13 @@ self.addEventListener("fetch", function (event) {
 
   // Bypass service worker interception for Sähkötin API due to WebKit redirect caching bugs in Safari
   if (requestUrl.hostname.indexOf("sahkotin.fi") !== -1) {
+    return;
+  }
+
+  // Bypass Service Worker for directory listings to avoid iOS 12 WebKit response.clone() bugs.
+  // The client code will handle caching/offline fallback using localStorage.
+  var isDirectoryListing = requestUrl.pathname.endsWith('/wallpapers/') || requestUrl.pathname.endsWith('/wallpapers');
+  if (isDirectoryListing) {
     return;
   }
 

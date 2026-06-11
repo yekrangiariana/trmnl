@@ -79,10 +79,10 @@
         todoistMaxTasks: activeConfig.todoistMaxTasks !== undefined ? activeConfig.todoistMaxTasks : 6,
         historyShowBirthsDeaths: activeConfig.historyShowBirthsDeaths !== undefined ? activeConfig.historyShowBirthsDeaths : false,
         historyEventMode: activeConfig.historyEventMode || 'mix',
-        wallpaper: activeConfig.wallpaper || 'pixel_art_landscape.png',
-        wallpaperDark: activeConfig.wallpaperDark || null,
         wallpaperEInk: activeConfig.wallpaperEInk || false,
-        cycleWallpapers: activeConfig.cycleWallpapers || false
+        cycleWallpapers: activeConfig.cycleWallpapers || false,
+        wallpaperPosition: activeConfig.wallpaperPosition || 'center bottom',
+        wallpaperZoom: activeConfig.wallpaperZoom !== undefined ? activeConfig.wallpaperZoom : 1.0
       }, savedDashboard);
 
       // Deep merge plugins config so we don't lose existing settings keys
@@ -637,14 +637,17 @@
       html += '          <label>Wallpaper Background</label>';
       html += '          <div class="wallpaper-preview-container">';
       html += '            <div class="wallpaper-current-preview' + (this.editedSettings.wallpaperEInk ? ' e-ink-active' : '') + '" id="cfg-wallpaper-current-preview">';
+      var currentPos = this.editedSettings.wallpaperPosition || 'center bottom';
+      var currentZoom = this.editedSettings.wallpaperZoom !== undefined ? this.editedSettings.wallpaperZoom : 1.0;
+      var transformStyle = 'transform: scale(' + currentZoom + '); transform-origin: center center;';
       if (this.editedSettings.wallpaper === 'custom' && this.editedSettings.customWallpaperBase64) {
-        html += '              <img src="' + this.editedSettings.customWallpaperBase64 + '" alt="Custom Wallpaper">';
+        html += '              <img src="' + this.editedSettings.customWallpaperBase64 + '" alt="Custom Wallpaper" style="object-position: ' + currentPos + '; ' + transformStyle + '">';
       } else {
-        html += '              <img src="wallpapers/' + (this.editedSettings.wallpaper || 'pixel_art_landscape.png') + '" alt="Current Wallpaper" onerror="this.src=\'wallpapers/pixel_art_landscape.png\'">';
+        html += '              <img src="wallpapers/' + (this.editedSettings.wallpaper || 'scene-1.jpg') + '" alt="Current Wallpaper" onerror="this.src=\'wallpapers/scene-1.jpg\'" style="object-position: ' + currentPos + '; ' + transformStyle + '">';
       }
       html += '            </div>';
       html += '            <div class="wallpaper-current-info">';
-      var wallName = this.editedSettings.wallpaper || 'pixel_art_landscape.png';
+      var wallName = this.editedSettings.wallpaper || 'scene-1.jpg';
       if (wallName === 'custom') {
         wallName = 'Custom (Uploaded)';
       }
@@ -948,6 +951,28 @@
       html += '  </div>';
       html += '</div>';
 
+      // Wallpaper Positioning Modal Overlay
+      html += '<div class="wallpaper-modal-overlay" id="wallpaper-position-modal">';
+      html += '  <div class="wallpaper-modal" style="max-width: 540px; width: 90%;">';
+      html += '    <div class="wallpaper-modal-header">';
+      html += '      <div class="wallpaper-modal-title">Adjust Wallpaper Position</div>';
+      html += '      <button class="wallpaper-modal-close" id="wallpaper-position-modal-close" type="button">&times;</button>';
+      html += '    </div>';
+      html += '    <div class="wallpaper-modal-body" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 15px;">';
+      
+      // Viewport container (4:3 aspect ratio like the iPad Mini 2 screen)
+      html += '      <div class="wallpaper-drag-viewport" id="wp-drag-viewport" style="position:relative; width: 100%; max-width: 480px; height: 320px; border: var(--border-width) solid var(--border-color); border-radius: 8px; overflow: hidden; cursor: grab; user-select: none; -webkit-user-select: none;">';
+      html += '        <img id="wp-drag-img" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; pointer-events:none; image-rendering:pixelated; image-rendering:crisp-edges;" src="" alt="Wallpaper Preview">';
+      html += '      </div>';
+      
+      html += '    </div>';
+      html += '    <div class="wallpaper-modal-footer">';
+      html += '      <button class="trmnl-btn secondary" id="wallpaper-position-modal-cancel" type="button">Cancel</button>';
+      html += '      <button class="trmnl-btn" id="wallpaper-position-modal-apply" type="button">Apply Position</button>';
+      html += '    </div>';
+      html += '  </div>';
+      html += '</div>';
+
       this.container.innerHTML = html;
 
       // Event Bindings
@@ -1075,7 +1100,7 @@
       var wpFileInput = this.container.querySelector('#wallpaper-file-input');
       var wpGridContainer = this.container.querySelector('#wallpaper-grid-container');
 
-      var modalSelectedWallpaper = self.editedSettings.wallpaper || 'pixel_art_landscape.png';
+      var modalSelectedWallpaper = self.editedSettings.wallpaper || 'scene-1.jpg';
       var modalCustomBase64 = self.editedSettings.customWallpaperBase64 || null;
 
       function resizeImage(base64Str, maxWidth, maxHeight, callback) {
@@ -1109,12 +1134,18 @@
       }
 
       function scanWallpapers(callback) {
-        var defaultWallpapers = ['pixel_art_landscape.png', 'pixel_art_landscape_dark.png'];
-        if (!navigator.onLine) {
-          callback(defaultWallpapers);
-          return;
-        }
-        fetch('./wallpapers/', {
+        var activeConfig = window.Dashboard ? window.Dashboard.getActiveConfig() : {};
+        var defaultWallpapers = activeConfig.availableWallpapers || [
+          'scene-1.jpg',
+          'scene-2.jpg',
+          'scene-3.jpg',
+          'scene-4.jpg',
+          'scene-5.jpg',
+          'scene-6.jpg',
+          'scene-7.jpg',
+          'scene-8.jpg'
+        ];
+        fetch('./wallpapers.json?_t=' + Date.now(), {
           headers: { 'Accept': 'application/json' }
         })
         .then(function(res) {
@@ -1128,23 +1159,23 @@
         })
         .then(function(data) {
           var files = [];
-          if (typeof data === 'object' && Array.isArray(data)) {
+          if (Array.isArray(data)) {
             files = data.filter(function(item) {
-              return item.type === 'file' && /\.(png|jpe?g|webp|gif)$/i.test(item.name);
+              if (typeof item === 'string') return /\.(png|jpe?g|webp|gif)$/i.test(item);
+              return item && item.type === 'file' && /\.(png|jpe?g|webp|gif)$/i.test(item.name);
             }).map(function(item) {
+              if (typeof item === 'string') return item;
               return item.name;
             });
           } else if (typeof data === 'string') {
-            var parser = new DOMParser();
-            var doc = parser.parseFromString(data, 'text/html');
-            var links = doc.querySelectorAll('a');
+            var regex = /href=["']?([^"'\s>]+?\.(?:png|jpe?g|webp|gif))["']?/gi;
+            var match;
             var matched = {};
-            for (var i = 0; i < links.length; i++) {
-              var href = links[i].getAttribute('href') || '';
-              href = href.split('?')[0].split('#')[0];
+            while ((match = regex.exec(data)) !== null) {
+              var href = match[1];
               var decoded = decodeURIComponent(href);
               var basename = decoded.substring(decoded.lastIndexOf('/') + 1);
-              if (basename && /\.(png|jpe?g|webp|gif)$/i.test(basename)) {
+              if (basename) {
                 matched[basename] = true;
               }
             }
@@ -1154,55 +1185,44 @@
             if (files.indexOf(w) === -1) files.push(w);
           });
           
-          // Cache scanned list in localStorage
-          try {
-            localStorage.setItem('trmnl_raw_scanned_wallpapers', JSON.stringify(files));
-            var filtered = files.filter(function(file) {
-              // inline check for isDarkVersion
-              var parts = file.split('.');
-              if (parts.length < 2) return false;
-              var ext = parts.pop();
-              var base = parts.join('.');
-              if (base.endsWith('_dark')) {
-                var lightName = base.substring(0, base.length - 5) + '.' + ext;
-                return files.indexOf(lightName) !== -1;
-              }
-              return false;
-            });
-            localStorage.setItem('trmnl_available_wallpapers', JSON.stringify(filtered));
-          } catch (e) {
-            console.warn("Failed to cache wallpapers from settings scan:", e);
+          // Cache scanned list in localStorage only if we found more than default
+          if (files.length > defaultWallpapers.length) {
+            try {
+              localStorage.setItem('trmnl_raw_scanned_wallpapers', JSON.stringify(files));
+              localStorage.setItem('trmnl_available_wallpapers', JSON.stringify(files));
+            } catch (e) {
+              console.warn("Failed to cache wallpapers from settings scan:", e);
+            }
           }
           
           callback(files);
         })
         .catch(function(err) {
-          console.warn("Scanning failed, using default list", err);
+          console.warn("Scanning failed, trying cache", err);
+          var cached = null;
+          try {
+            cached = localStorage.getItem('trmnl_available_wallpapers');
+          } catch (e) {}
+          if (cached) {
+            try {
+              var parsed = JSON.parse(cached);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                callback(parsed);
+                return;
+              }
+            } catch (e) {}
+          }
           callback(defaultWallpapers);
         });
       }
 
-      function isDarkVersion(filename, allFiles) {
-        var parts = filename.split('.');
-        if (parts.length < 2) return false;
-        var ext = parts.pop();
-        var base = parts.join('.');
-        if (base.endsWith('_dark')) {
-          var lightBase = base.substring(0, base.length - 5);
-          var lightName = lightBase + '.' + ext;
-          return allFiles.indexOf(lightName) !== -1;
-        }
-        return false;
-      }
+
 
       function renderGrid(files) {
         if (!wpGridContainer) return;
         wpGridContainer.innerHTML = '';
 
-        // Filter out _dark versions if their light partner exists to keep UI tidy
-        var displayFiles = files.filter(function(f) {
-          return !isDarkVersion(f, files);
-        });
+        var displayFiles = files.slice();
 
         // Add custom upload thumbnail if base64 exists
         if (modalCustomBase64) {
@@ -1226,7 +1246,7 @@
             name = 'CUSTOM PHOTO';
           } else {
             img.src = 'wallpapers/' + file;
-            img.onerror = function() { img.src = 'wallpapers/pixel_art_landscape.png'; };
+            img.onerror = function() { img.src = 'wallpapers/scene-1.jpg'; };
             name = file.replace('.png', '').replace('.jpg', '').replace('.jpeg', '').replace('_', ' ');
           }
           item.appendChild(img);
@@ -1254,7 +1274,7 @@
         wpChangeBtn.addEventListener('click', function(e) {
           e.stopPropagation();
           wpModal.classList.add('active');
-          modalSelectedWallpaper = self.editedSettings.wallpaper || 'pixel_art_landscape.png';
+          modalSelectedWallpaper = self.editedSettings.wallpaper || 'scene-1.jpg';
           modalCustomBase64 = self.editedSettings.customWallpaperBase64 || null;
           
           if (wpGridContainer) {
@@ -1320,31 +1340,210 @@
           self.editedSettings.wallpaper = modalSelectedWallpaper;
           if (modalSelectedWallpaper === 'custom') {
             self.editedSettings.customWallpaperBase64 = modalCustomBase64;
-            self.editedSettings.wallpaperDark = null;
-          } else {
-            // Find if a dark counterpart exists for the selected wallpaper
-            var lightName = modalSelectedWallpaper;
-            var parts = lightName.split('.');
-            var ext = parts.pop();
-            var base = parts.join('.');
-            var darkName = base + '_dark.' + ext;
-            
-            var hasDark = false;
-            var files = self.scannedWallpaperList || [];
-            if (files.indexOf(darkName) !== -1) {
-              hasDark = true;
-            }
-            
-            // Hardcoded fallback logic for default wallpapers if offline
-            if (!hasDark && (lightName === 'pixel_art_landscape.png' || lightName === 'pixel_art_landscape_dark.png')) {
-              hasDark = true;
-              darkName = 'pixel_art_landscape_dark.png';
-            }
-            
-            self.editedSettings.wallpaperDark = hasDark ? darkName : null;
           }
+          self.editedSettings.wallpaperDark = null;
           closeModal();
-          // Re-render settings panel to show the selected wallpaper in the preview block
+          // Immediately open the positioning modal to let user align the selected wallpaper
+          openPositionModal();
+        });
+      }
+
+      // --- Wallpaper Positioning Event Bindings ---
+      var wpPosModal = this.container.querySelector('#wallpaper-position-modal');
+      var wpPosCloseBtn = this.container.querySelector('#wallpaper-position-modal-close');
+      var wpPosCancelBtn = this.container.querySelector('#wallpaper-position-modal-cancel');
+      var wpPosApplyBtn = this.container.querySelector('#wallpaper-position-modal-apply');
+      var wpDragViewport = this.container.querySelector('#wp-drag-viewport');
+      var wpDragImg = this.container.querySelector('#wp-drag-img');
+
+      var isDragging = false;
+      var startY = 0;
+      var startPercent = 50;
+      var currentPercent = 50;
+      var currentZoom = 1.0;
+
+      var isPinching = false;
+      var startTouchDist = 0;
+      var startZoom = 1.0;
+
+      function parseVerticalPercent(posStr) {
+        var pos = posStr || 'center bottom';
+        if (pos === 'center bottom' || pos === 'bottom') return 100;
+        if (pos === 'center top' || pos === 'top') return 0;
+        if (pos === 'center' || pos === 'center center') return 50;
+        var match = pos.match(/(\d+)%/);
+        if (match) return parseInt(match[1], 10);
+        return 100; // fallback default
+      }
+
+      function openPositionModal() {
+        if (!wpPosModal) return;
+        wpPosModal.classList.add('active');
+        
+        var currentWp = self.editedSettings.wallpaper || 'scene-1.jpg';
+        var customBase64 = self.editedSettings.customWallpaperBase64;
+        
+        if (currentWp === 'custom' && customBase64) {
+          wpDragImg.src = customBase64;
+        } else {
+          wpDragImg.src = 'wallpapers/' + currentWp;
+        }
+        
+        var currentPos = self.editedSettings.wallpaperPosition || 'center bottom';
+        currentPercent = parseVerticalPercent(currentPos);
+        currentZoom = self.editedSettings.wallpaperZoom !== undefined ? parseFloat(self.editedSettings.wallpaperZoom) : 1.0;
+        
+        wpDragImg.style.objectPosition = 'center ' + currentPercent + '%';
+        wpDragImg.style.transform = 'scale(' + currentZoom + ')';
+        wpDragImg.style.transformOrigin = 'center center';
+      }
+
+      function startDrag(y) {
+        isDragging = true;
+        startY = y;
+        startPercent = currentPercent;
+        if (wpDragViewport) wpDragViewport.style.cursor = 'grabbing';
+      }
+
+      function moveDrag(y) {
+        if (!isDragging) return;
+        var deltaY = y - startY;
+        // Sensitivity: 3 pixels of drag changes 1% of position
+        var newPercent = startPercent - (deltaY / 3);
+        if (newPercent < 0) newPercent = 0;
+        if (newPercent > 100) newPercent = 100;
+        currentPercent = Math.round(newPercent);
+        
+        wpDragImg.style.objectPosition = 'center ' + currentPercent + '%';
+      }
+
+      function stopDrag() {
+        isDragging = false;
+        if (wpDragViewport) wpDragViewport.style.cursor = 'grab';
+      }
+
+      if (wpDragViewport) {
+        // Trackpad / Mouse Scroll Wheel Zoom
+        wpDragViewport.addEventListener('wheel', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          
+          var zoomStep = 0.05;
+          if (e.deltaY < 0) {
+            currentZoom += zoomStep; // zoom in
+          } else {
+            currentZoom -= zoomStep; // zoom out
+          }
+          
+          if (currentZoom < 1.0) currentZoom = 1.0;
+          if (currentZoom > 3.0) currentZoom = 3.0;
+          currentZoom = Math.round(currentZoom * 100) / 100;
+          
+          wpDragImg.style.transform = 'scale(' + currentZoom + ')';
+        });
+
+        // Mouse Drag Events
+        wpDragViewport.addEventListener('mousedown', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          startDrag(e.clientY);
+        });
+
+        window.addEventListener('mousemove', function(e) {
+          if (isDragging) {
+            e.stopPropagation();
+            e.preventDefault();
+            moveDrag(e.clientY);
+          }
+        });
+
+        window.addEventListener('mouseup', function(e) {
+          if (isDragging) {
+            e.stopPropagation();
+            stopDrag();
+          }
+        });
+
+        // Touch Pinch-to-Zoom & Drag Events (iPad Mini 2 safe)
+        wpDragViewport.addEventListener('touchstart', function(e) {
+          e.stopPropagation();
+          if (e.touches && e.touches.length === 2) {
+            isPinching = true;
+            isDragging = false;
+            startTouchDist = Math.hypot(
+              e.touches[0].clientX - e.touches[1].clientX,
+              e.touches[0].clientY - e.touches[1].clientY
+            );
+            startZoom = currentZoom;
+          } else if (e.touches && e.touches.length === 1) {
+            isPinching = false;
+            startDrag(e.touches[0].clientY);
+          }
+        });
+
+        wpDragViewport.addEventListener('touchmove', function(e) {
+          if (isPinching && e.touches && e.touches.length === 2) {
+            e.stopPropagation();
+            e.preventDefault();
+            var currentTouchDist = Math.hypot(
+              e.touches[0].clientX - e.touches[1].clientX,
+              e.touches[0].clientY - e.touches[1].clientY
+            );
+            if (startTouchDist > 0) {
+              var scaleFactor = currentTouchDist / startTouchDist;
+              currentZoom = startZoom * scaleFactor;
+              if (currentZoom < 1.0) currentZoom = 1.0;
+              if (currentZoom > 3.0) currentZoom = 3.0;
+              currentZoom = Math.round(currentZoom * 100) / 100;
+              wpDragImg.style.transform = 'scale(' + currentZoom + ')';
+            }
+          } else if (!isPinching && isDragging && e.touches && e.touches.length === 1) {
+            e.stopPropagation();
+            e.preventDefault();
+            moveDrag(e.touches[0].clientY);
+          }
+        });
+
+        wpDragViewport.addEventListener('touchend', function(e) {
+          e.stopPropagation();
+          if (isPinching) {
+            isPinching = false;
+            startTouchDist = 0;
+          } else if (isDragging) {
+            stopDrag();
+          }
+        });
+      }
+
+      if (wpPosApplyBtn) {
+        wpPosApplyBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          self.editedSettings.wallpaperPosition = 'center ' + currentPercent + '%';
+          self.editedSettings.wallpaperZoom = currentZoom;
+          wpPosModal.classList.remove('active');
+          
+          // Re-render the main preview in the settings page
+          var mainPreviewImg = self.container.querySelector('#cfg-wallpaper-current-preview img');
+          if (mainPreviewImg) {
+            mainPreviewImg.style.objectPosition = 'center ' + currentPercent + '%';
+            mainPreviewImg.style.transform = 'scale(' + currentZoom + ')';
+            mainPreviewImg.style.transformOrigin = 'center center';
+          }
+        });
+      }
+
+      if (wpPosCloseBtn) {
+        wpPosCloseBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          wpPosModal.classList.remove('active');
+          self.renderPanel();
+        });
+      }
+
+      if (wpPosCancelBtn) {
+        wpPosCancelBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          wpPosModal.classList.remove('active');
           self.renderPanel();
         });
       }
