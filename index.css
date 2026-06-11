@@ -204,6 +204,10 @@ body::after {
   animation: fade-in 0.25s ease-out;
   contain: layout style paint; /* Scopes rendering to this container */
   will-change: opacity;
+  -webkit-transform: translate3d(0,0,0); /* Hardware accelerate on older Safari/iOS */
+  transform: translate3d(0,0,0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .plugin-view.active {

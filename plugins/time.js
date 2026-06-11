@@ -154,6 +154,59 @@
       var wallpaper = activeConfig.wallpaper || 'pixel_art_landscape.png';
       var wallpaperDark = activeConfig.wallpaperDark;
       var customBase64 = activeConfig.customWallpaperBase64;
+      var eink = !!activeConfig.wallpaperEInk;
+      var hasWeather = !!weather;
+
+      // Check if wallpaper configuration is identical to last render
+      var stateChanged = !this.lastState ||
+                         this.lastState.wallpaper !== wallpaper ||
+                         this.lastState.customBase64 !== customBase64 ||
+                         this.lastState.wallpaperDark !== wallpaperDark ||
+                         this.lastState.eink !== eink ||
+                         this.lastState.hasWeather !== hasWeather;
+
+      var widget = this.container.querySelector('.time-pixel-widget');
+
+      if (!stateChanged && widget) {
+        // FAST PATH: Only update text nodes in place to avoid image reload/re-decode jank
+        var header = widget.querySelector('.time-pixel-widget-header-minimal');
+        if (header) {
+          header.innerHTML = dayName.toUpperCase() + ' &bull; ' + monthName.toUpperCase() + ' ' + dateNum + ', ' + year;
+        }
+        
+        var clock = widget.querySelector('.time-pixel-widget-clock-minimal');
+        if (clock) {
+          clock.textContent = timeStr;
+        }
+        
+        if (weather) {
+          var weatherElem = widget.querySelector('.time-pixel-widget-weather');
+          var weatherText = weather.temp + '° &bull; ' + weather.desc.toUpperCase() + ' &bull; H: ' + weather.high + '° L: ' + weather.low + '°';
+          if (weatherElem) {
+            weatherElem.innerHTML = weatherText;
+          } else {
+            var newDiv = document.createElement('div');
+            newDiv.className = 'time-pixel-widget-weather';
+            newDiv.innerHTML = weatherText;
+            widget.appendChild(newDiv);
+          }
+        } else {
+          var weatherElem = widget.querySelector('.time-pixel-widget-weather');
+          if (weatherElem) {
+            weatherElem.parentNode.removeChild(weatherElem);
+          }
+        }
+        return;
+      }
+
+      // SLOW PATH: Full render (first run or when wallpaper config changes)
+      this.lastState = {
+        wallpaper: wallpaper,
+        customBase64: customBase64,
+        wallpaperDark: wallpaperDark,
+        eink: eink,
+        hasWeather: hasWeather
+      };
 
       var bgHtml = '';
       if (wallpaper === 'custom' && customBase64) {

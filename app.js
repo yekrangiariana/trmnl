@@ -86,10 +86,13 @@
     if (state.config.wallpaperEInk === undefined) {
       state.config.wallpaperEInk = false;
     }
+    if (state.config.cycleWallpapers === undefined) {
+      state.config.cycleWallpapers = false;
+    }
     state.config.plugins = Object.assign({}, defaultConfig.plugins || {});
 
     // Deep merge local overrides
-    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode', 'wallpaper', 'customWallpaperBase64', 'wallpaperDark', 'wallpaperEInk'];
+    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode', 'wallpaper', 'customWallpaperBase64', 'wallpaperDark', 'wallpaperEInk', 'cycleWallpapers'];
     rootKeys.forEach(function(key) {
       if (localOverrides[key] !== undefined) {
         state.config[key] = localOverrides[key];
@@ -107,6 +110,152 @@
           localOverrides.plugins[pluginId]
         );
       });
+    }
+
+    // Scan wallpapers in the background
+    scanWallpapersOnBoot();
+  }
+
+  // Background Wallpaper Scanner & Cycler
+  state.availableWallpapers = ['pixel_art_landscape.png'];
+  state.rawScannedWallpapers = ['pixel_art_landscape.png', 'pixel_art_landscape_dark.png'];
+
+  function scanWallpapersOnBoot() {
+    try {
+      var cachedAvailable = localStorage.getItem('trmnl_available_wallpapers');
+      var cachedRaw = localStorage.getItem('trmnl_raw_scanned_wallpapers');
+      if (cachedAvailable) {
+        state.availableWallpapers = JSON.parse(cachedAvailable);
+      }
+      if (cachedRaw) {
+        state.rawScannedWallpapers = JSON.parse(cachedRaw);
+      }
+    } catch (e) {}
+
+    if (!navigator.onLine) return;
+
+    fetch('./wallpapers/', {
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(function(res) {
+      if (!res.ok) throw new Error("Fetch listing failed");
+      var contentType = res.headers.get('content-type') || '';
+      if (contentType.indexOf('application/json') !== -1) {
+        return res.json();
+      } else {
+        return res.text();
+      }
+    })
+    .then(function(data) {
+      var files = [];
+      var defaultList = ['pixel_art_landscape.png', 'pixel_art_landscape_dark.png'];
+      
+      if (typeof data === 'object' && Array.isArray(data)) {
+        files = data.filter(function(item) {
+          return item.type === 'file' && /\.(png|jpe?g|webp|gif)$/i.test(item.name);
+        }).map(function(item) {
+          return item.name;
+        });
+      } else if (typeof data === 'string') {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(data, 'text/html');
+        var links = doc.querySelectorAll('a');
+        var matched = {};
+        for (var i = 0; i < links.length; i++) {
+          var href = links[i].getAttribute('href') || '';
+          href = href.split('?')[0].split('#')[0];
+          var decoded = decodeURIComponent(href);
+          var basename = decoded.substring(decoded.lastIndexOf('/') + 1);
+          if (basename && /\.(png|jpe?g|webp|gif)$/i.test(basename)) {
+            matched[basename] = true;
+          }
+        }
+        files = Object.keys(matched);
+      }
+      
+      defaultList.forEach(function(w) {
+        if (files.indexOf(w) === -1) files.push(w);
+      });
+
+      var filtered = files.filter(function(file) {
+        // Check if this is a dark version (isDarkVersion check inlined)
+        var parts = file.split('.');
+        if (parts.length < 2) return false;
+        var ext = parts.pop();
+        var base = parts.join('.');
+        if (base.endsWith('_dark')) {
+          var lightName = base.substring(0, base.length - 5) + '.' + ext;
+          return files.indexOf(lightName) !== -1;
+        }
+        return false;
+      });
+
+      // Filter displayFiles (only light files that are NOT dark counterparts)
+      var displayFiles = files.filter(function(f) {
+        var parts = f.split('.');
+        if (parts.length < 2) return true;
+        var ext = parts.pop();
+        var base = parts.join('.');
+        if (base.endsWith('_dark')) {
+          var lightName = base.substring(0, base.length - 5) + '.' + ext;
+          return files.indexOf(lightName) === -1; // Keep only if it has NO light counterpart
+        }
+        return true;
+      });
+
+      state.availableWallpapers = displayFiles;
+      state.rawScannedWallpapers = files;
+      
+      localStorage.setItem('trmnl_available_wallpapers', JSON.stringify(displayFiles));
+      localStorage.setItem('trmnl_raw_scanned_wallpapers', JSON.stringify(files));
+    })
+    .catch(function(err) {
+      console.warn("Background wallpaper scan failed:", err);
+    });
+  }
+
+  function cycleToNextWallpaper() {
+    var list = state.availableWallpapers || ['pixel_art_landscape.png'];
+    if (state.config.customWallpaperBase64 && list.indexOf('custom') === -1) {
+      list.unshift('custom');
+    }
+
+    if (list.length <= 1) return;
+
+    var current = state.config.wallpaper || 'pixel_art_landscape.png';
+    var curIdx = list.indexOf(current);
+    var nextIdx = (curIdx + 1) % list.length;
+    var nextWallpaper = list[nextIdx];
+
+    state.config.wallpaper = nextWallpaper;
+
+    if (nextWallpaper === 'custom') {
+      state.config.wallpaperDark = null;
+    } else {
+      var parts = nextWallpaper.split('.');
+      var ext = parts.pop();
+      var base = parts.join('.');
+      var darkName = base + '_dark.' + ext;
+      
+      var rawList = state.rawScannedWallpapers || ['pixel_art_landscape.png', 'pixel_art_landscape_dark.png'];
+      var hasDark = rawList.indexOf(darkName) !== -1;
+      
+      if (!hasDark && (nextWallpaper === 'pixel_art_landscape.png' || nextWallpaper === 'pixel_art_landscape_dark.png')) {
+        hasDark = true;
+        darkName = 'pixel_art_landscape_dark.png';
+      }
+      
+      state.config.wallpaperDark = hasDark ? darkName : null;
+    }
+
+    try {
+      var saved = localStorage.getItem('trmnl_dashboard_settings');
+      var overrides = saved ? JSON.parse(saved) : {};
+      overrides.wallpaper = state.config.wallpaper;
+      overrides.wallpaperDark = state.config.wallpaperDark;
+      localStorage.setItem('trmnl_dashboard_settings', JSON.stringify(overrides));
+    } catch (e) {
+      console.warn("Failed to persist cycled wallpaper:", e);
     }
   }
 
@@ -277,6 +426,23 @@
       index = state.activePlugins.length - 1;
     } else if (index >= state.activePlugins.length) {
       index = 0;
+    }
+
+    // Detect carousel loop completion (wrap-around to the first page)
+    var len = state.activePlugins.length;
+    var firstCarouselIdx = -1;
+    var lastCarouselIdx = -1;
+    for (var i = 0; i < len; i++) {
+      var pId = state.activePlugins[i].id;
+      var pSettings = state.config.plugins[pId] || {};
+      if (pSettings.showInCarousel !== false) {
+        if (firstCarouselIdx === -1) firstCarouselIdx = i;
+        lastCarouselIdx = i;
+      }
+    }
+
+    if (state.config.cycleWallpapers && state.activeIndex === lastCarouselIdx && index === firstCarouselIdx) {
+      cycleToNextWallpaper();
     }
 
     if (index === state.activeIndex && document.querySelector('.plugin-view.active')) {

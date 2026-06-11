@@ -80,9 +80,9 @@
         historyShowBirthsDeaths: activeConfig.historyShowBirthsDeaths !== undefined ? activeConfig.historyShowBirthsDeaths : false,
         historyEventMode: activeConfig.historyEventMode || 'mix',
         wallpaper: activeConfig.wallpaper || 'pixel_art_landscape.png',
-        customWallpaperBase64: activeConfig.customWallpaperBase64 || null,
         wallpaperDark: activeConfig.wallpaperDark || null,
-        wallpaperEInk: activeConfig.wallpaperEInk || false
+        wallpaperEInk: activeConfig.wallpaperEInk || false,
+        cycleWallpapers: activeConfig.cycleWallpapers || false
       }, savedDashboard);
 
       // Deep merge plugins config so we don't lose existing settings keys
@@ -147,6 +147,8 @@
         
         var einkCheck = this.container.querySelector('#cfg-wallpaper-eink');
         if (einkCheck) this.editedSettings.wallpaperEInk = einkCheck.checked;
+        var cycleCheck = this.container.querySelector('#cfg-wallpaper-cycle');
+        if (cycleCheck) this.editedSettings.cycleWallpapers = cycleCheck.checked;
       } 
       else if (this.activeTab === 'transit') {
         var nameInput = this.container.querySelector('#cfg-name');
@@ -664,6 +666,18 @@
       html += '          <div class="field-desc" style="margin-top: 4px;">Grayscales and dithers the wallpaper to look like a physical e-paper display.</div>';
       html += '        </div>';
 
+      html += '        <div class="form-group" style="margin-top: 10px;">';
+      html += '          <label>CYCLE WALLPAPERS ON LOOP</label>';
+      html += '          <div style="display: flex; align-items: center; margin-top: 8px;">';
+      html += '            <input type="checkbox" id="cfg-wallpaper-cycle" style="display: none;"' + (this.editedSettings.cycleWallpapers ? ' checked' : '') + '>';
+      html += '            <button class="wallpaper-eink-toggle-btn' + (this.editedSettings.cycleWallpapers ? ' active' : '') + '" id="cfg-wallpaper-cycle-btn" type="button">';
+      html += '              <span class="eink-indicator-dot"></span>';
+      html += '              <span class="eink-status-text">CYCLE WALLPAPERS: ' + (this.editedSettings.cycleWallpapers ? 'ON' : 'OFF') + '</span>';
+      html += '            </button>';
+      html += '          </div>';
+      html += '          <div class="field-desc" style="margin-top: 4px;">Automatically rotates to the next wallpaper after every full carousel cycle.</div>';
+      html += '        </div>';
+
       html += '        <div id="cfg-update-indicator-wrapper" style="display:none; margin-top:10px;">';
       html += '          <button class="trmnl-btn" id="cfg-update-indicator-btn" style="width: 100%; font-size: 11px; background-color: var(--text-color); color: var(--bg-color);">NEW UPDATE DETECTED — CLICK TO APPLY SOFTWARE UPDATE</button>';
       html += '        </div>';
@@ -1139,6 +1153,27 @@
           defaultWallpapers.forEach(function(w) {
             if (files.indexOf(w) === -1) files.push(w);
           });
+          
+          // Cache scanned list in localStorage
+          try {
+            localStorage.setItem('trmnl_raw_scanned_wallpapers', JSON.stringify(files));
+            var filtered = files.filter(function(file) {
+              // inline check for isDarkVersion
+              var parts = file.split('.');
+              if (parts.length < 2) return false;
+              var ext = parts.pop();
+              var base = parts.join('.');
+              if (base.endsWith('_dark')) {
+                var lightName = base.substring(0, base.length - 5) + '.' + ext;
+                return files.indexOf(lightName) !== -1;
+              }
+              return false;
+            });
+            localStorage.setItem('trmnl_available_wallpapers', JSON.stringify(filtered));
+          } catch (e) {
+            console.warn("Failed to cache wallpapers from settings scan:", e);
+          }
+          
           callback(files);
         })
         .catch(function(err) {
@@ -1390,6 +1425,30 @@
                 item.classList.remove('e-ink-active');
               }
             });
+          }
+        });
+      }
+
+      // Live Cycle Wallpapers Toggle Button Binding
+      var cycleBtn = this.container.querySelector('#cfg-wallpaper-cycle-btn');
+      var cycleCheckbox = this.container.querySelector('#cfg-wallpaper-cycle');
+      
+      if (cycleBtn && cycleCheckbox) {
+        cycleBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          cycleCheckbox.checked = !cycleCheckbox.checked;
+          self.editedSettings.cycleWallpapers = cycleCheckbox.checked;
+          
+          if (cycleCheckbox.checked) {
+            cycleBtn.classList.add('active');
+            var statusText = cycleBtn.querySelector('.eink-status-text');
+            if (statusText) statusText.textContent = 'CYCLE WALLPAPERS: ON';
+          } else {
+            cycleBtn.classList.remove('active');
+            var statusText = cycleBtn.querySelector('.eink-status-text');
+            if (statusText) statusText.textContent = 'CYCLE WALLPAPERS: OFF';
           }
         });
       }
