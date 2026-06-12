@@ -1,5 +1,5 @@
 /**
- * News Headlines Plugin for TRMNL Dashboard
+ * News Headlines Plugin for BRIEF Dashboard
  * Fetches from RSS and sorts by date to show the latest headlines.
  */
 
@@ -18,7 +18,7 @@
 
     render: function(element) {
       this.container = element;
-      var cachedStr = localStorage.getItem('trmnl_news_cache');
+      var cachedStr = localStorage.getItem('brief_news_cache');
       if (cachedStr) {
         try {
           var cached = JSON.parse(cachedStr);
@@ -36,7 +36,7 @@
 
     update: function(force) {
       var self = this;
-      var cachedStr = localStorage.getItem('trmnl_news_cache');
+      var cachedStr = localStorage.getItem('brief_news_cache');
       var needsFetch = true;
 
       if (!force && cachedStr) {
@@ -94,7 +94,7 @@
               lastUpdated: self.lastUpdated.getTime()
             };
             try {
-              localStorage.setItem('trmnl_news_cache', JSON.stringify(cacheObj));
+              localStorage.setItem('brief_news_cache', JSON.stringify(cacheObj));
             } catch (e) {
               console.warn("Failed to set news cache:", e);
             }

@@ -1,5 +1,5 @@
 /**
- * Finnish Idiom of the Day Plugin for TRMNL Dashboard
+ * Finnish Idiom of the Day Plugin for BRIEF Dashboard
  * Displays a daily Finnish idiom with English translation and meaning.
  * Supports chronological history navigation through previously unlocked/seen idioms.
  * Caches results and seen history in localStorage for offline-first PWA operation.
@@ -47,7 +47,7 @@
 
       // Check if we have cached idioms in localStorage
       try {
-        var cached = localStorage.getItem('trmnl_finnish_idioms_cache');
+        var cached = localStorage.getItem('brief_finnish_idioms_cache');
         if (cached) {
           var parsed = JSON.parse(cached);
           if (parsed && parsed.length > 0) {
@@ -76,7 +76,7 @@
             self.idioms = data;
             // Cache data locally
             try {
-              localStorage.setItem('trmnl_finnish_idioms_cache', JSON.stringify(data));
+              localStorage.setItem('brief_finnish_idioms_cache', JSON.stringify(data));
             } catch (err) {
               console.warn("Failed to cache idioms list:", err);
             }
@@ -101,7 +101,7 @@
       // 1. Load seen history from localStorage
       var savedSeen = [];
       try {
-        var saved = localStorage.getItem('trmnl_finnish_seen_list');
+        var saved = localStorage.getItem('brief_finnish_seen_list');
         if (saved) {
           savedSeen = JSON.parse(saved);
         }
@@ -154,7 +154,7 @@
 
     saveSeenList: function() {
       try {
-        localStorage.setItem('trmnl_finnish_seen_list', JSON.stringify(this.seenList));
+        localStorage.setItem('brief_finnish_seen_list', JSON.stringify(this.seenList));
       } catch (e) {
         console.warn("Error saving seen list:", e);
       }

@@ -1,5 +1,5 @@
 /**
- * Settings Control Panel Plugin for TRMNL Dashboard
+ * Settings Control Panel Plugin for BRIEF Dashboard
  * Manages configuration overrides in localStorage for global settings and other plugins
  */
 
@@ -53,7 +53,7 @@
       // Load current dashboard settings
       var savedDashboard = {};
       try {
-        var saved = localStorage.getItem('trmnl_dashboard_settings');
+        var saved = localStorage.getItem('brief_dashboard_settings');
         if (saved) {
           savedDashboard = JSON.parse(saved);
         }
@@ -126,7 +126,7 @@
       
       var savedStats = {};
       try {
-        var saved = localStorage.getItem('trmnl_personal_stats_config');
+        var saved = localStorage.getItem('brief_personal_stats_config');
         if (saved) {
           savedStats = JSON.parse(saved);
         }
@@ -283,14 +283,14 @@
           }
 
           // Save settings to localStorage
-          localStorage.setItem('trmnl_dashboard_settings', JSON.stringify(self.editedSettings));
-          localStorage.setItem('trmnl_personal_stats_config', JSON.stringify(self.editedStats));
+          localStorage.setItem('brief_dashboard_settings', JSON.stringify(self.editedSettings));
+          localStorage.setItem('brief_personal_stats_config', JSON.stringify(self.editedStats));
           
           if (self.editedFinnishSeenList) {
-            localStorage.setItem('trmnl_finnish_seen_list', JSON.stringify(self.editedFinnishSeenList));
+            localStorage.setItem('brief_finnish_seen_list', JSON.stringify(self.editedFinnishSeenList));
           }
           if (self.editedLaundryPrice !== null && self.editedLaundryPrice !== undefined) {
-            localStorage.setItem('trmnl_laundry_price', self.editedLaundryPrice.toString());
+            localStorage.setItem('brief_laundry_price', self.editedLaundryPrice.toString());
           }
           
           alert("All changes saved successfully! Reloading dashboard...");
@@ -391,10 +391,10 @@
 
     resetAll: function() {
       try {
-        localStorage.removeItem('trmnl_dashboard_settings');
-        localStorage.removeItem('trmnl_personal_stats_config');
-        localStorage.removeItem('trmnl_laundry_price');
-        localStorage.removeItem('trmnl_finnish_seen_list');
+        localStorage.removeItem('brief_dashboard_settings');
+        localStorage.removeItem('brief_personal_stats_config');
+        localStorage.removeItem('brief_laundry_price');
+        localStorage.removeItem('brief_finnish_seen_list');
         this.wifiQrBase64 = null;
         this.editedFinnishSeenList = null;
         this.editedLaundryPrice = null;
@@ -422,14 +422,14 @@
       var exportData = {
         version: "1.0",
         timestamp: new Date().toISOString(),
-        trmnl_dashboard_settings: settingsToExport,
-        trmnl_personal_stats_config: this.editedStats
+        brief_dashboard_settings: settingsToExport,
+        brief_personal_stats_config: this.editedStats
       };
 
       var finnishSeen = this.editedFinnishSeenList;
       if (!finnishSeen) {
         try {
-          var saved = localStorage.getItem('trmnl_finnish_seen_list');
+          var saved = localStorage.getItem('brief_finnish_seen_list');
           if (saved) {
             finnishSeen = JSON.parse(saved);
           }
@@ -438,13 +438,13 @@
         }
       }
       if (finnishSeen) {
-        exportData.trmnl_finnish_seen_list = finnishSeen;
+        exportData.brief_finnish_seen_list = finnishSeen;
       }
 
       var laundryPrice = this.editedLaundryPrice;
       if (laundryPrice === null || laundryPrice === undefined) {
         try {
-          var saved = localStorage.getItem('trmnl_laundry_price');
+          var saved = localStorage.getItem('brief_laundry_price');
           if (saved) {
             laundryPrice = parseFloat(saved);
           }
@@ -453,7 +453,7 @@
         }
       }
       if (laundryPrice !== null && laundryPrice !== undefined) {
-        exportData.trmnl_laundry_price = laundryPrice;
+        exportData.brief_laundry_price = laundryPrice;
       }
 
       try {
@@ -461,7 +461,7 @@
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
-        a.download = "trmnl_settings_backup.json";
+        a.download = "brief_settings_backup.json";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -481,12 +481,14 @@
         try {
           var importData = JSON.parse(e.target.result);
           
-          if (!importData || !importData.trmnl_dashboard_settings || !importData.trmnl_personal_stats_config) {
+          var dashboardSettings = importData.brief_dashboard_settings || importData.trmnl_dashboard_settings;
+          var personalStatsConfig = importData.brief_personal_stats_config || importData.trmnl_personal_stats_config;
+          if (!importData || !dashboardSettings || !personalStatsConfig) {
             throw new Error("Invalid backup file structure. Missing configurations.");
           }
 
           // Strip wallpaper settings from the imported configurations to respect "wallpaper is not necessary"
-          var importedSettings = Object.assign({}, importData.trmnl_dashboard_settings);
+          var importedSettings = Object.assign({}, dashboardSettings);
           delete importedSettings.wallpaper;
           delete importedSettings.customWallpaperBase64;
           delete importedSettings.wallpaperDark;
@@ -494,14 +496,16 @@
 
           // Update in-memory configurations
           self.editedSettings = Object.assign({}, self.editedSettings, importedSettings);
-          self.editedStats = Object.assign({}, self.editedStats, importData.trmnl_personal_stats_config);
+          self.editedStats = Object.assign({}, self.editedStats, personalStatsConfig);
           self.wifiQrBase64 = self.editedSettings.wifiQrBase64;
           
-          if (importData.trmnl_finnish_seen_list) {
-            self.editedFinnishSeenList = importData.trmnl_finnish_seen_list;
+          var finnishSeen = importData.brief_finnish_seen_list || importData.trmnl_finnish_seen_list;
+          if (finnishSeen) {
+            self.editedFinnishSeenList = finnishSeen;
           }
-          if (importData.trmnl_laundry_price !== undefined) {
-            self.editedLaundryPrice = importData.trmnl_laundry_price;
+          var laundryPrice = importData.brief_laundry_price !== undefined ? importData.brief_laundry_price : importData.trmnl_laundry_price;
+          if (laundryPrice !== undefined) {
+            self.editedLaundryPrice = laundryPrice;
           }
 
           alert("Settings imported in-memory! Click 'SAVE ALL CHANGES' to apply them.");
@@ -531,9 +535,9 @@
             var serverVersion = match[1];
             
             caches.keys().then(function(keys) {
-              // Check if we have at least one trmnl cache stored locally
+              // Check if we have at least one trmnl or brief cache stored locally
               var hasAnyTrmnlCache = keys.some(function(key) {
-                return key.indexOf('trmnl-dashboard-cache-') === 0;
+                return key.indexOf('brief-dashboard-cache-') === 0 || key.indexOf('trmnl-dashboard-cache-') === 0;
               });
               
               // If there is an existing cache, but it doesn't match the server version, show update button
@@ -677,7 +681,7 @@
       } else if (this.editedSettings.wallpaper && this.editedSettings.wallpaper.indexOf('nasa-') === 0) {
         var savedList = [];
         try {
-          var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+          var cachedSaved = localStorage.getItem('brief_nasa_saved_wallpapers');
           if (cachedSaved) savedList = JSON.parse(cachedSaved);
         } catch (e) {}
         var savedObj = null;
@@ -703,7 +707,7 @@
       } else if (displayName.indexOf('nasa-') === 0) {
         var savedList = [];
         try {
-          var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+          var cachedSaved = localStorage.getItem('brief_nasa_saved_wallpapers');
           if (cachedSaved) savedList = JSON.parse(cachedSaved);
         } catch (e) {}
         var savedObj = null;
@@ -1373,8 +1377,8 @@
           // Cache scanned list in localStorage only if we found more than default
           if (files.length > defaultWallpapers.length) {
             try {
-              localStorage.setItem('trmnl_raw_scanned_wallpapers', JSON.stringify(files));
-              localStorage.setItem('trmnl_available_wallpapers', JSON.stringify(files));
+              localStorage.setItem('brief_raw_scanned_wallpapers', JSON.stringify(files));
+              localStorage.setItem('brief_available_wallpapers', JSON.stringify(files));
             } catch (e) {
               console.warn("Failed to cache wallpapers from settings scan:", e);
             }
@@ -1386,7 +1390,7 @@
           console.warn("Scanning failed, trying cache", err);
           var cached = null;
           try {
-            cached = localStorage.getItem('trmnl_available_wallpapers');
+            cached = localStorage.getItem('brief_available_wallpapers');
           } catch (e) {}
           if (cached) {
             try {
@@ -1412,7 +1416,7 @@
         // Add saved NASA wallpapers if they exist
         var savedList = [];
         try {
-          var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+          var cachedSaved = localStorage.getItem('brief_nasa_saved_wallpapers');
           if (cachedSaved) savedList = JSON.parse(cachedSaved);
         } catch (e) {}
         
@@ -1602,7 +1606,7 @@
         } else if (currentWp && currentWp.indexOf('nasa-') === 0) {
           var savedList = [];
           try {
-            var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+            var cachedSaved = localStorage.getItem('brief_nasa_saved_wallpapers');
             if (cachedSaved) savedList = JSON.parse(cachedSaved);
           } catch (e) {}
           var savedObj = null;

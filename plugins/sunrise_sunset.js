@@ -1,5 +1,5 @@
 /**
- * Sunrise & Sunset Plugin for TRMNL Dashboard
+ * Sunrise & Sunset Plugin for BRIEF Dashboard
  * Fetches solar phase transitions for Today and Tomorrow using Open-Meteo.
  */
 

@@ -1,5 +1,5 @@
 /**
- * HSL Live Departures Plugin for TRMNL Dashboard
+ * HSL Live Departures Plugin for BRIEF Dashboard
  * Uses:
  *  - Nominatim (OpenStreetMap) for free geocoding of address/neighbourhood
  *  - Digitransit GraphQL API for stop discovery and live departures
@@ -91,7 +91,7 @@
     },
 
     loadFromDeparturesCache: function(neighbourhood) {
-      var cachedStr = localStorage.getItem('trmnl_hsl_departures_cache');
+      var cachedStr = localStorage.getItem('brief_hsl_departures_cache');
       if (cachedStr) {
         try {
           var cached = JSON.parse(cachedStr);
@@ -131,7 +131,7 @@
         return;
       }
 
-      var stopCacheStr = localStorage.getItem('trmnl_hsl_stop_cache');
+      var stopCacheStr = localStorage.getItem('brief_hsl_stop_cache');
       if (stopCacheStr) {
         try {
           var stopCache = JSON.parse(stopCacheStr);
@@ -210,7 +210,7 @@
           stopIds: stopIds
         };
         try {
-          localStorage.setItem('trmnl_hsl_stop_cache', JSON.stringify(stopCache));
+          localStorage.setItem('brief_hsl_stop_cache', JSON.stringify(stopCache));
         } catch (e) {
           console.warn("Failed to save stopCache:", e);
         }
@@ -285,7 +285,7 @@
           timestamp: Date.now()
         };
         try {
-          localStorage.setItem('trmnl_hsl_departures_cache', JSON.stringify(depCache));
+          localStorage.setItem('brief_hsl_departures_cache', JSON.stringify(depCache));
         } catch (e) {
           console.warn("Failed to cache departures:", e);
         }

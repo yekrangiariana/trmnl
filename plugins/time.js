@@ -1,5 +1,5 @@
 /**
- * Time & Date Plugin for TRMNL Dashboard
+ * Time & Date Plugin for BRIEF Dashboard
  * Renders a large, elegant clock, the full date, a mini-calendar of the current month,
  * and year progress metrics. Designed for iPad Mini 2 screen sizes.
  */
@@ -61,7 +61,7 @@
 
     getWeather: function() {
       var self = this;
-      var cached = localStorage.getItem('trmnl_weather_cache');
+      var cached = localStorage.getItem('brief_weather_cache');
       if (cached) {
         try {
           var data = JSON.parse(cached);
@@ -106,7 +106,7 @@
                 timestamp: Date.now()
               };
               
-              localStorage.setItem('trmnl_weather_cache', JSON.stringify(weatherSummary));
+              localStorage.setItem('brief_weather_cache', JSON.stringify(weatherSummary));
               
               if (self.container && self.container.classList.contains('active')) {
                 self.renderTime();
@@ -228,7 +228,7 @@
       } else if (wallpaper && wallpaper.indexOf('nasa-') === 0) {
         var savedList = [];
         try {
-          var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+          var cachedSaved = localStorage.getItem('brief_nasa_saved_wallpapers');
           if (cachedSaved) savedList = JSON.parse(cachedSaved);
         } catch (e) {}
         var savedObj = null;

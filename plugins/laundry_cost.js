@@ -1,5 +1,5 @@
 /**
- * Laundry Cost Calculator Plugin for TRMNL Dashboard
+ * Laundry Cost Calculator Plugin for BRIEF Dashboard
  * Calculates cycle costs for the Electrolux EW2F3048C1 front-loading washing machine (8kg)
  * using local price tiers and manual rate adjustment. Offline-friendly, zero external API dependencies.
  */
@@ -47,7 +47,7 @@
 
     loadPrice: function() {
       try {
-        var saved = localStorage.getItem('trmnl_laundry_price');
+        var saved = localStorage.getItem('brief_laundry_price');
         if (saved) {
           this.currentPrice = parseFloat(saved);
         } else {
@@ -61,7 +61,7 @@
     savePrice: function(price) {
       this.currentPrice = Math.max(0.01, parseFloat(price.toFixed(2)));
       try {
-        localStorage.setItem('trmnl_laundry_price', this.currentPrice.toString());
+        localStorage.setItem('brief_laundry_price', this.currentPrice.toString());
       } catch (e) {
         console.warn("Failed to save laundry price:", e);
       }

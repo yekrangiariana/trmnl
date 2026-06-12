@@ -1,5 +1,5 @@
 /**
- * Personal Stats & Reflections Plugin for TRMNL Dashboard
+ * Personal Stats & Reflections Plugin for BRIEF Dashboard
  * Tracks childhood (Child 1 & Child 2), marriage & parenthood, cooking & writing, sleep, and cosmic statistics.
  * Allows editing configurations directly on the plugin page.
  */
@@ -49,7 +49,7 @@
       };
 
       try {
-        var saved = localStorage.getItem('trmnl_personal_stats_config');
+        var saved = localStorage.getItem('brief_personal_stats_config');
         if (saved) {
           this.config = Object.assign({}, defaults, JSON.parse(saved));
         } else {
@@ -63,16 +63,16 @@
     saveConfig: function(newConfig) {
       this.config = Object.assign({}, this.config, newConfig);
       try {
-        localStorage.setItem('trmnl_personal_stats_config', JSON.stringify(this.config));
+        localStorage.setItem('brief_personal_stats_config', JSON.stringify(this.config));
         
         // Synchronize birthdate with global settings
-        var globalSaved = localStorage.getItem('trmnl_dashboard_settings');
+        var globalSaved = localStorage.getItem('brief_dashboard_settings');
         var globalSettings = {};
         if (globalSaved) {
           globalSettings = JSON.parse(globalSaved);
         }
         globalSettings.birthdate = this.config.birthdate;
-        localStorage.setItem('trmnl_dashboard_settings', JSON.stringify(globalSettings));
+        localStorage.setItem('brief_dashboard_settings', JSON.stringify(globalSettings));
       } catch (e) {
         console.error("Failed to save stats config:", e);
       }

@@ -1,5 +1,5 @@
 /**
- * British Word of the Day Plugin for TRMNL Dashboard
+ * British Word of the Day Plugin for BRIEF Dashboard
  * Cycles daily through a curated list of British English terms with phonetics and usage examples.
  * When online, fetches Merriam-Webster Word of the Day RSS feed and queries the Free Dictionary API for definitions, phonetics, and examples.
  * Caches results in localStorage for offline PWA operation.
@@ -68,7 +68,7 @@
 
       // Check if we have cached word (any date)
       try {
-        var cached = localStorage.getItem('trmnl_word_of_day_cache');
+        var cached = localStorage.getItem('brief_word_of_day_cache');
         if (cached) {
           cachedObj = JSON.parse(cached);
         }
@@ -230,7 +230,7 @@
 
                 // Cache in localStorage
                 try {
-                  localStorage.setItem('trmnl_word_of_day_cache', JSON.stringify(newWordObj));
+                  localStorage.setItem('brief_word_of_day_cache', JSON.stringify(newWordObj));
                 } catch (err) {
                   console.warn("Failed to write word cache:", err);
                 }
@@ -271,7 +271,7 @@
 
       // Cache fallback word so we don't continuously request on subsequent ticks
       try {
-        localStorage.setItem('trmnl_word_of_day_cache', JSON.stringify(fallbackObj));
+        localStorage.setItem('brief_word_of_day_cache', JSON.stringify(fallbackObj));
       } catch (err) {
         console.warn("Failed to write word cache:", err);
       }

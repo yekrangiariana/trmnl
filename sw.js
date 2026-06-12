@@ -1,12 +1,12 @@
 /**
- * TRMNL Dashboard PWA Service Worker
+ * BRIEF Dashboard PWA Service Worker
  * Implements offline caching using Stale-While-Revalidate for local assets,
  * and Network-First for dynamic weather and history API responses.
  *
  * iOS 12 Safari Compatible.
  */
 
-var CACHE_NAME = "trmnl-dashboard-cache-v54";
+var CACHE_NAME = "brief-dashboard-cache-v55";
 var STATIC_ASSETS = [
   "/",
   "./",

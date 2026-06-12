@@ -1,5 +1,5 @@
 /**
- * Todoist Plugin for TRMNL Dashboard
+ * Todoist Plugin for BRIEF Dashboard
  * Fetches active due tasks and today's completed tasks from the Todoist API and renders them in a split e-paper layout.
  * Designed for iPad Mini 2 screen compatibility (ES6 safe, no optional chaining or nullish coalescing).
  */
@@ -20,12 +20,12 @@
 
     render: function(element) {
       this.container = element;
-      var cachedTasks = localStorage.getItem('trmnl_todoist_tasks_cache');
-      var cachedTime = localStorage.getItem('trmnl_todoist_timestamp');
+      var cachedTasks = localStorage.getItem('brief_todoist_tasks_cache');
+      var cachedTime = localStorage.getItem('brief_todoist_timestamp');
       if (cachedTasks && cachedTime) {
         try {
           var activeTasks = JSON.parse(cachedTasks);
-          var cachedCompleted = localStorage.getItem('trmnl_todoist_completed_cache');
+          var cachedCompleted = localStorage.getItem('brief_todoist_completed_cache');
           var completedTasks = cachedCompleted ? JSON.parse(cachedCompleted) : [];
           var activeConfig = window.Dashboard ? window.Dashboard.getActiveConfig() : {};
           var maxTasks = activeConfig.todoistMaxTasks !== undefined ? activeConfig.todoistMaxTasks : (this.config.todoistMaxTasks || 6);
@@ -53,8 +53,8 @@
         return;
       }
 
-      var cachedTasks = localStorage.getItem('trmnl_todoist_tasks_cache');
-      var cachedTime = localStorage.getItem('trmnl_todoist_timestamp');
+      var cachedTasks = localStorage.getItem('brief_todoist_tasks_cache');
+      var cachedTime = localStorage.getItem('brief_todoist_timestamp');
       var needsFetch = true;
 
       if (!force && cachedTasks && cachedTime) {
@@ -115,9 +115,9 @@
         var completedTasks = results[1] ? (results[1].items || results[1]) : [];
 
         // Save to local cache
-        localStorage.setItem('trmnl_todoist_tasks_cache', JSON.stringify(activeTasks));
-        localStorage.setItem('trmnl_todoist_completed_cache', JSON.stringify(completedTasks));
-        localStorage.setItem('trmnl_todoist_timestamp', Date.now().toString());
+        localStorage.setItem('brief_todoist_tasks_cache', JSON.stringify(activeTasks));
+        localStorage.setItem('brief_todoist_completed_cache', JSON.stringify(completedTasks));
+        localStorage.setItem('brief_todoist_timestamp', Date.now().toString());
 
         self.lastUpdated = new Date();
         self.renderTasks(activeTasks, completedTasks, maxTasks, false);
@@ -130,9 +130,9 @@
 
     loadFromCache: function(isOffline) {
       var self = this;
-      var cachedTasks = localStorage.getItem('trmnl_todoist_tasks_cache');
-      var cachedCompleted = localStorage.getItem('trmnl_todoist_completed_cache');
-      var cachedTime = localStorage.getItem('trmnl_todoist_timestamp');
+      var cachedTasks = localStorage.getItem('brief_todoist_tasks_cache');
+      var cachedCompleted = localStorage.getItem('brief_todoist_completed_cache');
+      var cachedTime = localStorage.getItem('brief_todoist_timestamp');
 
       var activeConfig = window.Dashboard ? window.Dashboard.getActiveConfig() : {};
       var maxTasks = activeConfig.todoistMaxTasks !== undefined ? activeConfig.todoistMaxTasks : (this.config.todoistMaxTasks || 6);

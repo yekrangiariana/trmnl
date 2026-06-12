@@ -1,5 +1,5 @@
 /**
- * Central SVG Icon Registry for TRMNL Dashboard
+ * Central SVG Icon Registry for BRIEF Dashboard
  * Replaces the large FontAwesome CDN CSS and font files.
  * Provides a simple method: window.getIcon(name, extraStyles, size)
  * Designed for iPad Mini 2 compatibility.

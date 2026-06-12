@@ -1,5 +1,5 @@
 /**
- * TRMNL Dashboard Orchestrator
+ * BRIEF Dashboard Orchestrator
  * Manages plugin lifecycles, configuration overrides, page transitions, and UI scaling.
  * 
  * DESIGNED FOR IPAD MINI 2: ES6 compatible, no optional chaining (?.) or nullish coalescing (??).
@@ -7,6 +7,27 @@
 
 (function() {
   'use strict';
+
+  // Migrate legacy TRMNL settings to BRIEF settings on boot
+  try {
+    var legacyKeys = [
+      'dashboard_settings', 'personal_stats_config', 'finnish_seen_list',
+      'laundry_price', 'available_wallpapers', 'raw_scanned_wallpapers',
+      'nasa_saved_wallpapers', 'finnish_idioms_cache', 'hsl_departures_cache',
+      'hsl_stop_cache', 'nasa_apod', 'news_cache', 'wiki_random_history',
+      'history_cache', 'todoist_tasks_cache', 'todoist_completed_cache',
+      'todoist_timestamp', 'weather_cache', 'weather_full_cache', 'word_of_day_cache'
+    ];
+    legacyKeys.forEach(function(key) {
+      var oldKey = 'trmnl_' + key;
+      var newKey = 'brief_' + key;
+      if (localStorage.getItem(oldKey) !== null && localStorage.getItem(newKey) === null) {
+        localStorage.setItem(newKey, localStorage.getItem(oldKey));
+      }
+    });
+  } catch (e) {
+    console.warn("Failed to run local storage migration:", e);
+  }
 
   // State Management
   var state = {
@@ -61,7 +82,7 @@
     }
 
     try {
-      var saved = localStorage.getItem('trmnl_dashboard_settings');
+      var saved = localStorage.getItem('brief_dashboard_settings');
       if (saved) {
         var overrides = JSON.parse(saved);
         var migrated = false;
@@ -79,7 +100,7 @@
         }
         
         if (migrated) {
-          localStorage.setItem('trmnl_dashboard_settings', JSON.stringify(overrides));
+          localStorage.setItem('brief_dashboard_settings', JSON.stringify(overrides));
         }
         localOverrides = overrides;
       }
@@ -172,8 +193,8 @@
 
   function scanWallpapersOnBoot() {
     try {
-      var cachedAvailable = localStorage.getItem('trmnl_available_wallpapers');
-      var cachedRaw = localStorage.getItem('trmnl_raw_scanned_wallpapers');
+      var cachedAvailable = localStorage.getItem('brief_available_wallpapers');
+      var cachedRaw = localStorage.getItem('brief_raw_scanned_wallpapers');
       if (cachedAvailable) {
         state.availableWallpapers = JSON.parse(cachedAvailable);
       } else if (state.config.availableWallpapers) {
@@ -231,7 +252,7 @@
 
       // Register saved NASA wallpapers in available lists for cycling support
       try {
-        var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+        var cachedSaved = localStorage.getItem('brief_nasa_saved_wallpapers');
         if (cachedSaved) {
           var savedList = JSON.parse(cachedSaved);
           if (Array.isArray(savedList)) {
@@ -250,13 +271,13 @@
       state.rawScannedWallpapers = files;
       
       if (files.length > defaultList.length) {
-        localStorage.setItem('trmnl_available_wallpapers', JSON.stringify(files));
-        localStorage.setItem('trmnl_raw_scanned_wallpapers', JSON.stringify(files));
+        localStorage.setItem('brief_available_wallpapers', JSON.stringify(files));
+        localStorage.setItem('brief_raw_scanned_wallpapers', JSON.stringify(files));
       }
     })
     .catch(function(err) {
       console.warn("Background wallpaper scan failed:", err);
-      if (!localStorage.getItem('trmnl_available_wallpapers')) {
+      if (!localStorage.getItem('brief_available_wallpapers')) {
         state.availableWallpapers = state.config.availableWallpapers || DEFAULT_WALLPAPERS.slice();
       }
     });
@@ -279,11 +300,11 @@
     state.config.wallpaperDark = null;
 
     try {
-      var saved = localStorage.getItem('trmnl_dashboard_settings');
+      var saved = localStorage.getItem('brief_dashboard_settings');
       var overrides = saved ? JSON.parse(saved) : {};
       overrides.wallpaper = state.config.wallpaper;
       overrides.wallpaperDark = state.config.wallpaperDark;
-      localStorage.setItem('trmnl_dashboard_settings', JSON.stringify(overrides));
+      localStorage.setItem('brief_dashboard_settings', JSON.stringify(overrides));
     } catch (e) {
       console.warn("Failed to persist cycled wallpaper:", e);
     }

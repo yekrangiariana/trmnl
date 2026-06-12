@@ -1,14 +1,14 @@
 {
-  "name": "trmnl-ipad-dashboard",
+  "name": "brief-ipad-dashboard",
   "version": "1.0.0",
-  "description": "Browser-based e-paper dashboard for iPad Mini 2, mimicking the TRMNL device UI.",
+  "description": "BRIEF is a simple information display for browser-enabled screens. It shows the information you want to see in a clear layout that can remain visible throughout the day. Calendars, tasks, weather, news, metrics and custom content can all be displayed in one place. BRIEF is designed for screens that stay on and stay in view. It works in any modern browser and can be used on monitors, tablets, televisions and other connected displays.",
   "scripts": {
     "predev": "node scripts/generate-wallpapers-json.js",
     "dev": "npx -y http-server -p 8080",
     "index-wallpapers": "node scripts/generate-wallpapers-json.js"
   },
   "keywords": [
-    "trmnl",
+    "brief",
     "dashboard",
     "ipad",
     "e-paper"

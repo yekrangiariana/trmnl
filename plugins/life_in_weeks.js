@@ -1,5 +1,5 @@
 /**
- * "Your Life in Weeks" Plugin for TRMNL Dashboard
+ * "Your Life in Weeks" Plugin for BRIEF Dashboard
  * Calculates and visualizes life progress on a 90-year grid (52 weeks x 90 years = 4680 weeks)
  */
 

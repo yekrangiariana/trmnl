@@ -1,5 +1,5 @@
 /**
- * Random Wikipedia Article Plugin for TRMNL Dashboard
+ * Random Wikipedia Article Plugin for BRIEF Dashboard
  * Fetches a random article summary from Wikipedia API and renders it in e-paper style.
  * Includes a 20-article history navigation and pre-fetching to prevent layout flashes.
  */
@@ -23,7 +23,7 @@
 
     getHistory: function() {
       try {
-        var saved = localStorage.getItem('trmnl_wiki_random_history');
+        var saved = localStorage.getItem('brief_wiki_random_history');
         if (saved) {
           var parsed = JSON.parse(saved);
           if (parsed && Array.isArray(parsed.articles)) {
@@ -38,7 +38,7 @@
 
     saveHistory: function(historyObj) {
       try {
-        localStorage.setItem('trmnl_wiki_random_history', JSON.stringify(historyObj));
+        localStorage.setItem('brief_wiki_random_history', JSON.stringify(historyObj));
       } catch (e) {
         console.warn("Failed to save wiki history:", e);
       }

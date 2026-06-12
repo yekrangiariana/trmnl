@@ -1,5 +1,5 @@
 /**
- * Guest Wi-Fi & Website QR Plugin for TRMNL Dashboard
+ * Guest Wi-Fi & Website QR Plugin for BRIEF Dashboard
  * Renders two side-by-side cards (Free Wi-Fi and Visit my website) on a dithered background.
  * Supports custom image file uploads for both QR slots.
  */

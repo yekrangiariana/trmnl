@@ -1,7 +1,7 @@
 {
-  "name": "TRMNL E-Paper Dashboard",
-  "short_name": "TRMNL",
-  "description": "Browser-based e-paper dashboard for iPad Mini 2",
+  "name": "BRIEF",
+  "short_name": "BRIEF",
+  "description": "BRIEF is a simple information display for browser-enabled screens. It shows the information you want to see in a clear layout that can remain visible throughout the day. Calendars, tasks, weather, news, metrics and custom content can all be displayed in one place. BRIEF is designed for screens that stay on and stay in view. It works in any modern browser and can be used on monitors, tablets, televisions and other connected displays.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#f6f3eb",

@@ -1,5 +1,5 @@
 /**
- * Custom Weather Plugin for TRMNL Dashboard
+ * Custom Weather Plugin for BRIEF Dashboard
  * Replicates the exact 3-column detailed dashboard (Amersfoort Layout).
  * Fetches data from Open-Meteo Weather and Air Quality APIs (free, keyless).
  */
@@ -19,7 +19,7 @@
 
     render: function(element) {
       this.container = element;
-      var cachedStr = localStorage.getItem('trmnl_weather_full_cache');
+      var cachedStr = localStorage.getItem('brief_weather_full_cache');
       if (cachedStr) {
         try {
           var cached = JSON.parse(cachedStr);
@@ -94,7 +94,7 @@
       var lat = self.config.latitude !== undefined ? self.config.latitude : 60.1699;
       var lon = self.config.longitude !== undefined ? self.config.longitude : 24.9384;
       
-      var cachedStr = localStorage.getItem('trmnl_weather_full_cache');
+      var cachedStr = localStorage.getItem('brief_weather_full_cache');
       var needsFetch = true;
       
       if (cachedStr) {
@@ -148,7 +148,7 @@
           aqiData: results[1]
         };
         try {
-          localStorage.setItem('trmnl_weather_full_cache', JSON.stringify(cacheObj));
+          localStorage.setItem('brief_weather_full_cache', JSON.stringify(cacheObj));
         } catch (e) {
           console.warn("Failed to set weather full cache:", e);
         }
@@ -200,7 +200,7 @@
           desc: descText,
           timestamp: Date.now()
         };
-        localStorage.setItem('trmnl_weather_cache', JSON.stringify(weatherSummary));
+        localStorage.setItem('brief_weather_cache', JSON.stringify(weatherSummary));
       } catch (e) {
         console.warn("Failed to cache weather data:", e);
       }

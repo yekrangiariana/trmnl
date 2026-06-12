@@ -1,5 +1,5 @@
 /**
- * Wikipedia "This Day in History" Plugin for TRMNL Dashboard
+ * Wikipedia "This Day in History" Plugin for BRIEF Dashboard
  * Fetches events, births, and deaths for today's date from Wikipedia REST API.
  */
 
@@ -18,7 +18,7 @@
 
     render: function(element) {
       this.container = element;
-      var cachedStr = localStorage.getItem('trmnl_history_cache');
+      var cachedStr = localStorage.getItem('brief_history_cache');
       if (cachedStr) {
         try {
           var cached = JSON.parse(cachedStr);
@@ -37,7 +37,7 @@
     update: function() {
       var self = this;
       var todayStr = new Date().toDateString();
-      var cachedStr = localStorage.getItem('trmnl_history_cache');
+      var cachedStr = localStorage.getItem('brief_history_cache');
       var needsFetch = true;
 
       if (cachedStr) {
@@ -79,7 +79,7 @@
             data: data
           };
           try {
-            localStorage.setItem('trmnl_history_cache', JSON.stringify(cacheObj));
+            localStorage.setItem('brief_history_cache', JSON.stringify(cacheObj));
           } catch (e) {
             console.warn("Failed to save history cache:", e);
           }

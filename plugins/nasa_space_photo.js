@@ -1,5 +1,5 @@
 /**
- * NASA Astronomy Picture of the Day (APOD) Plugin for TRMNL Dashboard
+ * NASA Astronomy Picture of the Day (APOD) Plugin for BRIEF Dashboard
  * Fetches the daily featured space picture and details from api.nasa.gov.
  * Employs local caching to make exactly one API request per day to prevent rate limit issues.
  */
@@ -34,7 +34,7 @@
 
       // Check cache first
       try {
-        var cached = localStorage.getItem('trmnl_nasa_apod');
+        var cached = localStorage.getItem('brief_nasa_apod');
         if (cached) {
           var parsed = JSON.parse(cached);
           if (parsed && parsed.dateStr === today && parsed.data && parsed.data.url) {
@@ -76,7 +76,7 @@
                   dateStr: today,
                   data: photoData
                 };
-                localStorage.setItem('trmnl_nasa_apod', JSON.stringify(cacheObj));
+                localStorage.setItem('brief_nasa_apod', JSON.stringify(cacheObj));
               } catch (e) {
                 console.warn("Failed to write APOD cache:", e);
               }
@@ -93,7 +93,7 @@
       } else {
         // Try to fall back to whatever is in cache even if it's from a previous day
         try {
-          var cachedFallback = localStorage.getItem('trmnl_nasa_apod');
+          var cachedFallback = localStorage.getItem('brief_nasa_apod');
           if (cachedFallback) {
             var parsedFallback = JSON.parse(cachedFallback);
             if (parsedFallback && parsedFallback.data) {
@@ -219,7 +219,7 @@
 
         var savedList = [];
         try {
-          var cachedSaved = localStorage.getItem('trmnl_nasa_saved_wallpapers');
+          var cachedSaved = localStorage.getItem('brief_nasa_saved_wallpapers');
           if (cachedSaved) savedList = JSON.parse(cachedSaved);
         } catch (e) {}
 
@@ -249,7 +249,7 @@
 
         // Save back to localStorage
         try {
-          localStorage.setItem('trmnl_nasa_saved_wallpapers', JSON.stringify(savedList));
+          localStorage.setItem('brief_nasa_saved_wallpapers', JSON.stringify(savedList));
         } catch(e) {
           console.warn("Failed to save NASA wallpaper list:", e);
         }
@@ -257,7 +257,7 @@
         // Update active configuration
         var settings = {};
         try {
-          var cachedSettings = localStorage.getItem('trmnl_dashboard_settings');
+          var cachedSettings = localStorage.getItem('brief_dashboard_settings');
           if (cachedSettings) settings = JSON.parse(cachedSettings);
         } catch(e) {}
 
@@ -265,7 +265,7 @@
         settings.wallpaperDark = null;
 
         try {
-          localStorage.setItem('trmnl_dashboard_settings', JSON.stringify(settings));
+          localStorage.setItem('brief_dashboard_settings', JSON.stringify(settings));
         } catch(e) {
           console.warn("Failed to persist dashboard settings:", e);
         }
