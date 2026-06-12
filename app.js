@@ -116,6 +116,9 @@
     if (state.config.clockComposition === undefined) {
       state.config.clockComposition = 'comp-default';
     }
+    if (state.config.scalingMode === undefined) {
+      state.config.scalingMode = 'full';
+    }
     state.config.plugins = Object.assign({}, defaultConfig.plugins || {});
     if (state.config.plugins.time === undefined) {
       state.config.plugins.time = {};
@@ -131,7 +134,7 @@
     }
 
     // Deep merge local overrides
-    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'hslRadius', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode', 'wallpaper', 'customWallpaperBase64', 'wallpaperDark', 'wallpaperEInk', 'cycleWallpapers', 'availableWallpapers', 'wallpaperPosition', 'wallpaperZoom', 'clockPlacement', 'clockComposition'];
+    var rootKeys = ['refreshInterval', 'flashRefresh', 'theme', 'birthdate', 'latitude', 'longitude', 'locationName', 'tempUnit', 'wifiQrBase64', 'hslStopIds', 'hslNeighbourhood', 'digitransitApiKey', 'todoistApiKey', 'todoistFilter', 'todoistMaxTasks', 'historyShowBirthsDeaths', 'historyEventMode', 'wallpaper', 'customWallpaperBase64', 'wallpaperDark', 'wallpaperEInk', 'cycleWallpapers', 'availableWallpapers', 'wallpaperPosition', 'wallpaperZoom', 'clockPlacement', 'clockComposition', 'scalingMode'];
     rootKeys.forEach(function(key) {
       if (localOverrides[key] !== undefined) {
         state.config[key] = localOverrides[key];
@@ -291,18 +294,82 @@
     var viewport = document.getElementById('app-viewport');
     if (!viewport) return;
 
+    var scalingMode = state.config.scalingMode || 'full';
+
+    // Reset styles applied by different scaling modes
+    viewport.style.position = '';
+    viewport.style.top = '';
+    viewport.style.left = '';
+    viewport.style.width = '';
+    viewport.style.height = '';
+    viewport.style.transform = '';
+    viewport.style.transformOrigin = '';
+    viewport.style.border = '';
+
     var targetWidth = 1024;
     var targetHeight = 768;
     
     var windowWidth = window.innerWidth;
     var windowHeight = window.innerHeight;
 
-    // Calculate scale ratio to fit both dimensions
     var scaleX = windowWidth / targetWidth;
     var scaleY = windowHeight / targetHeight;
-    var finalScale = Math.min(scaleX, scaleY);
 
-    // Apply scaling centered
+    var isPortrait = windowWidth < windowHeight;
+    if (isPortrait) {
+      document.body.classList.add('portrait');
+    } else {
+      document.body.classList.remove('portrait');
+    }
+
+    if (scalingMode === 'full') {
+      // Responsive / Fill Screen (Native) with dynamic font scaling:
+      var finalScale;
+      var logicalWidth;
+      var logicalHeight;
+
+      if (isPortrait) {
+        // Portrait mode: adjust target width based on screen type (mobile vs tablet)
+        // to prevent font sizes from scaling down too small on mobile screens.
+        var portraitTargetWidth = windowWidth < 600 ? 512 : 768;
+        finalScale = windowWidth / portraitTargetWidth;
+        logicalWidth = portraitTargetWidth;
+        logicalHeight = windowHeight / finalScale;
+      } else {
+        // Landscape mode: scale uniformly based on height to prevent scrollability
+        var scaleX = windowWidth / targetWidth;
+        var scaleY = windowHeight / targetHeight;
+        finalScale = Math.min(scaleX, scaleY);
+        logicalWidth = windowWidth / finalScale;
+        logicalHeight = windowHeight / finalScale;
+      }
+
+      viewport.style.position = 'absolute';
+      viewport.style.top = '0';
+      viewport.style.left = '0';
+      viewport.style.width = logicalWidth + 'px';
+      viewport.style.height = logicalHeight + 'px';
+      viewport.style.transform = 'scale(' + finalScale + ')';
+      viewport.style.transformOrigin = 'top left';
+      viewport.style.border = 'none';
+      return;
+    }
+
+    // Fixed sizes modes (ipad & fit) require viewport to be 1024x768 centered
+    viewport.style.position = 'absolute';
+    viewport.style.top = '50%';
+    viewport.style.left = '50%';
+    viewport.style.width = '1024px';
+    viewport.style.height = '768px';
+    viewport.style.border = '1px solid #1c1c1c';
+
+    if (scalingMode === 'ipad') {
+      viewport.style.transform = 'translate(-50%, -50%)';
+      return;
+    }
+
+    // Scale to Fit (Maintain 4:3 Aspect Ratio)
+    var finalScale = Math.min(scaleX, scaleY);
     viewport.style.transform = 'translate(-50%, -50%) scale(' + finalScale + ')';
   }
 
@@ -908,6 +975,8 @@
     // Event listeners
     window.addEventListener('online', updateNetworkStatus);
     window.addEventListener('offline', updateNetworkStatus);
+    window.addEventListener('resize', adjustScale);
+    window.addEventListener('orientationchange', adjustScale);
     updateNetworkStatus(); // initial run
   }
 

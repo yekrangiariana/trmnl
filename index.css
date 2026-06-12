@@ -1029,26 +1029,7 @@ button.trmnl-btn.secondary:active {
   background-color: var(--highlight-bg);
 }
 
-/* 3. Modern Left-Aligned Composition */
-.time-pixel-widget.comp-clean-left {
-  align-items: flex-start;
-  text-align: left;
-}
-.time-pixel-widget.comp-clean-left .time-pixel-widget-header-minimal {
-  border-bottom: none;
-  padding-bottom: 0;
-  margin-bottom: 4px;
-  text-align: left;
-}
-.time-pixel-widget.comp-clean-left .time-pixel-widget-clock-minimal {
-  font-size: 80px;
-  font-weight: 900;
-  line-height: 1;
-  margin-bottom: 8px;
-}
-.time-pixel-widget.comp-clean-left .time-pixel-widget-weather {
-  text-align: left;
-}
+
 
 
 /* Layout Preview Scaling for Settings Tab */
@@ -1120,17 +1101,7 @@ button.trmnl-btn.secondary:active {
   border-radius: 0 0 4px 4px;
   background-color: var(--highlight-bg);
 }
-.clock-mini-preview-widget.comp-clean-left {
-  align-items: flex-start;
-  text-align: left;
-}
-.clock-mini-preview-widget.comp-clean-left .time-pixel-widget-header-minimal,
-.clock-mini-preview-widget.comp-clean-left .time-pixel-widget-clock-minimal,
-.clock-mini-preview-widget.comp-clean-left .time-pixel-widget-weather {
-  text-align: left !important;
-  border-bottom: none !important;
-  border-top: none !important;
-}
+
 
 /* 4. Neo-Brutalist Badge Composition */
 .time-pixel-widget.comp-brutalist {
@@ -1171,112 +1142,7 @@ button.trmnl-btn.secondary:active {
   margin-top: 8px;
 }
 
-/* 5. Terminal Console Composition */
-.time-pixel-widget.comp-terminal {
-  border: 1px solid var(--border-color);
-  background: var(--card-bg);
-  padding: 20px;
-  border-radius: 4px;
-  font-family: var(--font-mono) !important;
-  text-align: left;
-  align-items: flex-start;
-}
-.time-pixel-widget.comp-terminal::before {
-  content: "root@trmnl:~$ ./show_time.sh";
-  font-family: var(--font-mono) !important;
-  font-size: 12px;
-  opacity: 0.7;
-  margin-bottom: 12px;
-  display: block;
-  width: 100%;
-  border-bottom: 1px dashed var(--border-color);
-  padding-bottom: 6px;
-}
-.time-pixel-widget.comp-terminal .time-pixel-widget-header-minimal {
-  border-bottom: none;
-  padding-bottom: 0;
-  margin-bottom: 6px;
-  font-family: var(--font-mono) !important;
-  font-size: 16px;
-}
-.time-pixel-widget.comp-terminal .time-pixel-widget-header-minimal::before {
-  content: "[SYS_DATE] ";
-  font-weight: bold;
-}
-.time-pixel-widget.comp-terminal .time-pixel-widget-clock-minimal {
-  font-family: var(--font-mono) !important;
-  font-size: 44px;
-  font-weight: bold;
-  margin-bottom: 6px;
-  letter-spacing: -1px;
-}
-.time-pixel-widget.comp-terminal .time-pixel-widget-clock-minimal::before {
-  content: "[SYS_TIME] ";
-  font-size: 18px;
-  letter-spacing: normal;
-  vertical-align: middle;
-}
-.time-pixel-widget.comp-terminal .time-pixel-widget-weather {
-  border-top: none;
-  padding-top: 0;
-  margin-top: 0;
-  font-family: var(--font-mono) !important;
-  font-size: 15px;
-}
-.time-pixel-widget.comp-terminal .time-pixel-widget-weather::before {
-  content: "[SYS_WEAT] ";
-  font-weight: bold;
-}
 
-/* 6. Vertical Timeline Stack Composition */
-.time-pixel-widget.comp-timeline {
-  border-left: 3px solid var(--border-color);
-  padding-left: 28px;
-  align-items: flex-start;
-  text-align: left;
-  position: relative;
-  margin-left: 15px;
-}
-.time-pixel-widget.comp-timeline .time-pixel-widget-header-minimal,
-.time-pixel-widget.comp-timeline .time-pixel-widget-clock-minimal,
-.time-pixel-widget.comp-timeline .time-pixel-widget-weather {
-  position: relative;
-  border: none;
-  padding: 0;
-  margin: 0 0 16px 0;
-  text-align: left;
-}
-.time-pixel-widget.comp-timeline .time-pixel-widget-weather {
-  margin-bottom: 0;
-}
-.time-pixel-widget.comp-timeline .time-pixel-widget-header-minimal::before,
-.time-pixel-widget.comp-timeline .time-pixel-widget-clock-minimal::before,
-.time-pixel-widget.comp-timeline .time-pixel-widget-weather::before {
-  content: "";
-  position: absolute;
-  left: -35.5px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--card-bg);
-  border: 3px solid var(--border-color);
-  box-sizing: border-box;
-}
-.time-pixel-widget.comp-timeline .time-pixel-widget-clock-minimal {
-  font-size: 56px;
-  font-weight: 800;
-}
-.time-pixel-widget.comp-timeline .time-pixel-widget-header-minimal {
-  font-size: 14px;
-  font-family: var(--font-mono) !important;
-  font-weight: 700;
-}
-.time-pixel-widget.comp-timeline .time-pixel-widget-weather {
-  font-size: 15px;
-  font-weight: 600;
-}
 
 
 /* Layout Preview Scaling for Compositions */
@@ -1316,110 +1182,7 @@ button.trmnl-btn.secondary:active {
   margin-top: 2px !important;
 }
 
-/* 5. Terminal Console Preview */
-.clock-mini-preview-widget.comp-terminal {
-  border: 1px solid var(--border-color) !important;
-  padding: 6px !important;
-  border-radius: 3px;
-  font-family: var(--font-mono) !important;
-  text-align: left;
-  align-items: flex-start;
-}
-.clock-mini-preview-widget.comp-terminal::before {
-  content: "trmnl:~$ ./show";
-  font-family: var(--font-mono) !important;
-  font-size: 4.5px;
-  opacity: 0.6;
-  margin-bottom: 4px;
-  display: block;
-  width: 100%;
-  border-bottom: 1px dashed var(--border-color);
-  padding-bottom: 2px;
-}
-.clock-mini-preview-widget.comp-terminal .time-pixel-widget-header-minimal {
-  border-bottom: none !important;
-  margin-bottom: 2px !important;
-  padding: 0 !important;
-  font-family: var(--font-mono) !important;
-  font-size: 5px !important;
-}
-.clock-mini-preview-widget.comp-terminal .time-pixel-widget-header-minimal::before {
-  content: "[DATE] ";
-  font-weight: bold;
-}
-.clock-mini-preview-widget.comp-terminal .time-pixel-widget-clock-minimal {
-  font-family: var(--font-mono) !important;
-  font-size: 10px !important;
-  font-weight: bold;
-  margin-bottom: 2px !important;
-}
-.clock-mini-preview-widget.comp-terminal .time-pixel-widget-clock-minimal::before {
-  content: "[TIME] ";
-  font-size: 5px !important;
-}
-.clock-mini-preview-widget.comp-terminal .time-pixel-widget-weather {
-  border-top: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  font-family: var(--font-mono) !important;
-  font-size: 5px !important;
-}
-.clock-mini-preview-widget.comp-terminal .time-pixel-widget-weather::before {
-  content: "[WEAT] ";
-  font-weight: bold;
-}
 
-/* 6. Vertical Timeline Stack Preview */
-.clock-mini-preview-widget.comp-timeline {
-  border: none !important;
-  border-left: 2px solid var(--border-color) !important;
-  padding: 4px 0 4px 12px !important;
-  align-items: flex-start;
-  text-align: left;
-  position: relative;
-  margin-left: 10px;
-  border-radius: 0 !important;
-  background: transparent !important;
-}
-.clock-mini-preview-widget.comp-timeline .time-pixel-widget-header-minimal,
-.clock-mini-preview-widget.comp-timeline .time-pixel-widget-clock-minimal,
-.clock-mini-preview-widget.comp-timeline .time-pixel-widget-weather {
-  position: relative;
-  border: none !important;
-  padding: 0 !important;
-  margin: 0 0 6px 0 !important;
-  text-align: left !important;
-}
-.clock-mini-preview-widget.comp-timeline .time-pixel-widget-weather {
-  margin-bottom: 0 !important;
-}
-.clock-mini-preview-widget.comp-timeline .time-pixel-widget-header-minimal::before,
-.clock-mini-preview-widget.comp-timeline .time-pixel-widget-clock-minimal::before,
-.clock-mini-preview-widget.comp-timeline .time-pixel-widget-weather::before {
-  content: "";
-  position: absolute;
-  left: -16.5px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--card-bg);
-  border: 2px solid var(--border-color);
-  box-sizing: border-box;
-}
-.clock-mini-preview-widget.comp-timeline .time-pixel-widget-clock-minimal {
-  font-size: 11px !important;
-  font-weight: 800;
-}
-.clock-mini-preview-widget.comp-timeline .time-pixel-widget-header-minimal {
-  font-size: 5px !important;
-  font-family: var(--font-mono) !important;
-  font-weight: 700;
-}
-.clock-mini-preview-widget.comp-timeline .time-pixel-widget-weather {
-  font-size: 5px !important;
-}
 
 .time-pixel-widget-header {
   display: flex;
@@ -2200,6 +1963,158 @@ input[type="checkbox"].trmnl-checkbox:checked::after {
 .wallpaper-eink-toggle-btn.active .eink-indicator-dot {
   background-color: var(--bg-color);
   border-color: var(--bg-color);
+}
+
+/* Portrait Orientation Layout Redefinitions */
+body.portrait #plugin-container .grid-row {
+  flex-direction: column !important;
+}
+
+/* 1. Global Column Redactions and Stacking */
+body.portrait #plugin-container .grid-col {
+  padding: 0 !important;
+  border-right: none !important;
+  border-left: none !important;
+  height: auto !important;
+  margin-right: 0 !important;
+}
+
+/* 2. Weather Plugin Portrait Adjustments: Only show current weather card */
+body.portrait .weather-container > .weather-col:nth-child(2),
+body.portrait .weather-container > .weather-col:nth-child(3) {
+  display: none !important;
+}
+body.portrait .weather-container > .weather-col:first-child {
+  margin-right: 0 !important;
+  margin-bottom: 0 !important;
+  flex: 1 !important;
+}
+
+/* 3. Todoist Plugin Portrait Adjustments: Only show Due Now list */
+body.portrait #view-todoist .grid-col:nth-child(2),
+body.portrait #view-todoist .grid-col:nth-child(3) {
+  display: none !important;
+}
+body.portrait #view-todoist .grid-col:first-child > div:nth-child(2) {
+  display: none !important; /* Hide Inbox */
+}
+body.portrait #view-todoist .grid-col:first-child {
+  border-right: none !important;
+  padding-right: 0 !important;
+  margin-bottom: 0 !important;
+  flex: 1 !important;
+}
+body.portrait #view-todoist .grid-col:first-child > div:first-child {
+  margin-bottom: 0 !important;
+}
+
+/* 4. Personal Stats Portrait Adjustments: Only show child progress bars */
+body.portrait #view-personal_stats div[style*="flex-direction: row"] > div[style*="border-right"] {
+  display: none !important; /* Hide marriage & parenthood text stats */
+}
+body.portrait #view-personal_stats div[style*="padding-left: 22px"] {
+  padding-left: 0 !important;
+}
+body.portrait #view-personal_stats .grid-row:nth-child(2) {
+  display: none !important; /* Hide cooking, writing & cosmic stats cards */
+}
+body.portrait #view-personal_stats .grid-row:first-child {
+  margin-bottom: 0 !important;
+  flex: 1 !important;
+}
+body.portrait #view-personal_stats .trmnl-card {
+  flex: 1 !important;
+  padding: 18px 20px !important;
+}
+
+/* 5. Laundry Cost Portrait Adjustments: Only show Eco/Cottons/Quick list */
+body.portrait #view-laundry_cost .grid-col:nth-child(2) {
+  display: none !important; /* Hide second column of programs */
+}
+body.portrait #view-laundry_cost .grid-col:first-child {
+  border-right: none !important;
+  padding-right: 0 !important;
+  flex: 1 !important;
+}
+
+/* 6. Today in History Portrait Adjustments: Only show main "On This Day" list */
+body.portrait #view-today_in_history .grid-col:nth-child(2) {
+  display: none !important; /* Hide births and deaths / second column */
+}
+body.portrait #view-today_in_history .grid-col:first-child {
+  border-right: none !important;
+  padding-right: 0 !important;
+  flex: 1 !important;
+}
+
+/* 7. Quick Switcher Grid column stacking (2 columns) for touch usability on mobile */
+body.portrait .quick-switcher-content {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+
+/* 8. Settings Panel Portrait Adjustments */
+body.portrait .settings-body {
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+body.portrait .settings-sidebar {
+  width: 100% !important;
+  flex-direction: row !important;
+  border-right: none !important;
+  border-bottom: var(--border-width-thin) solid var(--border-color) !important;
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 15px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  white-space: nowrap !important;
+  display: flex !important;
+  flex-shrink: 0 !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.portrait .settings-tab-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: auto !important;
+  margin-bottom: 0 !important;
+  margin-right: 8px !important;
+  flex-shrink: 0 !important;
+  padding: 8px 12px !important;
+}
+
+body.portrait .settings-tab-btn:last-child {
+  margin-right: 0 !important;
+}
+
+body.portrait .settings-content .form-row {
+  flex-direction: column !important;
+  margin-bottom: 0 !important;
+}
+
+body.portrait .settings-content .form-row > .form-group {
+  margin-bottom: 12px !important;
+  margin-right: 0 !important;
+}
+
+body.portrait .settings-footer {
+  justify-content: space-between !important;
+  padding-top: 10px !important;
+  margin-top: 10px !important;
+}
+
+body.portrait .settings-footer > button {
+  flex: 1 !important;
+}
+
+body.portrait #cfg-save-btn {
+  min-width: auto !important;
+}
+
+body.portrait .wallpaper-grid {
+  grid-template-columns: repeat(2, 1fr) !important;
 }
 
 

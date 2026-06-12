@@ -83,7 +83,8 @@
         cycleWallpapers: activeConfig.cycleWallpapers || false,
         wallpaperZoom: activeConfig.wallpaperZoom !== undefined ? activeConfig.wallpaperZoom : 1.0,
         clockPlacement: activeConfig.clockPlacement || 'middle-center',
-        clockComposition: activeConfig.clockComposition || 'comp-default'
+        clockComposition: activeConfig.clockComposition || 'comp-default',
+        scalingMode: activeConfig.scalingMode || 'full'
       }, savedDashboard);
 
       // Deep merge plugins config so we don't lose existing settings keys
@@ -157,6 +158,8 @@
         if (einkCheck) this.editedSettings.wallpaperEInk = einkCheck.checked;
         var cycleCheck = this.container.querySelector('#cfg-wallpaper-cycle');
         if (cycleCheck) this.editedSettings.cycleWallpapers = cycleCheck.checked;
+        var scalingModeSelect = this.container.querySelector('#cfg-scaling-mode');
+        if (scalingModeSelect) this.editedSettings.scalingMode = scalingModeSelect.value;
       }
       else if (this.activeTab === 'clock') {
         var clockPlacementSelect = this.container.querySelector('#cfg-clock-placement');
@@ -600,6 +603,18 @@
 
       // TAB 1: GENERAL PANE
       html += '      <div class="settings-pane' + (activeTab === 'general' ? ' active' : '') + '" id="pane-general">';
+      
+      html += '        <div class="settings-section-title">Display &amp; Scaling</div>';
+      html += '        <div class="form-group">';
+      html += '          <label for="cfg-scaling-mode">Screen Scaling Mode</label>';
+      html += '          <select id="cfg-scaling-mode">';
+      html += '            <option value="full"' + (this.editedSettings.scalingMode === 'full' ? ' selected' : '') + '>Responsive / Fill Screen (Native) (Default)</option>';
+      html += '            <option value="fit"' + (this.editedSettings.scalingMode === 'fit' ? ' selected' : '') + '>Scale to Fit (Maintain 4:3 Aspect Ratio)</option>';
+      html += '            <option value="ipad"' + (this.editedSettings.scalingMode === 'ipad' ? ' selected' : '') + '>iPad Mini 2 / Fixed Resolution (No Scaling)</option>';
+      html += '          </select>';
+      html += '          <div class="field-desc" style="margin-top: 4px;">Choose how the layout adjusts to different display and screen resolutions. Responsive fills the screen natively, while Fit maintains the 4:3 ratio.</div>';
+      html += '        </div>';
+
       html += '        <div class="settings-section-title">Global Theme &amp; Refresh Cycles</div>';
       
       html += '        <div class="form-group">';
@@ -760,10 +775,7 @@
       html += '              <option value="comp-default"' + (this.editedSettings.clockComposition === 'comp-default' ? ' selected' : '') + '>Standard Minimal</option>';
       html += '              <option value="comp-split"' + (this.editedSettings.clockComposition === 'comp-split' ? ' selected' : '') + '>Split Columns</option>';
       html += '              <option value="comp-retro"' + (this.editedSettings.clockComposition === 'comp-retro' ? ' selected' : '') + '>Retro E-Ink Card</option>';
-      html += '              <option value="comp-clean-left"' + (this.editedSettings.clockComposition === 'comp-clean-left' ? ' selected' : '') + '>Modern Left-Aligned</option>';
       html += '              <option value="comp-brutalist"' + (this.editedSettings.clockComposition === 'comp-brutalist' ? ' selected' : '') + '>Neo-Brutalist Badge</option>';
-      html += '              <option value="comp-terminal"' + (this.editedSettings.clockComposition === 'comp-terminal' ? ' selected' : '') + '>Terminal Console</option>';
-      html += '              <option value="comp-timeline"' + (this.editedSettings.clockComposition === 'comp-timeline' ? ' selected' : '') + '>Vertical Timeline Stack</option>';
       html += '            </select>';
       html += '          </div>';
       html += '        </div>';
@@ -1214,7 +1226,7 @@
 
       function updatePreviewComposition(val) {
         if (!clockPreview) return;
-        clockPreview.classList.remove('comp-default', 'comp-split', 'comp-retro', 'comp-clean-left', 'comp-brutalist', 'comp-terminal', 'comp-timeline');
+        clockPreview.classList.remove('comp-default', 'comp-split', 'comp-retro', 'comp-brutalist');
         clockPreview.classList.add(val);
       }
 
@@ -1869,6 +1881,8 @@
           }
         });
       }
+
+
 
       // Bind Update reload button if visible
       if (updateIndicatorBtn) {

@@ -8,6 +8,7 @@ window.DASHBOARD_CONFIG = {
   refreshInterval: 60,       // Time in seconds before cycling to the next plugin page (0 to disable auto-cycle)
   flashRefresh: true,        // Toggle the signature black e-paper refresh flash during page changes
   theme: 'auto',             // 'eink-white', 'eink-dark', 'warm', 'navy', 'programmer', 'auto' (adopts dark mode at night)
+  scalingMode: 'full',       // Display scaling mode: 'full' (stretch to fill screen), 'fit' (scale keeping aspect ratio), 'ipad' (fixed 1024x768 for iPad Mini 2)
   clockPlacement: 'middle-center', // 'top-left', 'top-center', 'top-right', 'middle-left', 'middle-center', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right'
   clockComposition: 'comp-default', // 'comp-default', 'comp-split', 'comp-retro', 'comp-clean-left'
 
