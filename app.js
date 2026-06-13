@@ -825,6 +825,15 @@
     },
     openSettings: function(tabId) {
       openSettings(tabId);
+    },
+    pauseTimer: function() {
+      if (state.cycleTimer) {
+        clearInterval(state.cycleTimer);
+        state.cycleTimer = null;
+      }
+    },
+    resumeTimer: function() {
+      resetCycleTimer();
     }
   };
 

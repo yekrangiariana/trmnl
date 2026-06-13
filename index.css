@@ -2117,5 +2117,39 @@ body.portrait .wallpaper-grid {
   grid-template-columns: repeat(2, 1fr) !important;
 }
 
+/* News Item Interactive Styles & Scrollbars */
+.news-item {
+  cursor: pointer;
+  transition: opacity 0.2s ease-in-out;
+}
+.news-item:hover {
+  opacity: 0.8;
+}
+.news-item:hover .news-item-title {
+  text-decoration: underline;
+}
+.article-reader-body::-webkit-scrollbar {
+  width: 6px;
+}
+.article-reader-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.article-reader-body::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
+
+/* History Item Interactive Styles */
+.history-item {
+  cursor: pointer;
+  transition: opacity 0.2s ease-in-out;
+}
+.history-item:hover {
+  opacity: 0.8;
+}
+.history-item:hover .history-item-text {
+  text-decoration: underline;
+}
+
 
 

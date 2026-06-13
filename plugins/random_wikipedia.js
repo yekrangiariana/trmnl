@@ -176,6 +176,7 @@
       var title = data.title || "Wikipedia Article";
       var description = data.description ? data.description.trim() : "";
       var extract = data.extract ? data.extract.trim() : "No summary available.";
+      var imageHtml = "";
       
       // Limit extract character count to fit inside standard height
       if (extract.length > 420) {
