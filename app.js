@@ -753,6 +753,7 @@
         e.stopPropagation();
         var settingsView = document.getElementById('view-settings');
         if (settingsView && settingsView.classList.contains('active')) return; // disable during settings editing
+        if (document.querySelector('.article-reader-body')) return; // disable during article reading
         showPage(getNextCarouselIndex(-1));
       });
     }
@@ -762,6 +763,7 @@
         e.stopPropagation();
         var settingsView = document.getElementById('view-settings');
         if (settingsView && settingsView.classList.contains('active')) return; // disable during settings editing
+        if (document.querySelector('.article-reader-body')) return; // disable during article reading
         showPage(getNextCarouselIndex(1));
       });
     }
@@ -770,6 +772,7 @@
     document.addEventListener('keydown', function(e) {
       var settingsView = document.getElementById('view-settings');
       if (settingsView && settingsView.classList.contains('active')) return; // disable during settings editing
+      if (document.querySelector('.article-reader-body')) return; // disable during article reading
 
       if (e.key === 'ArrowLeft') {
         showPage(getNextCarouselIndex(-1));
@@ -797,6 +800,7 @@
     function handleSwipe() {
       var settingsView = document.getElementById('view-settings');
       if (settingsView && settingsView.classList.contains('active')) return; // disable during settings editing
+      if (document.querySelector('.article-reader-body')) return; // disable during article reading
 
       var swipeThreshold = 50; // pixels
       var diff = touchEndX - touchStartX;

@@ -437,6 +437,7 @@
         html += '      </div>';
       }
 
+      html += '      <div style="margin-right: 45%;">';
       paragraphs.forEach(function(p) {
         if (p.indexOf("## ") === 0) {
           var sub2 = p.substring(3);
@@ -448,6 +449,7 @@
           html += '      <p style="font-family: var(--font-serif); font-size: 18px; line-height: 1.6; margin-bottom: 12px; color: var(--text-color); text-align: justify; opacity: 0.9;">' + p + '</p>';
         }
       });
+      html += '      </div>';
 
       html += '    </div>';
       html += '  </div>';
