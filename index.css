@@ -2151,5 +2151,86 @@ body.portrait .wallpaper-grid {
   text-decoration: underline;
 }
 
+/* Premium Update Banner Settings Page */
+.update-banner {
+  display: flex;
+  align-items: center;
+  background-color: var(--highlight-bg);
+  border: var(--border-width-thin) solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.update-banner-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-right: 16px;
+}
+
+.update-banner-info {
+  flex: 1;
+  margin-right: 16px;
+}
+
+.update-banner-title {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 2px;
+  letter-spacing: 0.01em;
+}
+
+.update-banner-desc {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.update-btn {
+  font-size: 10px !important;
+  font-family: var(--font-mono) !important;
+  padding: 8px 14px !important;
+  background-color: var(--text-color) !important;
+  color: var(--bg-color) !important;
+  border: var(--border-width-thin) solid var(--border-color) !important;
+  font-weight: 700 !important;
+  white-space: nowrap;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.update-btn:hover {
+  opacity: 0.9;
+}
+
+body.portrait .update-banner {
+  flex-direction: column;
+  align-items: stretch;
+  text-align: center;
+}
+
+body.portrait .update-banner-icon {
+  margin: 0 auto 12px auto;
+}
+
+body.portrait .update-banner-info {
+  margin-right: 0;
+  margin-bottom: 12px;
+}
+
+body.portrait .update-btn {
+  width: 100%;
+}
+
+
 
 

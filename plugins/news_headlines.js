@@ -302,53 +302,67 @@
         var title = item.title || "";
         var dateStr = item.pubDate;
         var paragraphs = [];
+        var imageUrl = "";
 
         if (scriptTag) {
           var data = JSON.parse(scriptTag.textContent);
           var pageProps = data.props && data.props.pageProps;
-          if (pageProps && pageProps.page) {
-            var keys = Object.keys(pageProps.page);
-            if (keys.length > 0) {
-              var pageData = pageProps.page[keys[0]];
-              if (pageData && Array.isArray(pageData.contents)) {
-                pageData.contents.forEach(function(block) {
-                  if (block.type === 'paragraph') {
-                    var text = "";
-                    if (block.model) {
-                      if (typeof block.model.text === 'string') {
-                        text = block.model.text;
-                      } else if (Array.isArray(block.model.blocks)) {
-                        block.model.blocks.forEach(function(b) {
-                          if (b.model) {
-                            if (typeof b.model.text === 'string') {
-                              text += b.model.text;
-                            } else if (Array.isArray(b.model.blocks)) {
-                              b.model.blocks.forEach(function(bb) {
-                                if (bb.model && typeof bb.model.text === 'string') {
-                                  text += bb.model.text;
-                                }
-                              });
+          if (pageProps) {
+            // Try extracting image from metadata
+            if (pageProps.metadata && pageProps.metadata.indexImage && typeof pageProps.metadata.indexImage.originalSrc === 'string') {
+              imageUrl = pageProps.metadata.indexImage.originalSrc;
+            }
+            
+            // Extract text paragraphs
+            if (pageProps.page) {
+              var keys = Object.keys(pageProps.page);
+              if (keys.length > 0) {
+                var pageData = pageProps.page[keys[0]];
+                if (pageData && Array.isArray(pageData.contents)) {
+                  pageData.contents.forEach(function(block) {
+                    if (block.type === 'paragraph') {
+                      var text = "";
+                      if (block.model) {
+                        if (typeof block.model.text === 'string') {
+                          text = block.model.text;
+                        } else if (Array.isArray(block.model.blocks)) {
+                          block.model.blocks.forEach(function(b) {
+                            if (b.model) {
+                              if (typeof b.model.text === 'string') {
+                                text += b.model.text;
+                              } else if (Array.isArray(b.model.blocks)) {
+                                b.model.blocks.forEach(function(bb) {
+                                  if (bb.model && typeof bb.model.text === 'string') {
+                                    text += bb.model.text;
+                                  }
+                                });
+                              }
                             }
-                          }
-                        });
+                          });
+                        }
+                      }
+                      if (text.trim()) {
+                        paragraphs.push(text.trim());
+                      }
+                    } else if (block.type === 'subheadline') {
+                      var subText = "";
+                      if (block.model && typeof block.model.text === 'string') {
+                        subText = block.model.text;
+                      }
+                      if (subText.trim()) {
+                        paragraphs.push("### " + subText.trim());
                       }
                     }
-                    if (text.trim()) {
-                      paragraphs.push(text.trim());
-                    }
-                  } else if (block.type === 'subheadline') {
-                    var subText = "";
-                    if (block.model && typeof block.model.text === 'string') {
-                      subText = block.model.text;
-                    }
-                    if (subText.trim()) {
-                      paragraphs.push("### " + subText.trim());
-                    }
-                  }
-                });
+                  });
+                }
               }
             }
           }
+        }
+
+        // If we don't have imageUrl from JSON metadata, fallback to RSS thumbnail
+        if (!imageUrl && item.thumbnail) {
+          imageUrl = item.thumbnail;
         }
 
         // If JSON parsing yielded no paragraphs, try DOM parser fallback
@@ -371,7 +385,7 @@
           return;
         }
 
-        this.displayArticle(title, dateStr, paragraphs, false);
+        this.displayArticle(title, dateStr, paragraphs, false, imageUrl);
       } catch (e) {
         console.warn("Failed to parse article content:", e);
         this.renderArticleFallback(item);
@@ -381,10 +395,10 @@
     renderArticleFallback: function(item) {
       var desc = item.description || item.content || "Could not retrieve full article text.";
       desc = desc.replace(/<[^>]*>/g, ""); // strip HTML
-      this.displayArticle(item.title, item.pubDate, [desc], true);
+      this.displayArticle(item.title, item.pubDate, [desc], true, item.thumbnail || "");
     },
 
-    displayArticle: function(title, dateStr, paragraphs, isFallback) {
+    displayArticle: function(title, dateStr, paragraphs, isFallback, imageUrl) {
       var self = this;
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; padding: 4px 0 0 0;">';
       
@@ -400,14 +414,26 @@
       html += '  <div class="article-reader-body" style="display:flex; flex-direction:column; flex:1; overflow-y:auto; margin-bottom: 12px; padding-right: 8px;">';
       html += '    <h1 style="font-family: var(--font-sans); font-size: 25px; font-weight: 800; line-height: 1.25; margin-bottom: 14px; color: var(--text-color);">' + title + '</h1>';
       
+      html += '    <div style="display: block; width: 100%;">';
+
+      // Render Thumbnail Image floated to the right if available (proportional aspect ratio)
+      if (imageUrl) {
+        html += '      <div style="float: right; width: 50%; max-width: 380px; margin-left: 18px; margin-bottom: 12px; border-radius: 8px; overflow: hidden; border: var(--border-width-thin) solid var(--border-color); position: relative; background-color: var(--card-bg);">';
+        html += '        <img src="' + imageUrl + '" alt="Article image" style="width: 100%; height: auto; display: block; filter: grayscale(1) contrast(1.4) brightness(0.9);" decoding="async">';
+        html += '        <div class="trmnl-dither" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.45; pointer-events: none; mix-blend-mode: multiply;"></div>';
+        html += '      </div>';
+      }
+
       paragraphs.forEach(function(p) {
         if (p.indexOf("### ") === 0) {
           var sub = p.substring(4);
-          html += '    <h2 style="font-family: var(--font-sans); font-size: 20px; font-weight: 700; margin-top: 16px; margin-bottom: 8px; color: var(--text-color);">' + sub + '</h2>';
+          html += '      <h2 style="font-family: var(--font-sans); font-size: 20px; font-weight: 700; margin-top: 16px; margin-bottom: 8px; color: var(--text-color); clear: both;">' + sub + '</h2>';
         } else {
-          html += '    <p style="font-family: var(--font-serif); font-size: 18px; line-height: 1.6; margin-bottom: 12px; color: var(--text-color); text-align: justify; opacity: 0.9;">' + p + '</p>';
+          html += '      <p style="font-family: var(--font-serif); font-size: 18px; line-height: 1.6; margin-bottom: 12px; color: var(--text-color); text-align: justify; opacity: 0.9;">' + p + '</p>';
         }
       });
+
+      html += '    </div>';
       html += '  </div>';
 
       // Custom Dithered Footer Bar

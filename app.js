@@ -285,7 +285,21 @@
 
   function cycleToNextWallpaper() {
     var list = state.availableWallpapers || ['scene-1.jpg'];
-    if (state.config.customWallpaperBase64 && list.indexOf('custom') === -1) {
+    var hasSelection = false;
+    try {
+      var selection = localStorage.getItem('brief_cycle_wallpapers_selection');
+      if (selection) {
+        var selectedList = JSON.parse(selection);
+        if (Array.isArray(selectedList) && selectedList.length > 0) {
+          list = selectedList;
+          hasSelection = true;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to parse cycle selection for wallpaper rotation:", e);
+    }
+
+    if (!hasSelection && state.config.customWallpaperBase64 && list.indexOf('custom') === -1) {
       list.unshift('custom');
     }
     if (!list || list.length === 0) return;

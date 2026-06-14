@@ -139,6 +139,16 @@
 
       this.editedFinnishSeenList = null;
       this.editedLaundryPrice = null;
+
+      this.editedCycleWallpapers = [];
+      try {
+        var savedSelection = localStorage.getItem('brief_cycle_wallpapers_selection');
+        if (savedSelection) {
+          this.editedCycleWallpapers = JSON.parse(savedSelection);
+        }
+      } catch (e) {
+        console.warn("Failed to load brief_cycle_wallpapers_selection:", e);
+      }
     },
 
     captureTabInputs: function() {
@@ -152,12 +162,7 @@
         if (themeSelect) this.editedSettings.theme = themeSelect.value;
         if (intervalSelect) this.editedSettings.refreshInterval = parseInt(intervalSelect.value, 10);
         if (flashSelect) this.editedSettings.flashRefresh = flashSelect.value === 'true';
-        this.editedSettings.wifiQrBase64 = this.wifiQrBase64;
         
-        var einkCheck = this.container.querySelector('#cfg-wallpaper-eink');
-        if (einkCheck) this.editedSettings.wallpaperEInk = einkCheck.checked;
-        var cycleCheck = this.container.querySelector('#cfg-wallpaper-cycle');
-        if (cycleCheck) this.editedSettings.cycleWallpapers = cycleCheck.checked;
         var scalingModeSelect = this.container.querySelector('#cfg-scaling-mode');
         if (scalingModeSelect) this.editedSettings.scalingMode = scalingModeSelect.value;
       }
@@ -166,6 +171,14 @@
         if (clockPlacementSelect) this.editedSettings.clockPlacement = clockPlacementSelect.value;
         var clockCompositionSelect = this.container.querySelector('#cfg-clock-composition');
         if (clockCompositionSelect) this.editedSettings.clockComposition = clockCompositionSelect.value;
+
+        var einkCheck = this.container.querySelector('#cfg-wallpaper-eink');
+        if (einkCheck) this.editedSettings.wallpaperEInk = einkCheck.checked;
+        var cycleCheck = this.container.querySelector('#cfg-wallpaper-cycle');
+        if (cycleCheck) this.editedSettings.cycleWallpapers = cycleCheck.checked;
+      }
+      else if (this.activeTab === 'wifi') {
+        this.editedSettings.wifiQrBase64 = this.wifiQrBase64;
       }
       else if (this.activeTab === 'transit') {
         var nameInput = this.container.querySelector('#cfg-name');
@@ -285,6 +298,7 @@
           // Save settings to localStorage
           localStorage.setItem('brief_dashboard_settings', JSON.stringify(self.editedSettings));
           localStorage.setItem('brief_personal_stats_config', JSON.stringify(self.editedStats));
+          localStorage.setItem('brief_cycle_wallpapers_selection', JSON.stringify(self.editedCycleWallpapers || []));
           
           if (self.editedFinnishSeenList) {
             localStorage.setItem('brief_finnish_seen_list', JSON.stringify(self.editedFinnishSeenList));
@@ -395,9 +409,11 @@
         localStorage.removeItem('brief_personal_stats_config');
         localStorage.removeItem('brief_laundry_price');
         localStorage.removeItem('brief_finnish_seen_list');
+        localStorage.removeItem('brief_cycle_wallpapers_selection');
         this.wifiQrBase64 = null;
         this.editedFinnishSeenList = null;
         this.editedLaundryPrice = null;
+        this.editedCycleWallpapers = [];
         this.isEditing = false;
         alert("Local settings overrides cleared! Reverted to config.js defaults...");
         
@@ -456,6 +472,19 @@
         exportData.brief_laundry_price = laundryPrice;
       }
 
+      if (this.editedCycleWallpapers && this.editedCycleWallpapers.length > 0) {
+        exportData.brief_cycle_wallpapers_selection = this.editedCycleWallpapers;
+      } else {
+        try {
+          var saved = localStorage.getItem('brief_cycle_wallpapers_selection');
+          if (saved) {
+            exportData.brief_cycle_wallpapers_selection = JSON.parse(saved);
+          }
+        } catch (e) {
+          console.warn("Failed to read cycle selection for export:", e);
+        }
+      }
+
       try {
         var blob = new Blob([JSON.stringify(exportData, null, 2)], {type: "application/json"});
         var url = URL.createObjectURL(blob);
@@ -506,6 +535,10 @@
           var laundryPrice = importData.brief_laundry_price !== undefined ? importData.brief_laundry_price : importData.trmnl_laundry_price;
           if (laundryPrice !== undefined) {
             self.editedLaundryPrice = laundryPrice;
+          }
+          var cycleSelection = importData.brief_cycle_wallpapers_selection;
+          if (cycleSelection) {
+            self.editedCycleWallpapers = cycleSelection;
           }
 
           alert("Settings imported in-memory! Click 'SAVE ALL CHANGES' to apply them.");
@@ -580,7 +613,7 @@
       html += '        ' + window.getIcon('sliders') + '<span>GENERAL</span>';
       html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'clock' ? ' active' : '') + '" data-tab="clock">';
-      html += '        ' + window.getIcon('clock-rotate-left') + '<span>CLOCK LAYOUT</span>';
+      html += '        ' + window.getIcon('clock') + '<span>CLOCK &amp; WALLPAPER</span>';
       html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'transit' ? ' active' : '') + '" data-tab="transit">';
       html += '        ' + window.getIcon('bus') + '<span>LOCATION &amp; TRANSIT</span>';
@@ -593,6 +626,9 @@
       html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'history' ? ' active' : '') + '" data-tab="history">';
       html += '        ' + window.getIcon('clock-rotate-left') + '<span>HISTORY</span>';
+      html += '      </button>';
+      html += '      <button class="settings-tab-btn' + (activeTab === 'wifi' ? ' active' : '') + '" data-tab="wifi">';
+      html += '        ' + window.getIcon('wifi') + '<span>GUEST WI-FI</span>';
       html += '      </button>';
       html += '      <button class="settings-tab-btn' + (activeTab === 'plugins' ? ' active' : '') + '" data-tab="plugins">';
       html += '        ' + window.getIcon('puzzle-piece') + '<span>PLUGINS</span>';
@@ -608,6 +644,18 @@
       // TAB 1: GENERAL PANE
       html += '      <div class="settings-pane' + (activeTab === 'general' ? ' active' : '') + '" id="pane-general">';
       
+      html += '        <div id="cfg-update-indicator-wrapper" style="display:none; margin-bottom:20px;">';
+      html += '          <div class="update-banner">';
+      html += '            <div class="update-banner-icon">' + window.getIcon('cloud-arrow-up') + '</div>';
+      html += '            <div class="update-banner-info">';
+      html += '              <div class="update-banner-title">Software Update Available</div>';
+      html += '              <div class="update-banner-desc">A new version of the BRIEF dashboard is ready.</div>';
+      html += '              <div class="update-banner-desc" style="font-size: 9px; opacity: 0.6; margin-top: 1px;">This will clear cached files and reload. Settings will be preserved.</div>';
+      html += '            </div>';
+      html += '            <button class="update-btn" id="cfg-update-indicator-btn" type="button">UPDATE NOW</button>';
+      html += '          </div>';
+      html += '        </div>';
+
       html += '        <div class="settings-section-title">Display &amp; Scaling</div>';
       html += '        <div class="form-group">';
       html += '          <label for="cfg-scaling-mode">Screen Scaling Mode</label>';
@@ -653,24 +701,50 @@
       html += '            </select>';
       html += '          </div>';
       html += '        </div>';
+      html += '      </div>';
 
-      html += '        <div class="settings-section-title">Connectivity &amp; Assets</div>';
-      html += '        <div class="form-group">';
-      html += '          <label>Wifi QR Code Image</label>';
-      html += '          <div class="file-upload-wrapper">';
-      html += '            <input type="file" id="cfg-wifi-qr-img" accept="image/*" style="display:none;">';
-      html += '            <button class="file-upload-btn" onclick="document.getElementById(\'cfg-wifi-qr-img\').click();">CHOOSE IMAGE</button>';
-      if (this.wifiQrBase64) {
-        html += '            <button class="file-upload-btn" id="cfg-wifi-qr-clear" style="border-style:dashed;">CLEAR IMAGE</button>';
-      }
-      html += '            <span id="cfg-wifi-qr-preview" style="font-family:var(--font-mono); font-size:11px; opacity:0.75;">';
-      html += (this.wifiQrBase64 ? '✓ Wifi QR Loaded' : 'No image loaded (shows placeholder)');
-      html += '            </span>';
+      // TAB: CLOCK & WALLPAPER PANE
+      html += '      <div class="settings-pane' + (activeTab === 'clock' ? ' active' : '') + '" id="pane-clock">';
+      html += '        <div class="settings-section-title">Clock Widget Layout &amp; Position</div>';
+      html += '        <div class="form-row">';
+      html += '          <div class="form-group">';
+      html += '            <label for="cfg-clock-placement">Position Selection</label>';
+      html += '            <select id="cfg-clock-placement">';
+      html += '              <option value="top-left"' + (this.editedSettings.clockPlacement === 'top-left' ? ' selected' : '') + '>Top Left</option>';
+      html += '              <option value="top-center"' + (this.editedSettings.clockPlacement === 'top-center' ? ' selected' : '') + '>Top Center</option>';
+      html += '              <option value="top-right"' + (this.editedSettings.clockPlacement === 'top-right' ? ' selected' : '') + '>Top Right</option>';
+      html += '              <option value="middle-left"' + (this.editedSettings.clockPlacement === 'middle-left' ? ' selected' : '') + '>Middle Left</option>';
+      html += '              <option value="middle-center"' + (this.editedSettings.clockPlacement === 'middle-center' ? ' selected' : '') + '>Middle Center (Default)</option>';
+      html += '              <option value="middle-right"' + (this.editedSettings.clockPlacement === 'middle-right' ? ' selected' : '') + '>Middle Right</option>';
+      html += '              <option value="bottom-left"' + (this.editedSettings.clockPlacement === 'bottom-left' ? ' selected' : '') + '>Bottom Left</option>';
+      html += '              <option value="bottom-center"' + (this.editedSettings.clockPlacement === 'bottom-center' ? ' selected' : '') + '>Bottom Center</option>';
+      html += '              <option value="bottom-right"' + (this.editedSettings.clockPlacement === 'bottom-right' ? ' selected' : '') + '>Bottom Right</option>';
+      html += '            </select>';
+      html += '          </div>';
+      html += '          <div class="form-group">';
+      html += '            <label for="cfg-clock-composition">Layout Composition</label>';
+      html += '            <select id="cfg-clock-composition">';
+      html += '              <option value="comp-default"' + (this.editedSettings.clockComposition === 'comp-default' ? ' selected' : '') + '>Standard Minimal</option>';
+      html += '              <option value="comp-split"' + (this.editedSettings.clockComposition === 'comp-split' ? ' selected' : '') + '>Split Columns</option>';
+      html += '              <option value="comp-retro"' + (this.editedSettings.clockComposition === 'comp-retro' ? ' selected' : '') + '>Retro E-Ink Card</option>';
+      html += '              <option value="comp-brutalist"' + (this.editedSettings.clockComposition === 'comp-brutalist' ? ' selected' : '') + '>Neo-Brutalist Badge</option>';
+      html += '            </select>';
       html += '          </div>';
       html += '        </div>';
+      html += '        <div class="settings-section-title">Layout Preview</div>';
+      html += '        <div class="clock-layout-preview-screen" style="position: relative; width: 100%; max-width: 440px; height: 260px; border: var(--border-width) solid var(--border-color); background: var(--bg-color); border-radius: 8px; margin: 12px auto; overflow: hidden; display: flex; justify-content: center; align-items: center;">';
+      html += '          <div style="position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0.15; background-image: url(\'wallpapers/scene-1.jpg\'); background-size: cover; background-position: center bottom;"></div>';
+      html += '          <div id="clock-mini-preview" class="clock-mini-preview-widget ' + (this.editedSettings.clockComposition || 'comp-default') + '" style="position: absolute; z-index: 5; transition: all 0.25s ease-out;">';
+      html += '            <div class="time-pixel-widget-header-minimal" style="font-size: 8px; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase;">THURSDAY &bull; JUN 11</div>';
+      html += '            <div class="time-pixel-widget-clock-minimal" style="font-size: 16px; font-weight: 800; font-family: var(--font-sans); line-height: 1;">11:15 AM</div>';
+      html += '            <div class="time-pixel-widget-weather" style="font-size: 7px; font-family: var(--font-sans); margin-top: 2px;">16° &bull; OVERCAST</div>';
+      html += '          </div>';
+      html += '          <div style="position: absolute; top: 8px; right: 8px; width: 10px; height: 10px; border-radius: 50%; border: var(--border-width-thin) solid var(--border-color); opacity: 0.3;"></div>';
+      html += '          <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 18px; border-top: var(--border-width-thin) solid var(--border-color); opacity: 0.2; background: var(--bg-color);"></div>';
+      html += '        </div>';
 
+      html += '        <div class="settings-section-title">Wallpaper Background</div>';
       html += '        <div class="form-group">';
-      html += '          <label>Wallpaper Background</label>';
       html += '          <div class="wallpaper-preview-container">';
       html += '            <div class="wallpaper-current-preview' + (this.editedSettings.wallpaperEInk ? ' e-ink-active' : '') + '" id="cfg-wallpaper-current-preview">';
       var currentPos = this.editedSettings.wallpaperPosition || 'center bottom';
@@ -736,63 +810,18 @@
       html += '              <span class="eink-status-text">AUTHENTIC E-INK: ' + (this.editedSettings.wallpaperEInk ? 'ON' : 'OFF') + '</span>';
       html += '            </button>';
       html += '          </div>';
-      html += '          <div class="field-desc" style="margin-top: 4px;">Grayscales and dithers the wallpaper to look like a physical e-paper display.</div>';
       html += '        </div>';
 
       html += '        <div class="form-group" style="margin-top: 10px;">';
       html += '          <label>CYCLE WALLPAPERS ON LOOP</label>';
       html += '          <div style="display: flex; align-items: center; margin-top: 8px;">';
       html += '            <input type="checkbox" id="cfg-wallpaper-cycle" style="display: none;"' + (this.editedSettings.cycleWallpapers ? ' checked' : '') + '>';
-      html += '            <button class="wallpaper-eink-toggle-btn' + (this.editedSettings.cycleWallpapers ? ' active' : '') + '" id="cfg-wallpaper-cycle-btn" type="button">';
+      html += '            <button class="wallpaper-eink-toggle-btn' + (this.editedSettings.cycleWallpapers ? ' active' : '') + '" id="cfg-wallpaper-cycle-btn" type="button" style="margin-right: 10px;">';
       html += '              <span class="eink-indicator-dot"></span>';
       html += '              <span class="eink-status-text">CYCLE WALLPAPERS: ' + (this.editedSettings.cycleWallpapers ? 'ON' : 'OFF') + '</span>';
       html += '            </button>';
+      html += '            <button class="trmnl-btn secondary" id="cfg-wallpaper-cycle-select-btn" type="button" style="font-size: 10px; padding: 6px 12px; height: 32px; border-radius: 8px; font-family: var(--font-mono); font-weight: 700;">SELECT WALLPAPERS</button>';
       html += '          </div>';
-      html += '          <div class="field-desc" style="margin-top: 4px;">Automatically rotates to the next wallpaper after every full carousel cycle.</div>';
-      html += '        </div>';
-      html += '        <div id="cfg-update-indicator-wrapper" style="display:none; margin-top:10px;">';
-      html += '          <button class="trmnl-btn" id="cfg-update-indicator-btn" style="width: 100%; font-size: 11px; background-color: var(--text-color); color: var(--bg-color);">NEW UPDATE DETECTED — CLICK TO APPLY SOFTWARE UPDATE</button>';
-      html += '        </div>';
-      html += '      </div>';
-
-      // TAB: CLOCK LAYOUT PANE
-      html += '      <div class="settings-pane' + (activeTab === 'clock' ? ' active' : '') + '" id="pane-clock">';
-      html += '        <div class="settings-section-title">Clock Widget Layout &amp; Position</div>';
-      html += '        <div class="form-row">';
-      html += '          <div class="form-group">';
-      html += '            <label for="cfg-clock-placement">Position Selection</label>';
-      html += '            <select id="cfg-clock-placement">';
-      html += '              <option value="top-left"' + (this.editedSettings.clockPlacement === 'top-left' ? ' selected' : '') + '>Top Left</option>';
-      html += '              <option value="top-center"' + (this.editedSettings.clockPlacement === 'top-center' ? ' selected' : '') + '>Top Center</option>';
-      html += '              <option value="top-right"' + (this.editedSettings.clockPlacement === 'top-right' ? ' selected' : '') + '>Top Right</option>';
-      html += '              <option value="middle-left"' + (this.editedSettings.clockPlacement === 'middle-left' ? ' selected' : '') + '>Middle Left</option>';
-      html += '              <option value="middle-center"' + (this.editedSettings.clockPlacement === 'middle-center' ? ' selected' : '') + '>Middle Center (Default)</option>';
-      html += '              <option value="middle-right"' + (this.editedSettings.clockPlacement === 'middle-right' ? ' selected' : '') + '>Middle Right</option>';
-      html += '              <option value="bottom-left"' + (this.editedSettings.clockPlacement === 'bottom-left' ? ' selected' : '') + '>Bottom Left</option>';
-      html += '              <option value="bottom-center"' + (this.editedSettings.clockPlacement === 'bottom-center' ? ' selected' : '') + '>Bottom Center</option>';
-      html += '              <option value="bottom-right"' + (this.editedSettings.clockPlacement === 'bottom-right' ? ' selected' : '') + '>Bottom Right</option>';
-      html += '            </select>';
-      html += '          </div>';
-      html += '          <div class="form-group">';
-      html += '            <label for="cfg-clock-composition">Layout Composition</label>';
-      html += '            <select id="cfg-clock-composition">';
-      html += '              <option value="comp-default"' + (this.editedSettings.clockComposition === 'comp-default' ? ' selected' : '') + '>Standard Minimal</option>';
-      html += '              <option value="comp-split"' + (this.editedSettings.clockComposition === 'comp-split' ? ' selected' : '') + '>Split Columns</option>';
-      html += '              <option value="comp-retro"' + (this.editedSettings.clockComposition === 'comp-retro' ? ' selected' : '') + '>Retro E-Ink Card</option>';
-      html += '              <option value="comp-brutalist"' + (this.editedSettings.clockComposition === 'comp-brutalist' ? ' selected' : '') + '>Neo-Brutalist Badge</option>';
-      html += '            </select>';
-      html += '          </div>';
-      html += '        </div>';
-      html += '        <div class="settings-section-title">Layout Preview</div>';
-      html += '        <div class="clock-layout-preview-screen" style="position: relative; width: 100%; max-width: 440px; height: 260px; border: var(--border-width) solid var(--border-color); background: var(--bg-color); border-radius: 8px; margin: 12px auto; overflow: hidden; display: flex; justify-content: center; align-items: center;">';
-      html += '          <div style="position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0.15; background-image: url(\'wallpapers/scene-1.jpg\'); background-size: cover; background-position: center bottom;"></div>';
-      html += '          <div id="clock-mini-preview" class="clock-mini-preview-widget ' + (this.editedSettings.clockComposition || 'comp-default') + '" style="position: absolute; z-index: 5; transition: all 0.25s ease-out;">';
-      html += '            <div class="time-pixel-widget-header-minimal" style="font-size: 8px; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase;">THURSDAY &bull; JUN 11</div>';
-      html += '            <div class="time-pixel-widget-clock-minimal" style="font-size: 16px; font-weight: 800; font-family: var(--font-sans); line-height: 1;">11:15 AM</div>';
-      html += '            <div class="time-pixel-widget-weather" style="font-size: 7px; font-family: var(--font-sans); margin-top: 2px;">16° &bull; OVERCAST</div>';
-      html += '          </div>';
-      html += '          <div style="position: absolute; top: 8px; right: 8px; width: 10px; height: 10px; border-radius: 50%; border: var(--border-width-thin) solid var(--border-color); opacity: 0.3;"></div>';
-      html += '          <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 18px; border-top: var(--border-width-thin) solid var(--border-color); opacity: 0.2; background: var(--bg-color);"></div>';
       html += '        </div>';
       html += '      </div>';
 
@@ -958,6 +987,25 @@
       html += '        </div>';
       html += '      </div>';
 
+      // TAB: GUEST WI-FI PANE
+      html += '      <div class="settings-pane' + (activeTab === 'wifi' ? ' active' : '') + '" id="pane-wifi">';
+      html += '        <div class="settings-section-title">Guest Wi-Fi Connection QR</div>';
+      html += '        <div class="form-group">';
+      html += '          <label>Wi-Fi QR Code Image</label>';
+      html += '          <div class="file-upload-wrapper">';
+      html += '            <input type="file" id="cfg-wifi-qr-img" accept="image/*" style="display:none;">';
+      html += '            <button class="file-upload-btn" onclick="document.getElementById(\'cfg-wifi-qr-img\').click();">CHOOSE IMAGE</button>';
+      if (this.wifiQrBase64) {
+        html += '            <button class="file-upload-btn" id="cfg-wifi-qr-clear" style="border-style:dashed;">CLEAR IMAGE</button>';
+      }
+      html += '            <span id="cfg-wifi-qr-preview" style="font-family:var(--font-mono); font-size:11px; opacity:0.75;">';
+      html += (this.wifiQrBase64 ? '✓ Wi-Fi QR Loaded' : 'No image loaded (shows placeholder)');
+      html += '            </span>';
+      html += '          </div>';
+      html += '          <div class="field-desc" style="margin-top: 8px;">Upload a QR code image of your Guest Wi-Fi credentials. The Guest Wi-Fi plugin will render this QR code so visitors can scan to connect.</div>';
+      html += '        </div>';
+      html += '      </div>';
+
       // TAB: PLUGINS PANE
       html += '      <div class="settings-pane' + (activeTab === 'plugins' ? ' active' : '') + '" id="pane-plugins">';
       html += '        <div class="settings-section-title">Plugin Visibility Settings</div>';
@@ -1080,6 +1128,28 @@
       html += '    <div class="wallpaper-modal-footer">';
       html += '      <button class="trmnl-btn secondary" id="wallpaper-position-modal-cancel" type="button">Cancel</button>';
       html += '      <button class="trmnl-btn" id="wallpaper-position-modal-apply" type="button">Apply Position</button>';
+      html += '    </div>';
+      html += '  </div>';
+      html += '</div>';
+
+      // Wallpaper Cycle Selection Modal Overlay
+      html += '<div class="wallpaper-modal-overlay" id="wallpaper-cycle-modal">';
+      html += '  <div class="wallpaper-modal">';
+      html += '    <div class="wallpaper-modal-header">';
+      html += '      <div class="wallpaper-modal-title">Select Cycle Wallpapers</div>';
+      html += '      <button class="wallpaper-modal-close" id="wallpaper-cycle-modal-close" type="button">&times;</button>';
+      html += '    </div>';
+      html += '    <div class="wallpaper-cycle-modal-desc" style="font-family: var(--font-sans); font-size: 11px; padding: 10px 20px 0 20px; opacity: 0.75; line-height: 1.3;">';
+      html += '      Select the wallpapers to include in the auto-cycling loop. If none are selected, all wallpapers will cycle.';
+      html += '    </div>';
+      html += '    <div class="wallpaper-modal-body">';
+      html += '      <div class="wallpaper-grid" id="wallpaper-cycle-grid-container">';
+      html += '        <div style="grid-column: span 3; text-align: center; font-family: var(--font-mono); font-size: 11px; padding: 20px; opacity: 0.7;">Loading list...</div>';
+      html += '      </div>';
+      html += '    </div>';
+      html += '    <div class="wallpaper-modal-footer">';
+      html += '      <button class="trmnl-btn secondary" id="wallpaper-cycle-modal-cancel" type="button">Cancel</button>';
+      html += '      <button class="trmnl-btn" id="wallpaper-cycle-modal-apply" type="button">Apply Selection</button>';
       html += '    </div>';
       html += '  </div>';
       html += '</div>';
@@ -1779,6 +1849,145 @@
           e.stopPropagation();
           wpPosModal.classList.remove('active');
           self.renderPanel();
+        });
+      }
+
+      // --- Wallpaper Cycle Modal Event Bindings & Logic ---
+      var wpCycleSelectBtn = this.container.querySelector('#cfg-wallpaper-cycle-select-btn');
+      var wpCycleModal = this.container.querySelector('#wallpaper-cycle-modal');
+      var wpCycleCloseBtn = this.container.querySelector('#wallpaper-cycle-modal-close');
+      var wpCycleCancelBtn = this.container.querySelector('#wallpaper-cycle-modal-cancel');
+      var wpCycleApplyBtn = this.container.querySelector('#wallpaper-cycle-modal-apply');
+      var wpCycleGridContainer = this.container.querySelector('#wallpaper-cycle-grid-container');
+
+      var tempSelectedCycleWallpapers = [];
+
+      function renderCycleGrid(files) {
+        if (!wpCycleGridContainer) return;
+        wpCycleGridContainer.innerHTML = '';
+
+        var displayFiles = files.slice();
+
+        // Add saved NASA wallpapers if they exist
+        var savedList = [];
+        try {
+          var cachedSaved = localStorage.getItem('brief_nasa_saved_wallpapers');
+          if (cachedSaved) savedList = JSON.parse(cachedSaved);
+        } catch (e) {}
+        
+        if (Array.isArray(savedList)) {
+          for (var idx = savedList.length - 1; idx >= 0; idx--) {
+            var savedObj = savedList[idx];
+            if (savedObj && savedObj.id && displayFiles.indexOf(savedObj.id) === -1) {
+              displayFiles.unshift(savedObj.id);
+            }
+          }
+        }
+
+        // Add custom upload thumbnail if base64 exists
+        if (modalCustomBase64 && displayFiles.indexOf('custom') === -1) {
+          displayFiles.unshift('custom');
+        }
+
+        displayFiles.forEach(function(file) {
+          var isSelected = tempSelectedCycleWallpapers.indexOf(file) !== -1;
+          
+          var item = document.createElement('div');
+          item.className = 'wallpaper-item' + (isSelected ? ' selected' : '') + (self.editedSettings.wallpaperEInk ? ' e-ink-active' : '');
+          item.setAttribute('data-wallpaper', file);
+          
+          var badge = document.createElement('div');
+          badge.className = 'wallpaper-item-selected-badge';
+          badge.innerHTML = '✓';
+          item.appendChild(badge);
+
+          var img = document.createElement('img');
+          var name = '';
+          if (file === 'custom') {
+            img.src = modalCustomBase64;
+            name = 'CUSTOM PHOTO';
+          } else if (file.indexOf('nasa-') === 0) {
+            var savedObj = null;
+            if (Array.isArray(savedList)) {
+              for (var i = 0; i < savedList.length; i++) {
+                if (savedList[i] && savedList[i].id === file) {
+                  savedObj = savedList[i];
+                  break;
+                }
+              }
+            }
+            img.src = savedObj ? (savedObj.base64 || savedObj.url) : 'wallpapers/scene-1.jpg';
+            name = savedObj ? (savedObj.name || ('NASA ' + savedObj.date)) : 'NASA Space Photo';
+          } else {
+            img.src = 'wallpapers/' + file;
+            img.onerror = function() { img.src = 'wallpapers/scene-1.jpg'; };
+            name = file.replace('.png', '').replace('.jpg', '').replace('.jpeg', '').replace(/_/g, ' ');
+          }
+          item.appendChild(img);
+
+          var label = document.createElement('div');
+          label.className = 'wallpaper-item-label';
+          label.textContent = name;
+          item.appendChild(label);
+
+          item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var idx = tempSelectedCycleWallpapers.indexOf(file);
+            if (idx === -1) {
+              tempSelectedCycleWallpapers.push(file);
+              item.classList.add('selected');
+            } else {
+              tempSelectedCycleWallpapers.splice(idx, 1);
+              item.classList.remove('selected');
+            }
+          });
+
+          wpCycleGridContainer.appendChild(item);
+        });
+      }
+
+      if (wpCycleSelectBtn && wpCycleModal) {
+        wpCycleSelectBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          wpCycleModal.classList.add('active');
+          
+          tempSelectedCycleWallpapers = (self.editedCycleWallpapers || []).slice();
+          modalCustomBase64 = self.editedSettings.customWallpaperBase64 || null;
+
+          if (wpCycleGridContainer) {
+            wpCycleGridContainer.innerHTML = '<div style="grid-column: span 3; text-align: center; font-family: var(--font-mono); font-size: 11px; padding: 20px; opacity: 0.7;">Loading list...</div>';
+          }
+
+          scanWallpapers(function(files) {
+            self.scannedWallpaperList = files;
+            renderCycleGrid(files);
+          });
+        });
+      }
+
+      function closeCycleModal() {
+        if (wpCycleModal) wpCycleModal.classList.remove('active');
+      }
+
+      if (wpCycleCloseBtn) {
+        wpCycleCloseBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          closeCycleModal();
+        });
+      }
+
+      if (wpCycleCancelBtn) {
+        wpCycleCancelBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          closeCycleModal();
+        });
+      }
+
+      if (wpCycleApplyBtn) {
+        wpCycleApplyBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          self.editedCycleWallpapers = tempSelectedCycleWallpapers.slice();
+          closeCycleModal();
         });
       }
 

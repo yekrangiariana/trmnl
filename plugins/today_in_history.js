@@ -425,28 +425,31 @@
 
       // Article Content Viewport
       html += '  <div class="article-reader-body" style="display:flex; flex-direction:column; flex:1; overflow-y:auto; margin-bottom: 12px; padding-right: 8px;">';
-      
-      // Render Thumbnail Image if available
-      if (page && page.thumbnail && page.thumbnail.source) {
-        html += '    <div style="display: flex; align-items: center; justify-content: center; overflow: hidden; height: 220px; background-color: var(--card-bg); position: relative; margin-bottom: 16px; border-radius: 8px; border: var(--border-width-thin) solid var(--border-color);">';
-        html += '      <img src="' + page.thumbnail.source + '" alt="Article image" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.4) brightness(0.9); image-rendering: pixelated;" decoding="async">';
-        html += '      <div class="trmnl-dither" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.45; pointer-events: none; mix-blend-mode: multiply;"></div>';
-        html += '    </div>';
-      }
-
       html += '    <h1 style="font-family: var(--font-sans); font-size: 25px; font-weight: 800; line-height: 1.25; margin-bottom: 14px; color: var(--text-color);">' + title + '</h1>';
       
+      html += '    <div style="display: block; width: 100%;">';
+
+      // Render Thumbnail Image floated to the right if available
+      if (page && page.thumbnail && page.thumbnail.source) {
+        html += '      <div style="float: right; width: 50%; max-width: 380px; margin-left: 18px; margin-bottom: 12px; border-radius: 8px; overflow: hidden; border: var(--border-width-thin) solid var(--border-color); position: relative; background-color: var(--card-bg);">';
+        html += '        <img src="' + page.thumbnail.source + '" alt="Article image" style="width: 100%; height: auto; display: block; filter: grayscale(1) contrast(1.4) brightness(0.9);" decoding="async">';
+        html += '        <div class="trmnl-dither" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.45; pointer-events: none; mix-blend-mode: multiply;"></div>';
+        html += '      </div>';
+      }
+
       paragraphs.forEach(function(p) {
         if (p.indexOf("## ") === 0) {
           var sub2 = p.substring(3);
-          html += '    <h2 style="font-family: var(--font-sans); font-size: 20px; font-weight: 700; margin-top: 18px; margin-bottom: 8px; color: var(--text-color);">' + sub2 + '</h2>';
+          html += '      <h2 style="font-family: var(--font-sans); font-size: 20px; font-weight: 700; margin-top: 18px; margin-bottom: 8px; color: var(--text-color); clear: both;">' + sub2 + '</h2>';
         } else if (p.indexOf("### ") === 0) {
           var sub3 = p.substring(4);
-          html += '    <h3 style="font-family: var(--font-sans); font-size: 17px; font-weight: 700; margin-top: 14px; margin-bottom: 6px; color: var(--text-color);">' + sub3 + '</h3>';
+          html += '      <h3 style="font-family: var(--font-sans); font-size: 17px; font-weight: 700; margin-top: 14px; margin-bottom: 6px; color: var(--text-color); clear: both;">' + sub3 + '</h3>';
         } else {
-          html += '    <p style="font-family: var(--font-serif); font-size: 18px; line-height: 1.6; margin-bottom: 12px; color: var(--text-color); text-align: justify; opacity: 0.9;">' + p + '</p>';
+          html += '      <p style="font-family: var(--font-serif); font-size: 18px; line-height: 1.6; margin-bottom: 12px; color: var(--text-color); text-align: justify; opacity: 0.9;">' + p + '</p>';
         }
       });
+
+      html += '    </div>';
       html += '  </div>';
 
       // Custom Dithered Footer Bar
