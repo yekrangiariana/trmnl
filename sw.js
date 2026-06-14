@@ -6,7 +6,7 @@
  * iOS 12 Safari Compatible.
  */
 
-var CACHE_NAME = "brief-dashboard-cache-v55";
+var CACHE_NAME = "brief-dashboard-cache-v60";
 var STATIC_ASSETS = [
   "/",
   "./",
@@ -93,7 +93,9 @@ self.addEventListener("fetch", function (event) {
 
   // Bypass Service Worker for directory listings to avoid iOS 12 WebKit response.clone() bugs.
   // The client code will handle caching/offline fallback using localStorage.
-  var isDirectoryListing = requestUrl.pathname.endsWith('/wallpapers/') || requestUrl.pathname.endsWith('/wallpapers');
+  var isDirectoryListing =
+    requestUrl.pathname.endsWith("/wallpapers/") ||
+    requestUrl.pathname.endsWith("/wallpapers");
   if (isDirectoryListing) {
     return;
   }
@@ -103,8 +105,9 @@ self.addEventListener("fetch", function (event) {
 
   if (isApiRequest) {
     // Check if it's a static CDN asset (like Google Fonts)
-    var isStaticCDN = requestUrl.hostname.indexOf("fonts.googleapis.com") !== -1 ||
-                      requestUrl.hostname.indexOf("fonts.gstatic.com") !== -1;
+    var isStaticCDN =
+      requestUrl.hostname.indexOf("fonts.googleapis.com") !== -1 ||
+      requestUrl.hostname.indexOf("fonts.gstatic.com") !== -1;
 
     if (isStaticCDN) {
       // Stale-While-Revalidate strategy for CDN static assets (Fonts)
@@ -124,7 +127,7 @@ self.addEventListener("fetch", function (event) {
               // Ignore fetch failures when offline
             });
           return cachedResponse || fetchPromise;
-        })
+        }),
       );
     } else {
       // Network-First strategy for dynamic API responses (Open-Meteo, Wikipedia, Todoist, etc.)
