@@ -385,7 +385,7 @@
           return;
         }
 
-        this.displayArticle(title, dateStr, paragraphs, false, imageUrl);
+        this.displayArticle(title, dateStr, paragraphs, false, imageUrl, item);
       } catch (e) {
         console.warn("Failed to parse article content:", e);
         this.renderArticleFallback(item);
@@ -395,24 +395,52 @@
     renderArticleFallback: function(item) {
       var desc = item.description || item.content || "Could not retrieve full article text.";
       desc = desc.replace(/<[^>]*>/g, ""); // strip HTML
-      this.displayArticle(item.title, item.pubDate, [desc], true, item.thumbnail || "");
+      this.displayArticle(item.title, item.pubDate, [desc], true, item.thumbnail || "", item);
     },
 
-    displayArticle: function(title, dateStr, paragraphs, isFallback, imageUrl) {
+    displayArticle: function(title, dateStr, paragraphs, isFallback, imageUrl, currentItem) {
       var self = this;
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; padding: 4px 0 0 0;">';
       
-      // Article Header (Back button only)
-      html += '  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; border-bottom: var(--border-width-thin) solid var(--border-color); padding-bottom: 6px;">';
-      html += '    <button id="article-back-btn" class="trmnl-btn" style="padding: 2px 10px; font-size: 11px; height: 26px; line-height: 1; border-radius: 4px; font-family: var(--font-sans); text-transform: uppercase; cursor: pointer;">&larr; Back</button>';
-      if (isFallback) {
-        html += '    <span style="font-family: var(--font-mono); font-size: 12px; opacity: 0.7;">(Summary)</span>';
+      // Find previous and next items in cached headlines list
+      var prevItem = null;
+      var nextItem = null;
+      if (self.cachedHeadlines && currentItem) {
+        var currentIndex = -1;
+        for (var i = 0; i < self.cachedHeadlines.length; i++) {
+          if (self.cachedHeadlines[i] === currentItem || self.cachedHeadlines[i].title === currentItem.title) {
+            currentIndex = i;
+            break;
+          }
+        }
+        if (currentIndex > 0) {
+          prevItem = self.cachedHeadlines[currentIndex - 1];
+        }
+        if (currentIndex >= 0 && currentIndex < self.cachedHeadlines.length - 1) {
+          nextItem = self.cachedHeadlines[currentIndex + 1];
+        }
       }
+
+      // Article Header (Back, Prev, Next navigation)
+      html += '  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; border-bottom: var(--border-width-thin) solid var(--border-color); padding-bottom: 6px;">';
+      html += '    <div>';
+      html += '      <button id="article-back-btn" class="trmnl-btn" style="padding: 2px 10px; font-size: 11px; height: 26px; line-height: 1; border-radius: 4px; font-family: var(--font-sans); text-transform: uppercase; cursor: pointer;">&larr; Back</button>';
+      html += '    </div>';
+      
+      html += '    <div style="display: flex; align-items: center; gap: 8px;">';
+      if (isFallback) {
+        html += '      <span style="font-family: var(--font-mono); font-size: 12px; opacity: 0.7; margin-right: 8px;">(Summary)</span>';
+      }
+      var prevDisabledStyle = !prevItem ? 'opacity: 0.35; cursor: not-allowed;' : 'cursor: pointer;';
+      var nextDisabledStyle = !nextItem ? 'opacity: 0.35; cursor: not-allowed;' : 'cursor: pointer;';
+      html += '      <button id="article-prev-btn" class="trmnl-btn secondary" style="padding: 2px 10px; font-size: 11px; height: 26px; line-height: 1; border-radius: 4px; font-family: var(--font-sans); text-transform: uppercase; ' + prevDisabledStyle + '"' + (!prevItem ? ' disabled' : '') + '>&larr; Prev</button>';
+      html += '      <button id="article-next-btn" class="trmnl-btn secondary" style="padding: 2px 10px; font-size: 11px; height: 26px; line-height: 1; border-radius: 4px; font-family: var(--font-sans); text-transform: uppercase; ' + nextDisabledStyle + '"' + (!nextItem ? ' disabled' : '') + '>Next &rarr;</button>';
+      html += '    </div>';
       html += '  </div>';
 
       // Article Content Viewport
       html += '  <div class="article-reader-body" style="display:flex; flex-direction:column; flex:1; overflow-y:auto; margin-bottom: 12px; padding-right: 8px;">';
-      html += '    <h1 style="font-family: var(--font-sans); font-size: 25px; font-weight: 800; line-height: 1.25; margin-bottom: 14px; color: var(--text-color);">' + title + '</h1>';
+      html += '    <h1 style="font-family: var(--font-sans); font-size: 25px; font-weight: 800; line-height: 1.25; margin-bottom: 14px; color: var(--text-color); margin-right: 45%;">' + title + '</h1>';
       
       html += '    <div style="display: block; width: 100%;">';
 
@@ -430,7 +458,7 @@
           var sub = p.substring(4);
           html += '      <h2 style="font-family: var(--font-sans); font-size: 20px; font-weight: 700; margin-top: 16px; margin-bottom: 8px; color: var(--text-color); clear: both;">' + sub + '</h2>';
         } else {
-          html += '      <p style="font-family: var(--font-serif); font-size: 18px; line-height: 1.6; margin-bottom: 12px; color: var(--text-color); text-align: justify; opacity: 0.9;">' + p + '</p>';
+          html += '      <p style="font-family: var(--font-serif); font-size: 18px; line-height: 1.6; margin-bottom: 12px; color: var(--text-color); text-align: left; opacity: 0.9;">' + p + '</p>';
         }
       });
       html += '      </div>';
@@ -461,6 +489,22 @@
             window.Dashboard.resumeTimer();
           }
           self.renderHeadlines(self.cachedHeadlines || []);
+        });
+      }
+
+      var prevBtn = this.container.querySelector('#article-prev-btn');
+      if (prevBtn && prevItem) {
+        prevBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          self.viewArticle(prevItem);
+        });
+      }
+
+      var nextBtn = this.container.querySelector('#article-next-btn');
+      if (nextBtn && nextItem) {
+        nextBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          self.viewArticle(nextItem);
         });
       }
     },

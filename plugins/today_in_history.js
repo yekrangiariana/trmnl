@@ -181,6 +181,12 @@
         var displayBirths = births.slice(0, 5);
         var displayDeaths = deaths.slice(0, 5);
 
+        // Save flat reader list for reader navigation
+        displayEvents.forEach(function(item) { item.type = 'event'; });
+        displayBirths.forEach(function(item) { item.type = 'birth'; });
+        displayDeaths.forEach(function(item) { item.type = 'death'; });
+        self.cachedReaderList = displayEvents.concat(displayBirths).concat(displayDeaths);
+
         // Left Column: Events (Full Height, max 560px)
         html += '    <div class="grid-col col-1" style="justify-content:space-between; height: 560px; overflow:hidden;">';
         html += '      <h2 class="history-title" style="margin-bottom: 6px; font-size: 24px;">On This Day</h2>';
@@ -241,6 +247,10 @@
         var displayEvents = self.getSelectedEvents(events, mode, 14);
         var leftEvents = displayEvents.slice(0, 7);
         var rightEvents = displayEvents.slice(7);
+
+        // Save flat reader list for reader navigation
+        displayEvents.forEach(function(item) { item.type = 'event'; });
+        self.cachedReaderList = displayEvents;
 
         // Left Column
         html += '    <div class="grid-col col-1" style="justify-content:space-between; height: 560px; overflow:hidden;">';
@@ -401,7 +411,7 @@
         }
 
         var title = page.normalizedtitle || page.title || item.text;
-        this.displayWikipediaArticle(title, paragraphs, page);
+        this.displayWikipediaArticle(title, paragraphs, page, item);
       } catch (e) {
         console.warn("Error parsing Wikipedia contents:", e);
         this.renderWikipediaFallback(item, page);
@@ -411,21 +421,49 @@
     renderWikipediaFallback: function(item, page) {
       var title = page ? (page.normalizedtitle || page.title) : "Historical Event";
       var summary = (page && page.extract) ? page.extract : item.text;
-      this.displayWikipediaArticle(title, [summary], page);
+      this.displayWikipediaArticle(title, [summary], page, item);
     },
 
-    displayWikipediaArticle: function(title, paragraphs, page) {
+    displayWikipediaArticle: function(title, paragraphs, page, item) {
       var self = this;
       var html = '<div style="display:flex; flex-direction:column; height:100%; justify-content:space-between; padding: 4px 0 0 0;">';
       
-      // Article Header (Back button only)
+      // Find previous and next items in cached reader list
+      var prevItem = null;
+      var nextItem = null;
+      if (self.cachedReaderList && item) {
+        var currentIndex = -1;
+        for (var i = 0; i < self.cachedReaderList.length; i++) {
+          if (self.cachedReaderList[i] === item || self.cachedReaderList[i].text === item.text) {
+            currentIndex = i;
+            break;
+          }
+        }
+        if (currentIndex > 0) {
+          prevItem = self.cachedReaderList[currentIndex - 1];
+        }
+        if (currentIndex >= 0 && currentIndex < self.cachedReaderList.length - 1) {
+          nextItem = self.cachedReaderList[currentIndex + 1];
+        }
+      }
+
+      // Article Header (Back, Prev, Next navigation)
       html += '  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; border-bottom: var(--border-width-thin) solid var(--border-color); padding-bottom: 6px;">';
-      html += '    <button id="article-back-btn" class="trmnl-btn" style="padding: 2px 10px; font-size: 11px; height: 26px; line-height: 1; border-radius: 4px; font-family: var(--font-sans); text-transform: uppercase; cursor: pointer;">&larr; Back</button>';
+      html += '    <div>';
+      html += '      <button id="article-back-btn" class="trmnl-btn" style="padding: 2px 10px; font-size: 11px; height: 26px; line-height: 1; border-radius: 4px; font-family: var(--font-sans); text-transform: uppercase; cursor: pointer;">&larr; Back</button>';
+      html += '    </div>';
+      
+      html += '    <div style="display: flex; align-items: center; gap: 8px;">';
+      var prevDisabledStyle = !prevItem ? 'opacity: 0.35; cursor: not-allowed;' : 'cursor: pointer;';
+      var nextDisabledStyle = !nextItem ? 'opacity: 0.35; cursor: not-allowed;' : 'cursor: pointer;';
+      html += '      <button id="article-prev-btn" class="trmnl-btn secondary" style="padding: 2px 10px; font-size: 11px; height: 26px; line-height: 1; border-radius: 4px; font-family: var(--font-sans); text-transform: uppercase; ' + prevDisabledStyle + '"' + (!prevItem ? ' disabled' : '') + '>&larr; Prev</button>';
+      html += '      <button id="article-next-btn" class="trmnl-btn secondary" style="padding: 2px 10px; font-size: 11px; height: 26px; line-height: 1; border-radius: 4px; font-family: var(--font-sans); text-transform: uppercase; ' + nextDisabledStyle + '"' + (!nextItem ? ' disabled' : '') + '>Next &rarr;</button>';
+      html += '    </div>';
       html += '  </div>';
 
       // Article Content Viewport
       html += '  <div class="article-reader-body" style="display:flex; flex-direction:column; flex:1; overflow-y:auto; margin-bottom: 12px; padding-right: 8px;">';
-      html += '    <h1 style="font-family: var(--font-sans); font-size: 25px; font-weight: 800; line-height: 1.25; margin-bottom: 14px; color: var(--text-color);">' + title + '</h1>';
+      html += '    <h1 style="font-family: var(--font-sans); font-size: 25px; font-weight: 800; line-height: 1.25; margin-bottom: 14px; color: var(--text-color); margin-right: 45%;">' + title + '</h1>';
       
       html += '    <div style="display: block; width: 100%;">';
 
@@ -446,7 +484,7 @@
           var sub3 = p.substring(4);
           html += '      <h3 style="font-family: var(--font-sans); font-size: 17px; font-weight: 700; margin-top: 14px; margin-bottom: 6px; color: var(--text-color); clear: both;">' + sub3 + '</h3>';
         } else {
-          html += '      <p style="font-family: var(--font-serif); font-size: 18px; line-height: 1.6; margin-bottom: 12px; color: var(--text-color); text-align: justify; opacity: 0.9;">' + p + '</p>';
+          html += '      <p style="font-family: var(--font-serif); font-size: 18px; line-height: 1.6; margin-bottom: 12px; color: var(--text-color); text-align: left; opacity: 0.9;">' + p + '</p>';
         }
       });
       html += '      </div>';
@@ -481,6 +519,22 @@
           } else {
             self.update();
           }
+        });
+      }
+
+      var prevBtn = this.container.querySelector('#article-prev-btn');
+      if (prevBtn && prevItem) {
+        prevBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          self.viewWikipediaArticle(prevItem);
+        });
+      }
+
+      var nextBtn = this.container.querySelector('#article-next-btn');
+      if (nextBtn && nextItem) {
+        nextBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          self.viewWikipediaArticle(nextItem);
         });
       }
     },

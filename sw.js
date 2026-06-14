@@ -6,7 +6,7 @@
  * iOS 12 Safari Compatible.
  */
 
-var CACHE_NAME = "brief-dashboard-cache-v61";
+var CACHE_NAME = "brief-dashboard-cache-v62";
 var STATIC_ASSETS = [
   "/",
   "./",

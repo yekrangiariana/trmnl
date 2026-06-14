@@ -2128,6 +2128,10 @@ body.portrait .wallpaper-grid {
 .news-item:hover .news-item-title {
   text-decoration: underline;
 }
+.article-reader-body {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
 .article-reader-body::-webkit-scrollbar {
   width: 6px;
 }
